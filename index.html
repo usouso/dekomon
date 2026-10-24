@@ -701,7 +701,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   $('startBtn').addEventListener('click', function () { initAudio(); startRun(); });
   $('againBtn1').addEventListener('click', function () { initAudio(); restart(); });
   $('againBtn2').addEventListener('click', function () { initAudio(); restart(); });
-  window.__dekomon = { G: G, OPT: OPT, seed: seed, dbg: { showClear: showClear, showOver: showOver } };
+  window.__dekomon = { G: G, OPT: OPT, seed: seed, dbg: { showClear: showClear, showOver: showOver, showPre: showPre } };
   if (OPT.auto) setTimeout(function () { $('startBtn').click(); }, 300);
 })();
 </script>

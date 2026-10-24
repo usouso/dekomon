@@ -168,6 +168,8 @@ var ok = function (b) { return b ? '届いた' : '届かない'; };
 console.log('| ランダムの5連勝率 5% 以下 | ' + pct(stR.clears / stR.runs) + ' | ' + ok(stR.clears / stR.runs <= 0.05) + ' |');
 console.log('| 合わせの5連勝率 40〜60% | ' + pct(stM.clears / stM.runs) + ' | ' + ok(stM.clears / stM.runs >= 0.4 && stM.clears / stM.runs <= 0.6) + ' |');
 console.log('| 固定のどの組み合わせも平均勝率 65% 以下 | 最高 ' + pct(rows[0].rate) + ' | ' + ok(rows[0].rate <= 0.65) + ' |');
-console.log('| 1戦の手数が だいたい 8〜14手 | 合わせ：平均 ' + f1(hsM.mean) + '手、8〜14手 ' + pct(hsM.within) + ' ／ ランダム：平均 ' + f1(hsR.mean) + '手、8〜14手 ' + pct(hsR.within) + ' | ' + ok(hsM.within >= 0.6 && hsR.within >= 0.6) + ' |');
+// 「だいたい」の判定：平均と中央値が 8〜14 に入り、半分以上の戦いが 8〜14 手に収まる
+var handsOk = function (hs) { return hs.mean >= 8 && hs.mean <= 14 && hs.p50 >= 8 && hs.p50 <= 14 && hs.within >= 0.5; };
+console.log('| 1戦の手数が だいたい 8〜14手（平均と中央値が範囲内、かつ半分以上が範囲内） | 合わせ：平均 ' + f1(hsM.mean) + '手、中央 ' + hsM.p50 + '手、8〜14手 ' + pct(hsM.within) + ' ／ ランダム：平均 ' + f1(hsR.mean) + '手、中央 ' + hsR.p50 + '手、8〜14手 ' + pct(hsR.within) + ' | ' + ok(handsOk(hsM) && handsOk(hsR)) + ' |');
 console.log('');
 console.log('（計算時間 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒）');

@@ -155,7 +155,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .mid-title { font-size: 1.2rem; color: var(--accent); font-weight: 800; }
 .zk { background: var(--panel); border-radius: 14px; padding: 10px 14px; margin: 8px 0; border: 3px solid var(--line); }
 .zk.found { border-color: var(--accent); }
-.zk.spark.found { border-color: var(--gold); }
+.zk.lv2.found { border-color: var(--gold); }
 .zk .n { font-size: 1.25rem; font-weight: 800; }
 .zk .d { color: var(--sub); margin-top: 2px; }
 .zk.unknown .n { color: #8a8f9c; }
@@ -209,7 +209,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 /* 寄りで拡大する層の外側に、不透明の層（後ろの画面が透けないように） */
 .arena-wrap { position: relative; flex: 1; min-height: 260px; margin-top: 4px; border-radius: 16px; background: #1b1f2a; overflow: hidden; }
 .arena { position: absolute; inset: 0; background: linear-gradient(#232838, #1b1f2a 70%); transition: transform calc(.08s * var(--spd)) ease-out; transform-origin: 50% 60%; }
-.arena.zoom { transform: scale(1.04); } .arena.zoom.big { transform: scale(1.08); }
+.arena.zoom { transform: scale(1.04); } .arena.zoom.zbig { transform: scale(1.08); }
 .arena .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 14%; background: #2b3042; }
 .arena.mud .ground { background: #4a3a2a; } .arena.rain .ground { background: #2b3d55; } .arena.wind .ground { background: #3a4a3a; }
 .rain-fx { position: absolute; inset: 0; pointer-events: none; display: none; background: repeating-linear-gradient(100deg, transparent 0 18px, #9cc8ff22 18px 20px); }
@@ -236,6 +236,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .anim.blow { transform-origin: 50% 62%; animation: blow calc(.7s * var(--spd)) ease-out forwards; }
 @keyframes blow { 0% { transform: translate(0,0) rotate(0); opacity: 1;} 60% { transform: translate(calc(-26% * var(--dir)), -16%) rotate(calc(-70deg * var(--dir))); opacity: .9;} 100% { transform: translate(calc(-22% * var(--dir)), 4%) rotate(calc(-95deg * var(--dir))); opacity: .45;} }
 .stbar { position: absolute; left: -4%; right: -4%; bottom: -10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; pointer-events: none; z-index: 3; }
+.mon-wrap.p .stbar { right: 4%; } .mon-wrap.e .stbar { left: 4%; }
 .stchip { font-size: 1rem; font-weight: 800; padding: 2px 8px; border-radius: 8px; background: #000a; color: #fff; }
 .stchip.poison { color: #e2b7ff; } .stchip.brittle { color: #ffd0a0; } .stchip.stagger { color: #bfe3ff; }
 .stchip.cd { color: var(--accent); } .stchip.cd.now { color: #fff; background: #7a5c00dd; }
@@ -250,28 +251,28 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .big.bighit { font-size: 1.9rem; color: #ffe08a; }
 .big.status { color: #e2b7ff; }
 @media (min-width: 900px) { .big { font-size: 1.7rem; } .big.bighit { font-size: 2.1rem; } }
-.synpop { position: absolute; left: 6%; right: 6%; top: 23%; text-align: center; z-index: 6; display: none; pointer-events: none; }
+.synpop { position: absolute; left: 6%; right: 6%; top: 22%; text-align: center; z-index: 6; display: none; pointer-events: none; }
 .synpop.on { display: block; animation: synIn calc(.5s * var(--spd)) ease-out; }
 @keyframes synIn { 0% { transform: scale(.5); opacity: 0;} 60% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); } }
 .synpop .name { font-size: 2.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 14px #ffcc4d, 0 3px 0 #000; }
 @media (min-width: 900px) { .synpop .name { font-size: 2.6rem; } }
 /* みつけた！（本の印へ吸い込まれる） */
-.found { position: absolute; inset: 0; z-index: 7; display: none; pointer-events: none; }
-.found.on { display: block; }
-.found .fcard { position: absolute; top: 27%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
+#found { position: absolute; inset: 0; z-index: 7; display: none; pointer-events: none; }
+#found.on { display: block; }
+.found .fcard { position: absolute; top: 33%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
 .found .fcard.l { left: -40%; } .found .fcard.r { right: -40%; }
 .found.fly .fcard.l { left: 22%; } .found.fly .fcard.r { right: 22%; }
 .found.merge .fcard { opacity: 0; }
-.found .fname { position: absolute; left: 10%; right: 10%; top: 27%; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
+.found .fname { position: absolute; left: 10%; right: 10%; top: 33%; line-height: 1.15; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
 .found.merge .fname { opacity: 1; transform: translateY(-50%) scale(1); }
-.found .ftag { position: absolute; left: 10%; right: 10%; top: 17%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
+.found .ftag { position: absolute; left: 10%; right: 10%; top: 22%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
 .found.merge .ftag { opacity: 1; }
 .found.suck .fname { transform-origin: 0 0; transition: all calc(.4s * var(--spd)) ease-in; left: 10px; right: auto; top: 10px; transform: scale(.15); opacity: .2; }
 .found.suck .ftag { opacity: 0; }
 .zkicon { position: absolute; left: 8px; top: 8px; width: 44px; height: 44px; z-index: 8; opacity: .55; transition: transform calc(.3s * var(--spd)), opacity calc(.3s * var(--spd)); }
 .zkicon.lit { opacity: 1; transform: scale(1.3); filter: drop-shadow(0 0 12px #ffcc4d); }
 /* ひらめき（電球、金色） */
-.sparkpop { position: absolute; left: 6%; right: 6%; top: 21%; text-align: center; z-index: 7; display: none; pointer-events: none; }
+.sparkpop { position: absolute; left: 6%; right: 6%; top: 22%; text-align: center; z-index: 7; display: none; pointer-events: none; }
 .sparkpop.on { display: block; animation: synIn calc(.5s * var(--spd)) ease-out; }
 .sparkpop .t1 { font-size: 1.25rem; font-weight: 900; color: var(--gold); text-shadow: 0 2px 0 #000, 0 0 10px #000; }
 .sparkpop .t2 { font-size: 1.8rem; font-weight: 900; color: #fff; text-shadow: 0 0 16px #ffd54a, 0 3px 0 #000; }
@@ -307,8 +308,10 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .shield.break { animation: shieldBreak calc(.3s * var(--spd)) ease-in forwards; }
 @keyframes shieldIn { 0% { transform: translate(-50%,-50%) scale(.6); opacity: 0;} 100% { transform: translate(-50%,-50%) scale(1); opacity: 1;} }
 @keyframes shieldBreak { 0% { opacity: 1; transform: translate(-50%,-50%) scale(1);} 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.25);} }
-.dmg { font-weight: 900; font-size: 2.1rem; color: #fff; text-shadow: 0 2px 0 #000, 0 0 10px #000; white-space: nowrap; animation: dmgPop calc(.5s * var(--spd)) ease-out forwards; }
-@keyframes dmgPop { 0% { transform: translate(-50%,-50%) scale(.3); opacity: 0;} 35% { transform: translate(-50%,-60%) scale(1.5); opacity: 1;} 100% { transform: translate(-50%,-110%) scale(1); opacity: 1;} }
+.dmg { font-weight: 900; font-size: 2.1rem; line-height: 1; color: #fff; text-shadow: 0 2px 0 #000, 0 0 10px #000; white-space: nowrap; animation: dmgPop calc(.5s * var(--spd)) ease-out forwards; }
+@keyframes dmgPop { 0% { transform: translate(-50%,-50%) scale(.3); opacity: 0;} 35% { transform: translate(-50%,-90%) scale(1.25); opacity: 1;} 100% { transform: translate(-50%,-110%) scale(1); opacity: 1;} }
+.dmg.fade { animation: dmgFade calc(.25s * var(--spd)) ease-out forwards; }
+@keyframes dmgFade { 0% { transform: translate(-50%,-110%) scale(1); opacity: 1;} 100% { transform: translate(-50%,-125%) scale(1); opacity: 0;} }
 .dmg.bighit { font-size: 2.9rem; color: #ffe08a; }
 .dmg.weak { font-size: 1.5rem; color: #a9adb8; }
 .dmg.counter { color: #ffd54a; }
@@ -316,7 +319,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .dmg.poison { color: #e2b7ff; font-size: 1.8rem; }
 .dmg.stat { font-size: 1.4rem; color: #e2b7ff; }
 @media (min-width: 900px) { .dmg { font-size: 2.6rem; } .dmg.bighit { font-size: 3.6rem; } .dmg.weak { font-size: 1.8rem; } }
-.result { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
+.result { position: absolute; left: 0; right: 0; top: 40%; text-align: center; line-height: 1.1; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
 .result.on { display: block; animation: pop calc(.4s * var(--spd)) ease-out; }
 .result.finish { font-size: 3.4rem; }
 @keyframes pop { 0% { transform: scale(.4); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
@@ -728,7 +731,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var sl = $('sparkList'); sl.innerHTML = '';
     S.PARTS.forEach(function (p) {
       var found = STORE.sparks.indexOf(p.id) >= 0;
-      sl.appendChild(el('div', 'zk spark ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(p.name) + ' Lv2' : '？？？') + '</div><div class="d">' + (found ? esc(p.lv2text) : 'まだ ひらめいていない') + '</div>'));
+      sl.appendChild(el('div', 'zk lv2 ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(p.name) + ' Lv2' : '？？？') + '</div><div class="d">' + (found ? esc(p.lv2text) : 'まだ ひらめいていない') + '</div>'));
     });
     $('zukanCount').textContent = STORE.zukan.length + '／' + S.SYNERGIES.length + '・' + STORE.sparks.length + '／' + S.PARTS.length;
     $('dendoCount').textContent = STORE.hall.length ? STORE.hall.length + 'ひき' : '';
@@ -936,6 +939,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       onDone && onDone();
     }
     var lastNow = 0;
+    window.__tl = { setSpeed: function (v) { t0 = Date.now() - lastNow / v; OPT.speed = v; document.documentElement.style.setProperty('--spd', String(1 / v)); } };
     function tick() {
       if (!OPT.bg && hiddenAt !== null) { requestAnimationFrame(tick); return; }
       var now = (Date.now() - t0) * OPT.speed;
@@ -992,9 +996,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     setTimeout(function () { ['p', 'e'].forEach(function (s) { animEl(s).classList.remove('stop'); }); }, ms / OPT.speed);
   }
   function zoomArena(big) {
-    var a = $('arena'); a.classList.add('zoom'); a.classList.toggle('big', !!big);
+    var a = $('arena'); a.classList.add('zoom'); a.classList.toggle('zbig', !!big);
     checkSeeThrough('zoom');
-    setTimeout(function () { a.classList.remove('zoom'); a.classList.remove('big'); }, 120 / OPT.speed);
+    setTimeout(function () { a.classList.remove('zoom'); a.classList.remove('zbig'); }, 120 / OPT.speed);
   }
   function arenaPt(elm, fx, fy) {
     var r = elm.getBoundingClientRect(), a = $('arena').getBoundingClientRect();
@@ -1086,18 +1090,33 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     removeLater(s, flight + 40);
   }
   var dmgNext = { p: null, e: null }, dmgCol = { p: 0, e: 0 };
+  function fadeDmg() { Array.prototype.forEach.call($('fx').querySelectorAll('.dmg'), function (d) { d.classList.add('fade'); }); }
   function dmgFx(side, text, cls) {
+    if ($('bResult').classList.contains('on')) return; // 結果の文字が出たあとの数字（とどめのあとの回復など）は出さない
     var b = bodyEl(side); var c = arenaPt(b, 0.5, 0.5);
-    var ar = $('arena').getBoundingClientRect();
+    var ar = { width: $('arena').clientWidth, height: $('arena').clientHeight };
     var d = spawn('dmg' + (cls ? ' ' + cls : ''), c.x, c.y);
-    d.textContent = text;
+    d.textContent = text; d.dataset.side = side;
     var h = d.offsetHeight || 40, w = d.offsetWidth || 40;
-    var y = dmgNext[side] === null ? c.y : dmgNext[side];
-    if (y < ar.height * 0.52) { dmgCol[side]++; y = c.y; } // 上の帯に届いたら 2列目（中央よりに ずらす）
-    var x = c.x + (side === 'p' ? 1 : -1) * dmgCol[side] * 72;
-    x = Math.max(w / 2 + 4, Math.min(ar.width - w / 2 - 4, x));
+    // 1列目は体の真ん中から上へ。2列目は中央よりに 110px ずらし、自分は上へ・相手は下へ積む（両方の2列目が舞台の中央で出会っても重ならない）。
+    // dmgNext は 前の文字の箱の端（上へ積むときは上端、下へ積むときは下端）。出たときのふくらみぶん 0.35h も空ける。
+    var A = ar.height * 0.66; // 2列目の基準の高さ（体の大きさによらず同じ。自分は ここから上へ、相手は ここから下へ）
+    function anchorY(col) { return col === 0 ? c.y : (side === 'e' ? A + h * 1.4 + 4 : A); }
+    var down = side === 'e' && dmgCol[side] > 0;
+    var y;
+    if (dmgNext[side] === null) y = anchorY(dmgCol[side]);
+    else y = down ? dmgNext[side] + h * 1.45 + 4 : dmgNext[side] - h * 0.35 - 4;
+    var over = down ? (y - h * 0.1 > ar.height * 0.86) : (y - h * 1.1 < ar.height * 0.37);
+    if (dmgNext[side] !== null && over) { // 帯か足元に届いたら 次の列。2列目も いっぱいなら、その側の数字を消して 1列目から
+      if (dmgCol[side] >= 1) { Array.prototype.forEach.call($('fx').querySelectorAll('.dmg[data-side="' + side + '"]'), function (e) { e.parentNode.removeChild(e); }); dmgCol[side] = 0; }
+      else dmgCol[side]++;
+      down = side === 'e' && dmgCol[side] > 0; y = anchorY(dmgCol[side]);
+    }
+    var x = c.x + (side === 'p' ? 1 : -1) * dmgCol[side] * 110;
+    x = Math.max(w * 0.8, Math.min(ar.width - w * 0.8, x));
+    y = Math.max(h * 1.2, y);
     d.style.left = x + 'px'; d.style.top = y + 'px';
-    dmgNext[side] = y - (h * 0.62 + 4);
+    dmgNext[side] = down ? y - h * 0.1 : y - h * 1.1; // この文字の箱の端（浮き上がったあと）
     dmgCount[side]++;
   }
   function clearFx() { $('fx').innerHTML = ''; dmgCount = { p: 0, e: 0 }; dmgNext = { p: null, e: null }; dmgCol = { p: 0, e: 0 }; }
@@ -1113,6 +1132,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     setTimeout(function () { f.classList.remove('on'); }, 450 / OPT.speed);
   }
   function showResult(text, color, finish) {
+    fadeDmg();
     var r = $('bResult'); r.textContent = text; r.style.color = color; r.className = 'result on' + (finish ? ' finish' : '');
   }
   var ST = { p: {}, e: {} };
@@ -1194,7 +1214,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       var hasText = false;
       for (var k = 0; k < e.childNodes.length; k++) { var n = e.childNodes[k]; if (n.nodeType === 3 && n.textContent.trim()) { hasText = true; break; } }
       if (!hasText) continue;
-      if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') continue;
+      var cs = getComputedStyle(e);
+      if (!e.offsetParent && cs.position !== 'fixed') continue;
+      if (parseFloat(cs.opacity) < 0.3) continue; // ほぼ透明（消えていく途中）は数えない
       var r = e.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0 || r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) continue;
       out.push({ el: e, r: r, text: e.textContent.trim().slice(0, 30) });
@@ -1265,6 +1287,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var brng = S.makeRng(Math.floor(G.rng() * 4294967296));
     var res = S.simulateBattle(p, ef, f.id, { rng: brng, variance: OPT.rng0 ? 0 : undefined, spark: { stage: stage, pity: G.pity } });
     var used = G.attached.slice();
+    G.curRes = res;
 
     $('bField').textContent = 'フィールド：' + f.name;
     $('bPName').textContent = G.run.name;
@@ -1345,11 +1368,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             if (ev.hard) dtext.push('かたい −' + ev.hardFlat);
             if (ev.brittle) dtext.push('もろい ×' + ev.brittle);
             if (dtext.length) setBig(d, dtext.join(' '));
-            if (finisher) {
-              finishFlash(); shakeScreen(); sfx('finish');
-              showResult(d === 'e' ? 'たおした！' : 'やられた…', d === 'e' ? '#ffcc4d' : '#ff9c9c', true);
-            }
+            if (finisher) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
+          if (finisher) tl.at(pre + 230 + 520, function () { fadeDmg(); showResult(d === 'e' ? 'たおした！' : 'やられた…', d === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
           tl.at(pre + 230 + stop, function () {
             if (finisher) {
               playAnim(d, 'blow', true); dustFx(d); checkSeeThrough('slow');
@@ -1362,7 +1383,6 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
         } else if (ev.t === 'status') {
           tl.at(0, function () {
             setStatus(ev.side, ev.status, ev.hands);
-            dmgFx(ev.side, STATUS_NAMES[ev.status] + '！', 'stat');
             setBig(ev.side, STATUS_NAMES[ev.status] + ' に なった', null, null, 'status');
             sfx(ev.status);
           });
@@ -1383,8 +1403,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             hitFx(tgt, cFin, false); hitstop(cFin ? 250 : 80); zoomArena(cFin);
             dmgFx(tgt, ev.dmg, 'counter');
             setBig(cs, 'トゲ！ はんげき', ev.dmg);
-            if (cFin) { finishFlash(); shakeScreen(); sfx('finish'); showResult(tgt === 'e' ? 'たおした！' : 'やられた…', tgt === 'e' ? '#ffcc4d' : '#ff9c9c', true); }
+            if (cFin) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
+          if (cFin) tl.at(cPre + 520, function () { fadeDmg(); showResult(tgt === 'e' ? 'たおした！' : 'やられた…', tgt === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
           tl.at(cPre + (cFin ? 250 : 80), function () {
             if (cFin) { playAnim(tgt, 'blow', true); dustFx(tgt); }
             else { playAnim(tgt, 'squash'); dustFx(tgt); }
@@ -1397,8 +1418,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             setBig(ev.side, 'どく', ev.dmg, null, 'status');
             sfx('poison');
             if (ST[ev.side].poison) setStatus(ev.side, 'poison', Math.max(1, ST[ev.side].poison - 1));
-            if (ev.hp === 0) { playAnim(ev.side, 'blow', true); showResult(ev.side === 'e' ? 'たおした！' : 'やられた…', ev.side === 'e' ? '#ffcc4d' : '#ff9c9c', true); sfx('finish'); }
+            if (ev.hp === 0) { playAnim(ev.side, 'blow', true); sfx('finish'); }
           });
+          if (ev.hp === 0) tl.at(520, function () { fadeDmg(); showResult(ev.side === 'e' ? 'たおした！' : 'やられた…', ev.side === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
           tl.add(ev.hp === 0 ? 1100 : 450);
         } else if (ev.t === 'synergy') {
           var isNew = ev.side === 'p' && STORE.zukan.indexOf(ev.id) < 0;

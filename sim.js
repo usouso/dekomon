@@ -356,7 +356,7 @@
         dmg = Math.max(1, Math.round(dmg));
         d.hp = Math.max(0, d.hp - dmg);
         landed++;
-        var label = thisHorn ? 'ツノ' : (chargeNow ? 'おおわざ' : (claws ? 'ツメ' : 'こうげき'));
+        var label = thisHorn ? 'ツノ' : (chargeNow ? 'おおわざ' : (claws ? 'ツメ' : (eyeNow ? 'ひかるめ' : 'こうげき')));
         addDealt(a.side, label, dmg);
         events.push({ t: 'hit', side: a.side, parts: parts, dmg: dmg, hit: h + 1, hits: nHits, hp: d.hp,
           shell: blocked > 0 ? Math.round(blocked) : 0, hard: isHard(d), ranged: ranged,

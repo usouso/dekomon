@@ -1125,10 +1125,10 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       hand.events.forEach(function (ev) {
         if (ev.t === 'heal') {
           tl.at(0, function () { setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + ev.amt, 'heal'); if (ev.part) glowPart(ev.side, ev.part); sfx(ev.part === 'leech' ? 'leech' : 'heal'); });
-          tl.add(ev.src === 'すいつくくち' ? 0 : 420);
+          tl.add(0); // 回復は手を伸ばさない
         } else if (ev.t === 'charge') {
           tl.at(0, function () { animEl(ev.side).querySelector('.mon').classList.add('chargeglow'); setBig(ev.side, 'つぎ おおわざ', null, null, 'bighit'); sfx('eye'); });
-          tl.add(600);
+          tl.add(300); // ためるの予告だけ 0.3秒
         } else if (ev.t === 'double') {
           tl.at(0, function () { glowPart(a, 'spring'); playAnim(a, 'hop'); sfx('spring'); setBig(a, 'ばねあし！ 2かい うごく'); });
           tl.add(650);
@@ -1182,7 +1182,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             setBig(ev.side, STATUS_NAMES[ev.status] + ' に なった', null, null, 'status');
             sfx(ev.status);
           });
-          tl.add(260);
+          tl.add(0); // 状態の表示は手を伸ばさない
         } else if (ev.t === 'statusEnd') {
           tl.at(0, function () { setStatus(ev.side, ev.status, 0); });
         } else if (ev.t === 'counter') {

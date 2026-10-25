@@ -91,7 +91,6 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .first { font-size: 1.1rem; margin-top: 4px; min-height: 1.5em; }
 .first b { color: var(--accent); }
 .note { color: var(--bad); min-height: 1.4em; font-size: 1rem; }
-.sameBtn { margin-top: 6px; }
 
 /* パーツ札 */
 .plist { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -259,20 +258,20 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 /* みつけた！（本の印へ吸い込まれる） */
 #found { position: absolute; inset: 0; z-index: 7; display: none; pointer-events: none; }
 #found.on { display: block; }
-.found .fcard { position: absolute; top: 33%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
+.found .fcard { position: absolute; top: 34%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
 .found .fcard.l { left: -40%; } .found .fcard.r { right: -40%; }
 .found.fly .fcard.l { left: 22%; } .found.fly .fcard.r { right: 22%; }
 .found.merge .fcard { opacity: 0; }
-.found .fname { position: absolute; left: 10%; right: 10%; top: 33%; line-height: 1.15; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
+.found .fname { position: absolute; left: 10%; right: 10%; top: 34%; line-height: 1.15; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
 .found.merge .fname { opacity: 1; transform: translateY(-50%) scale(1); }
-.found .ftag { position: absolute; left: 10%; right: 10%; top: 22%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
+.found .ftag { position: absolute; left: 10%; right: 10%; top: 20%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
 .found.merge .ftag { opacity: 1; }
 .found.suck .fname { transform-origin: 0 0; transition: all calc(.4s * var(--spd)) ease-in; left: 10px; right: auto; top: 10px; transform: scale(.15); opacity: .2; }
 .found.suck .ftag { opacity: 0; }
 .zkicon { position: absolute; left: 8px; top: 8px; width: 44px; height: 44px; z-index: 8; opacity: .55; transition: transform calc(.3s * var(--spd)), opacity calc(.3s * var(--spd)); }
 .zkicon.lit { opacity: 1; transform: scale(1.3); filter: drop-shadow(0 0 12px #ffcc4d); }
 /* ひらめき（電球、金色） */
-.sparkpop { position: absolute; left: 6%; right: 6%; top: 22%; text-align: center; z-index: 7; display: none; pointer-events: none; }
+.sparkpop { position: absolute; left: 6%; right: 6%; top: 20%; text-align: center; z-index: 7; display: none; pointer-events: none; }
 .sparkpop.on { display: block; animation: synIn calc(.5s * var(--spd)) ease-out; }
 .sparkpop .t1 { font-size: 1.25rem; font-weight: 900; color: var(--gold); text-shadow: 0 2px 0 #000, 0 0 10px #000; }
 .sparkpop .t2 { font-size: 1.8rem; font-weight: 900; color: #fff; text-shadow: 0 0 16px #ffd54a, 0 3px 0 #000; }
@@ -326,11 +325,109 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 50; background: #fff; }
 .flash.on { animation: flashOut calc(.4s * var(--spd)) ease-out; }
 @keyframes flashOut { 0% { opacity: .27;} 100% { opacity: 0;} }
+
+/* 版5：≡メニュー、つづきから、確認 */
+.menubtn { position: fixed; top: 8px; right: 64px; z-index: 90; width: 48px; height: 48px; border-radius: 50%; background: var(--panel2); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.6rem; font-weight: 900; color: var(--text); }
+.menupop { position: fixed; top: 62px; right: 8px; z-index: 90; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: none; width: 260px; }
+.menupop.on { display: block; }
+.menupop .btn.sub { margin: 6px 0; }
+.menupop .mnote { color: var(--sub); font-size: 1rem; margin: 4px 2px 2px; }
+.contlbl { color: var(--accent); font-size: 1.15rem; font-weight: 700; margin-top: 8px; min-height: 1.6em; }
+.overlay { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 20px; }
+.overlay.on { display: flex; }
+.overlay .box { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 18px; max-width: 420px; width: 100%; }
+.overlay .box .q { font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; }
+.overlay .box .btn { margin-top: 8px; }
+/* 版5：かてば もらえる、そだちのゲージ */
+.reward { margin-top: 8px; padding: 8px 12px; border-radius: 12px; background: #2a3550; border: 2px solid #4a6aa0; font-size: 1.1rem; font-weight: 700; }
+.reward b { color: #bcd0ff; }
+.growrow { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 6px; }
+.growrow .gt { font-size: 1rem; color: var(--sub); }
+.gauges { display: flex; gap: 8px; margin-top: 4px; }
+.gauge { flex: 1; min-width: 0; }
+.gauge .gl { font-size: .95rem; color: var(--sub); display: flex; justify-content: space-between; }
+.gauge .gl b { color: var(--text); font-weight: 700; }
+.gauge .gb { height: 8px; border-radius: 4px; background: #141720; border: 1px solid var(--line); overflow: hidden; }
+.gauge .gb i { display: block; height: 100%; background: var(--sub); }
+.gauge.lead .gl b { color: var(--accent); }
+.gauge.lead .gb i { background: var(--accent); }
+/* 版5：場所ごとの札、Lv2 の金リボン、付けているの青白い枠、なれゲージ */
+.pgroup { background: #20242f; border-radius: 14px; padding: 6px 8px 8px; }
+.ploc { font-size: 1rem; color: #bcd0ff; font-weight: 700; margin: 0 2px 4px; }
+.pcards { display: grid; gap: 8px; }
+@media (min-width: 900px) { .col-r .plist { grid-template-columns: 1fr 1fr; align-content: start; } }
+.pcard { overflow: visible; }
+.pcard.on { border-color: #9fd8ff; background: #233247; box-shadow: 0 0 0 3px rgba(159,216,255,.28), 0 0 16px rgba(159,216,255,.35); }
+.pcard.lv2 { border-color: var(--line); box-shadow: none; }
+.pcard.on.lv2 { border-color: #9fd8ff; background: #233247; box-shadow: 0 0 0 3px rgba(159,216,255,.28), 0 0 16px rgba(159,216,255,.35); }
+.pcard.lv2::after { content: 'Lv2'; position: absolute; top: -4px; right: 10px; padding: 8px 7px 9px; background: linear-gradient(#ffe08a, #d4a017); color: #4a3000; font-weight: 900; font-size: .9rem; line-height: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); box-shadow: 0 2px 0 #7a5c00; }
+.pcard.lv2 .pc-head { padding-right: 44px; }
+.pc-lv2 { color: var(--gold); }
+.pc-on { color: #bfe9ff; }
+.nare { margin-top: 6px; height: 7px; border-radius: 4px; background: #141720; border: 1px solid var(--line); overflow: hidden; }
+.nare i { display: block; height: 100%; background: #7fb4d8; transition: width calc(.3s * var(--spd)); }
+.nare.near i { background: #ffd54a; }
+.nare.full i { background: #ffd54a; box-shadow: 0 0 8px #ffd54a; }
+.tag.soon { background: #5a4a10; color: var(--gold); animation: soonGlow 1.2s ease-in-out infinite; }
+@keyframes soonGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(255,213,74,0);} 50% { box-shadow: 0 0 10px 2px rgba(255,213,74,.7);} }
+/* 版5：バトル中の なれ の小さいゲージ、Lv2 の演出 */
+.nbar { position: absolute; width: 34px; height: 6px; border-radius: 3px; background: #141720cc; border: 1px solid #3e4558; transform: translate(-50%, -100%); opacity: .55; }
+.nbar i { display: block; height: 100%; background: #7fb4d8; border-radius: 3px; }
+.nbar.near { opacity: 1; width: 44px; height: 8px; border-color: #ffd54a; } .nbar.near i { background: #ffd54a; }
+.nbar.full { opacity: 1; width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.full i { background: #ffe08a; }
+.anim.blownback { animation: blownback calc(.5s * var(--spd)) ease-out; }
+@keyframes blownback { 0% { transform: translateX(0);} 40% { transform: translateX(calc(-22% * var(--dir))) rotate(calc(-12deg * var(--dir)));} 100% { transform: translateX(0);} }
+.anim.stunned { animation: stunned calc(.6s * var(--spd)) ease-in-out; }
+@keyframes stunned { 0%,100% { transform: translateX(0);} 25% { transform: translateX(-3%) rotate(-3deg);} 75% { transform: translateX(3%) rotate(3deg);} }
+.anim.dodge { animation: dodge calc(.5s * var(--spd)) ease-out; }
+@keyframes dodge { 0% { transform: translateX(0);} 35% { transform: translateX(calc(-26% * var(--dir))) scale(.96,1.04);} 100% { transform: translateX(0);} }
+.anim.bigjump { animation: bigjump calc(.6s * var(--spd)) ease-out; }
+@keyframes bigjump { 0% { transform: translateY(0);} 45% { transform: translateY(-38%) scale(.94,1.08);} 80% { transform: translateY(0) scale(1.08,.92);} 100% { transform: translateY(0);} }
+.anim.stomp { animation: stomp calc(.45s * var(--spd)) ease-in; }
+@keyframes stomp { 0% { transform: translateY(0);} 40% { transform: translateY(-22%) translateX(calc(10% * var(--dir)));} 70% { transform: translateY(2%) translateX(calc(14% * var(--dir))) scale(1.1,.9);} 100% { transform: translateY(0);} }
+.scratch { width: 48px; height: 40px; transform: translate(-50%,-50%); background: repeating-linear-gradient(115deg, transparent 0 9px, #ff6b6b 9px 12px); clip-path: polygon(20% 0, 100% 0, 80% 100%, 0 100%); animation: scratch calc(.5s * var(--spd)) ease-out forwards; }
+@keyframes scratch { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.6);} 30% { opacity: 1; transform: translate(-50%,-50%) scale(1.1);} 100% { opacity: 0; transform: translate(-50%,-50%) scale(1);} }
+.mon .part.broken { filter: grayscale(1) brightness(.6); opacity: .7; }
+.shield.big { width: 110px; height: 150px; background: rgba(181,101,29,.45); border-color: #ffd0a0; }
+.windline { position: absolute; height: 4px; border-radius: 2px; background: linear-gradient(to right, transparent, #cfe9ff); transform: translate(-50%,-50%); animation: windline calc(.5s * var(--spd)) ease-out forwards; }
+@keyframes windline { 0% { opacity: 0; width: 20px;} 40% { opacity: .9; width: 90px;} 100% { opacity: 0; width: 120px; transform: translate(calc(-50% + 60px * var(--dir)), -50%);} }
+.stfly { position: absolute; width: 34px; height: 34px; transform: translate(-50%,-50%); transition: left calc(.4s * var(--spd)) ease-in, top calc(.4s * var(--spd)) ease-in; z-index: 5; }
+.stchip.spd { color: #ffb0b0; } .stchip.up { animation: chipUp calc(.5s * var(--spd)) ease-out; }
+@keyframes chipUp { 0% { background: #ffd54a; color: #1b1f2a; box-shadow: 0 0 10px #ffd54a;} 100% { background: #000a;} }
+.hp.grow { animation: hpGrow calc(.6s * var(--spd)) ease-out; }
+@keyframes hpGrow { 0% { box-shadow: 0 0 0 0 #9fe3a8;} 100% { box-shadow: 0 0 0 10px rgba(159,227,168,0);} }
+/* 版5：拾いの演出（勝ちの画面） */
+.winfly { position: relative; height: 120px; margin: 6px 0; }
+.winfly .wf-e { position: absolute; left: 8%; top: 0; width: 100px; height: 100px; }
+.winfly .wf-bag { position: absolute; right: 8%; top: 20px; width: 70px; height: 70px; transition: transform calc(.3s * var(--spd)); }
+.winfly .wf-card { position: absolute; left: 14%; top: 40px; padding: 6px 12px; border-radius: 10px; background: var(--panel2); border: 3px solid #bcd0ff; font-weight: 900; font-size: 1.1rem; white-space: nowrap; transition: left calc(.7s * var(--spd)) cubic-bezier(.3,.9,.4,1.1), top calc(.7s * var(--spd)) ease-in, transform calc(.7s * var(--spd)) ease-in, opacity calc(.2s * var(--spd)); z-index: 2; }
+.winfly.go .wf-card { left: 68%; top: 48px; transform: scale(.5); opacity: 0; }
+.winfly .wf-bag.lit { filter: drop-shadow(0 0 12px #ffcc4d); transform: scale(1.15); }
+/* 版5：そだち */
+#grow { text-align: center; padding-top: 6vh; }
+#grow .gmon { width: 220px; height: 220px; margin: 10px auto; }
+#grow .gmon.pop { animation: growPop calc(1.2s * var(--spd)) ease-out; }
+@keyframes growPop { 0% { transform: scale(.91); filter: brightness(1);} 55% { transform: scale(1.06); filter: brightness(1.6);} 100% { transform: scale(1); filter: brightness(1);} }
+#grow .gtitle { font-size: 1.9rem; font-weight: 900; color: var(--accent); min-height: 2.4em; }
+#grow .gdesc { font-size: 1.2rem; margin-top: 6px; }
+#grow .gtap { color: var(--sub); margin-top: 18px; opacity: 0; transition: opacity .3s; }
+#grow .gtap.on { opacity: 1; }
+.growhist { color: var(--accent); font-weight: 700; }
+/* 版5：殿堂のまとめと王冠 */
+.hallsum { background: var(--panel2); border-radius: 12px; padding: 8px 12px; margin: 8px 0; font-weight: 700; }
+.hall.best { border-color: var(--gold); }
+.crown { color: var(--gold); margin-right: 4px; }
+.end-btns { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.end-btns .btn.round { margin: 0; width: 110px; height: 110px; font-size: 2.8rem; }
+.end-btns .btn.sub { width: auto; min-width: 160px; }
 </style>
 </head>
 <body>
 
 <div class="volbtn" id="volBtn" title="おんりょう"></div>
+<div class="menubtn" id="menuBtn" title="メニュー">≡</div>
+<div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button></div>
+<div class="overlay" id="confirm"><div class="box"><div class="q" id="confirmQ"></div><button class="btn" id="confirmYes">いいよ</button><button class="btn sub" id="confirmNo">やめる</button></div></div>
 <div class="volpop" id="volPop">
   <div class="row"><b>おんりょう</b><span id="volVal">40%</span></div>
   <input type="range" id="volRange" min="0" max="100" step="5" value="40">
@@ -342,9 +439,11 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <h1>でこもん</h1>
   <div id="titleMon"></div>
   <button class="btn round" id="startBtn" aria-label="はじめる">▶</button>
+  <div class="contlbl" id="contLbl"></div>
+  <button class="btn sub" id="newBtn" style="display:none">はじめから</button>
   <button class="btn sub" id="zukanBtn">ずかん <span id="zukanCount"></span></button>
   <button class="btn sub" id="dendoBtn">でんどう <span id="dendoCount"></span></button>
-  <div class="ver">版4</div>
+  <div class="ver">版5</div>
 </div>
 
 <!-- 図鑑 -->
@@ -394,6 +493,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
         <div class="traits" id="eTraits"></div>
         <div class="label">つけている パーツ</div>
         <div class="minis" id="eParts"></div>
+        <div class="reward" id="eReward"></div>
       </div>
       <div class="card f">
         <div class="f-name" id="fName"></div>
@@ -414,7 +514,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
         <div class="slots" id="slots"></div>
         <div class="first" id="firstTxt"></div>
         <div class="note" id="note"></div>
-        <div class="sameBtn"><button class="btn sub small" id="sameBtn">まえと おなじ</button></div>
+        <div class="growrow" id="growRow"></div>
       </div>
     </div>
     <div class="col-r">
@@ -441,6 +541,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       <div class="mon-wrap e" id="monE"><div class="stbar" id="stE"></div><div class="anim" id="animE"></div></div>
       <div class="fx" id="fx"></div>
       <div class="fx" id="cd"></div>
+      <div class="fx" id="nareLayer"></div>
       <div class="synpop" id="synpop"><div class="name" id="synName"></div></div>
       <div class="sparkpop" id="sparkpop"><div class="t1">ひらめいた！</div><div class="t2" id="sparkName"></div></div>
       <div class="found" id="found"><div class="fcard l" id="fcardL"></div><div class="fcard r" id="fcardR"></div><div class="ftag">みつけた！</div><div class="fname" id="fname"></div></div>
@@ -455,9 +556,19 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 <div id="win" class="screen">
   <div class="topbar"><div class="big-title win-title" id="winTitle"></div></div>
   <div class="mid-title" id="winMid"></div>
+  <div class="winfly" id="winFly" style="display:none"><div class="wf-e" id="wfE"></div><div class="wf-card" id="wfCard"></div><svg class="wf-bag" id="wfBag" viewBox="0 0 70 70"><path d="M14 26h42l-5 36H19z" fill="#8a6a3a" stroke="#4a3010" stroke-width="3"/><path d="M22 26c0-14 26-14 26 0" fill="none" stroke="#4a3010" stroke-width="4"/><text x="35" y="52" text-anchor="middle" font-size="14" font-weight="900" fill="#ffe08a">もちもの</text></svg></div>
   <div class="picked" id="picked" style="display:none"></div>
   <div class="recap" id="recap"></div>
   <button class="btn" id="winNext" style="margin-top:14px">つぎへ</button>
+</div>
+
+<!-- そだち -->
+<div id="grow" class="screen">
+  <div class="sub">そだち</div>
+  <div class="gtitle" id="growTitle"></div>
+  <div class="gmon" id="growMon"></div>
+  <div class="gdesc" id="growDesc"></div>
+  <div class="gtap" id="growTap">タップで つぎへ</div>
 </div>
 
 <!-- クリア -->
@@ -469,7 +580,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <div class="recap" id="clearGrow"></div>
   <div class="sub" style="margin-top:8px">たおした あいてと、つかった パーツ</div>
   <div class="list" id="clearList"></div>
-  <button class="btn round" id="againBtn1" aria-label="もういちど">↻</button>
+  <div class="end-btns"><button class="btn round" id="againBtn1" aria-label="もういちど">↻</button><button class="btn sub" id="titleBtn1">タイトルへ</button></div>
 </div>
 
 <!-- 負け -->
@@ -484,10 +595,10 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     <div class="ec-top"><div id="overMon"></div><div style="flex:1"><div class="ec-name" id="overEName"></div><div class="traits" id="overTraits"></div><div class="label" id="overField"></div><div class="label" id="overParts"></div></div></div>
   </div>
   <div class="list" id="overList"></div>
-  <button class="btn round" id="againBtn2" aria-label="もういちど">↻</button>
+  <div class="end-btns"><button class="btn round" id="againBtn2" aria-label="もういちど">↻</button><button class="btn sub" id="titleBtn2">タイトルへ</button></div>
 </div>
 
-<script src="sim.js?v=4"></script>
+<script src="sim.js?v=5"></script>
 <script>
 (function () {
   'use strict';
@@ -509,11 +620,15 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function fmt(x) { return Number.isInteger(x) ? String(x) : (Math.round(x * 10) / 10).toFixed(1); }
 
   // ---------- 保存 ----------
-  var KEY = { zukan: 'dekomon4.zukan', sparks: 'dekomon4.sparks', met: 'dekomon4.met', vol: 'dekomon4.vol', hall: 'dekomon4.hall' };
+  var KEY = { zukan: 'dekomon5.zukan', sparks: 'dekomon5.sparks', met: 'dekomon5.met', vol: 'dekomon5.vol', hall: 'dekomon5.hall', run: 'dekomon5.run' };
   function load(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function remove(k) { try { localStorage.removeItem(k); } catch (e) {} }
   if (OPT.reset) { try { Object.keys(KEY).forEach(function (k) { localStorage.removeItem(KEY[k]); }); } catch (e) {} }
+  // 版4 からの引き継ぎ（版5 のキーが まだ無いときだけ）
+  ['zukan', 'sparks', 'met', 'vol', 'hall'].forEach(function (k) { try { if (localStorage.getItem(KEY[k]) === null && localStorage.getItem('dekomon4.' + k) !== null && !OPT.reset) localStorage.setItem(KEY[k], localStorage.getItem('dekomon4.' + k)); } catch (e) {} });
   var STORE = { zukan: load(KEY.zukan, []), sparks: load(KEY.sparks, []), met: load(KEY.met, {}), vol: load(KEY.vol, { vol: 40, mute: false }), hall: load(KEY.hall, []) };
+  STORE.hall.forEach(function (h) { if (!h.grow) h.grow = S.emptyGrow(); if (!h.growHist) h.growHist = []; });
 
   // ---------- 見た目のデータ ----------
   var LOOK = {
@@ -534,7 +649,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       default: return '<circle cx="100" cy="120" r="54"' + st + '/>';
     }
   }
-  // 右向きの体。face:'l' で左向き。traits で見た目が変わる。lv2 のパーツは金色のふち。grow（勝ち数）で体が大きくなる。
+  // 右向きの体。face:'l' で左向き。traits で見た目が変わる。lv2 のパーツは金色のふち。grow（そだち）で体が大きくなり、方向で形が変わる。
   function monsterSVG(lookKey, parts, face, traits, lv2, grow) {
     var look = LOOK[lookKey] || LOOK.player;
     var on = {}; (parts || []).forEach(function (p) { on[p] = true; });
@@ -542,10 +657,16 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var T = {}; (traits || []).forEach(function (t) { T[t] = true; });
     var P = function (id, inner) { return '<g class="part ' + id + (on[id] ? ' on' : '') + (L[id] ? ' lv2' : '') + '" data-part="' + id + '">' + inner + '</g>'; };
     var flip = face === 'l' ? 'translate(200,0) scale(-1,1)' : '';
-    var g = 1 + 0.03 * (grow || 0);
-    var growT = g !== 1 ? 'translate(100,204) scale(' + g + ') translate(-100,-204)' : '';
+    var gr = grow && typeof grow === 'object' ? grow : S.emptyGrow();
+    var gn = S.growCount(gr);
+    var g = 1 + S.CFG.grow.size * gn;
+    // すばやい：細長く。たくましい：前半身（右）が大きく
+    var sx = Math.pow(0.94, gr.quick || 0) * Math.pow(1.04, gr.strong || 0), sy = Math.pow(1.05, gr.quick || 0);
+    var growT = (g !== 1 || sx !== 1 || sy !== 1) ? 'translate(100,204) scale(' + (g * sx) + ',' + (g * sy) + ') translate(-100,-204)' : '';
+    var strongT = (gr.strong || 0) > 0 ? 'translate(60,125) scale(' + (1 + 0.06 * gr.strong) + ',' + (1 + 0.02 * gr.strong) + ') translate(-60,-125)' : '';
+    var strokeW = (T.tough ? 6 : 3) + 1.6 * (gr.tough || 0);
     var bodyG = (T.heavy ? '<g transform="translate(100,125) scale(1.12) translate(-100,-125)">' : '<g>') +
-      bodyShape(look.shape, look.color, T.tough ? 6 : 3) + '</g>';
+      (strongT ? '<g transform="' + strongT + '">' : '<g>') + bodyShape(look.shape, look.color, strokeW) + '</g></g>';
     var eyeFill = T.charge ? '#ffe066' : '#fff';
     var eyeGlow = T.charge ? ' style="filter: drop-shadow(0 0 6px #ffd54a)"' : '';
     return '<svg class="mon" viewBox="0 0 200 205" xmlns="http://www.w3.org/2000/svg"' + (T.regen ? ' style="filter: drop-shadow(0 0 10px #7ee787)"' : '') + '><g transform="' + flip + ' ' + growT + '">' +
@@ -696,28 +817,71 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   renderVol();
 
   // ---------- 画面切り替え ----------
-  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'pre', 'battle', 'win', 'clear', 'over'];
+  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
     window.scrollTo(0, 0);
     G.screen = id;
+    $('menuPop').classList.remove('on');
+    if (id === 'start' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
   }
 
   // ---------- ゲームの状態 ----------
   var G = { screen: 'title', firstRun: true, rng: null, run: null, owned: [], attached: [], lastParts: null, battle: 0, wins: 0, lv2: [], pity: 0, sparked: [], history: [], lastSummary: null, picked: null,
-    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, overlaps: 0, seeThrough: 0 }, brightChanges: 0 };
+    nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, reward: null, pendingGrow: null, backTo: 'title',
+    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0 }, brightChanges: 0 };
   var seed = OPT.seed ? parseInt(OPT.seed, 10) : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
   G.rng = S.makeRng(seed);
 
   function startRun() {
     G.run = S.newRun(G.rng);
     G.owned = S.startItems(G.rng).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = null;
+    G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.reward = null; G.pendingGrow = null;
     showStart();
   }
   function curEnemyDef() { return S.ENEMIES[G.run.enemies[G.battle]]; }
   function curField() { return S.FIELD_BY_ID[G.run.fields[G.battle]]; }
   function curStage() { return G.battle + 1; }
-  function myDef() { return S.playerDef(G.wins, G.run.name); }
+  function myDef() { return S.playerDef(G.grow, G.run.name); }
+
+  // ---------- 途中セーブ ----------
+  // 画面が変わるたびに保存。phase: start（周回の始め）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
+  function saveRun(phase) {
+    if (OPT.auto || !G.run) return;
+    var data = { v: 5, phase: phase, seed: seed, rngState: G.rng.getState(), run: { enemies: G.run.enemies, fields: G.run.fields, name: G.run.name },
+      owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, reward: G.reward, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
+      history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark } }; }),
+      lastSummary: G.lastSummary ? { sum: { dealt: G.lastSummary.sum.dealt, synergies: G.lastSummary.sum.synergies, spark: G.lastSummary.sum.spark }, enemy: G.lastSummary.enemy.id, spark: G.lastSummary.spark } : null };
+    save(KEY.run, data);
+  }
+  function clearSave() { remove(KEY.run); }
+  function loadSave() { var d = load(KEY.run, null); return d && d.v === 5 && d.run ? d : null; }
+  var EBYID = {}; S.ENEMIES.forEach(function (e) { EBYID[e.id] = e; });
+  function resumeRun(d) {
+    G.rng = S.makeRng(0, d.rngState);
+    G.run = { enemies: d.run.enemies, fields: d.run.fields, name: d.run.name };
+    G.owned = d.owned.slice(); G.attached = []; G.lastParts = null; G.battle = d.battle; G.wins = d.wins; G.lv2 = d.lv2.slice(); G.pity = d.pity; G.sparked = d.sparked.slice();
+    G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.reward = d.reward || null; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
+    G.history = (d.history || []).map(function (h) { return { enemy: EBYID[h.enemy], field: S.FIELD_BY_ID[h.field], parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark, activations: {} } }; });
+    G.lastSummary = d.lastSummary ? { sum: d.lastSummary.sum, enemy: EBYID[d.lastSummary.enemy], spark: d.lastSummary.spark } : null;
+    if (d.phase === 'start') showStart();
+    else if (d.phase === 'win') afterWinNext();
+    else if (d.phase === 'grow') showGrow(G.pendingGrow || (G.growHist[G.growHist.length - 1] || 'tough'), true);
+    else showPre();
+  }
+  function nextBattleNo(d) { return (d.phase === 'win' || d.phase === 'grow') ? d.battle + 2 : d.battle + 1; }
+  function renderTitle() {
+    var d = loadSave();
+    var hasSave = !!d && !OPT.auto;
+    $('contLbl').textContent = hasSave ? 'つづきから：' + d.run.name + '　' + Math.min(nextBattleNo(d), S.CFG.runBattles) + 'せんめ' : '';
+    $('startBtn').setAttribute('aria-label', hasSave ? 'つづきから' : 'はじめる');
+    $('newBtn').style.display = hasSave ? 'block' : 'none';
+  }
+  function confirmBox(q, onYes) {
+    $('confirmQ').textContent = q; $('confirm').classList.add('on');
+    $('confirmYes').onclick = function () { $('confirm').classList.remove('on'); onYes(); };
+    $('confirmNo').onclick = function () { $('confirm').classList.remove('on'); };
+  }
 
   // ---------- 図鑑・殿堂 ----------
   function renderZukan() {
@@ -731,7 +895,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var sl = $('sparkList'); sl.innerHTML = '';
     S.PARTS.forEach(function (p) {
       var found = STORE.sparks.indexOf(p.id) >= 0;
-      sl.appendChild(el('div', 'zk lv2 ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(p.name) + ' Lv2' : '？？？') + '</div><div class="d">' + (found ? esc(p.lv2text) : 'まだ ひらめいていない') + '</div>'));
+      sl.appendChild(el('div', 'zk lv2 ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(p.name) + ' Lv2「' + esc(p.lv2name) + '」' : '？？？') + '</div><div class="d">' + (found ? esc(p.lv2text) : 'まだ ひらめいていない') + '</div>'));
     });
     $('zukanCount').textContent = STORE.zukan.length + '／' + S.SYNERGIES.length + '・' + STORE.sparks.length + '／' + S.PARTS.length;
     $('dendoCount').textContent = STORE.hall.length ? STORE.hall.length + 'ひき' : '';
@@ -743,35 +907,56 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var syn = {}; h.forEach(function (x) { x.summary.synergies.forEach(function (s) { if (s.side === 'p') syn[s.id] = true; }); });
     var d = new Date();
     var entry = { name: G.run.name, wins: G.wins, parts: last ? last.parts.slice() : [], lv2: G.lv2.slice(), sparked: G.sparked.slice(), synergies: Object.keys(syn).map(Number),
+      grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }, growHist: G.growHist.slice(),
       enemies: h.map(function (x) { return x.enemy.id; }), date: d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2), cleared: G.wins >= S.CFG.runBattles };
     STORE.hall.unshift(entry);
     if (STORE.hall.length > 50) STORE.hall.length = 50;
     save(KEY.hall, STORE.hall);
   }
+  function growHistText(hist) { return hist && hist.length ? hist.map(function (g) { return S.GROWS[g].name; }).join('・') : 'なし'; }
   function renderDendo() {
-    $('dendoSub').textContent = STORE.hall.length ? STORE.hall.length + 'ひき（あたらしい じゅん）' : 'まだ だれも いない';
     var list = $('dendoList'); list.innerHTML = '';
+    if (!STORE.hall.length) { $('dendoSub').textContent = 'まだ だれも いない'; return; }
+    var best = STORE.hall.reduce(function (b, h) { return (!b || h.wins > b.wins) ? h : b; }, null);
+    $('dendoSub').innerHTML = '<div class="hallsum">' + STORE.hall.length + 'たい ／ さいこう ' + best.wins + 'れんしょう ／ かみあい ' + STORE.zukan.length + '/' + S.SYNERGIES.length + ' ／ ひらめき ' + STORE.sparks.length + '/' + S.PARTS.length + '</div><div class="sub">あたらしい じゅん</div>';
     STORE.hall.forEach(function (h) {
       var names = function (ids) { return ids.length ? ids.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし'; };
       var syn = h.synergies.length ? h.synergies.map(function (id) { return esc(S.SYN_BY_ID[id].name); }).join('、') : 'なし';
-      list.appendChild(el('div', 'hall', '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.wins) + '</div><div class="t"><div class="n">' + esc(h.name) + '</div>' +
+      var isBest = h === best;
+      list.appendChild(el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '</div>' +
         '<div><b>' + h.wins + 'れんしょう</b>' + (h.cleared ? '（クリア）' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
-        '<small>さいごの パーツ：' + names(h.parts) + '</small><small>ひらめいた：' + names(h.sparked) + '</small><small>みつけた かみあい：' + syn + '</small></div>'));
+        '<small>そだち：<span class="growhist">' + esc(growHistText(h.growHist)) + '</span></small><small>Lv2：' + names(h.lv2) + '</small><small>さいごの パーツ：' + names(h.parts) + '</small><small>みつけた かみあい：' + syn + '</small></div>'));
     });
   }
-  $('zukanBtn').addEventListener('click', function () { initAudio(); renderZukan(); show('zukan'); });
-  $('zukanBack').addEventListener('click', function () { renderZukan(); show('title'); });
-  $('dendoBtn').addEventListener('click', function () { initAudio(); renderDendo(); show('dendo'); });
-  $('dendoBack').addEventListener('click', function () { renderZukan(); show('title'); });
+  function openZukan() { G.backTo = (G.screen === 'zukan' || G.screen === 'dendo') ? G.backTo : G.screen; renderZukan(); show('zukan'); }
+  function openDendo() { G.backTo = (G.screen === 'zukan' || G.screen === 'dendo') ? G.backTo : G.screen; renderDendo(); show('dendo'); }
+  function goBack() { renderZukan(); var to = G.backTo || 'title'; if (to === 'title') renderTitle(); if (to === 'battle' || to === 'zukan' || to === 'dendo') to = 'title'; show(to); }
+  $('zukanBtn').addEventListener('click', function () { initAudio(); openZukan(); });
+  $('zukanBack').addEventListener('click', goBack);
+  $('dendoBtn').addEventListener('click', function () { initAudio(); openDendo(); });
+  $('dendoBack').addEventListener('click', goBack);
+  // ≡メニュー：タイトルへ・ずかん・でんどう。周回の途中でも保存があるので消えない
+  function inRun() { return !!G.run && ['start', 'pre', 'battle', 'win', 'grow'].indexOf(G.screen) >= 0; }
+  $('menuBtn').addEventListener('click', function (ev) {
+    ev.stopPropagation(); initAudio();
+    var pop = $('menuPop');
+    $('menuNote').textContent = inRun() ? 'しゅうかいは ほぞんしてある（タイトルの「つづきから」）' : '';
+    $('mZukan').style.display = G.screen === 'battle' ? 'none' : 'block'; $('mDendo').style.display = G.screen === 'battle' ? 'none' : 'block';
+    pop.classList.toggle('on'); $('volPop').classList.remove('on');
+  });
+  document.addEventListener('click', function (ev) { if (!$('menuPop').contains(ev.target) && !$('menuBtn').contains(ev.target)) $('menuPop').classList.remove('on'); });
+  $('mTitle').addEventListener('click', function () { if (G.screen === 'battle') stopTimeline(); $('menuPop').classList.remove('on'); renderZukan(); renderTitle(); show('title'); });
+  $('mZukan').addEventListener('click', function () { $('menuPop').classList.remove('on'); openZukan(); });
+  $('mDendo').addEventListener('click', function () { $('menuPop').classList.remove('on'); openDendo(); });
 
   // ---------- 周回の始め ----------
   function showStart() {
     var d = myDef();
     $('startName').textContent = G.run.name;
-    $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = d.spd;
-    $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], 0) + '</div>';
+    $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = fmt(d.spd);
+    $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], G.grow) + '</div>';
     var list = $('startList'); list.innerHTML = '';
-    G.owned.forEach(function (id) { list.appendChild(partCard(id, false, null)); });
+    renderGrouped(list, G.owned, function (id) { return partCard(id, false, null); });
     show('start');
     if (OPT.auto) setTimeout(function () { $('startGo').click(); }, 300 / OPT.speed);
   }
@@ -789,9 +974,12 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       if (hints.anyGood) marks += '<span class="mark g" data-h="g" title="とくい">◎</span>';
       if (hints.anyBad) marks += '<span class="mark b" data-h="b" title="にがて">✕</span>';
     }
-    c.innerHTML = '<div class="pc-head"><span class="tag loc">' + esc(p.locName) + '</span><span class="pc-name">' + esc(p.name) + '</span>' + marks + w + (isLv2 ? '<span class="tag lv">Lv2</span>' : '') + (on ? '<span class="pc-on">つけている</span>' : '') + '</div>' +
+    var nare = G.nare[id] || 0, full = S.CFG.nare.full;
+    var ratio = Math.min(1, nare / full);
+    var soon = !isLv2 && nare >= full;
+    c.innerHTML = '<div class="pc-head"><span class="tag loc">' + esc(p.locName) + '</span><span class="pc-name">' + esc(p.name) + '</span>' + marks + w + (soon ? '<span class="tag soon">ひらめきそう</span>' : '') + (on ? '<span class="pc-on">つけている</span>' : '') + '</div>' +
       '<div class="pc-eff">' + esc(p.effect) + '</div>' +
-      (isLv2 ? '<div class="pc-lv2">Lv2：' + esc(p.lv2text) + '</div>' : '') +
+      (isLv2 ? '<div class="pc-lv2">Lv2「' + esc(p.lv2name) + '」：' + esc(p.lv2text) + '</div>' : '<div class="nare' + (soon ? ' full' : (ratio >= 0.75 ? ' near' : '')) + '" title="なれ"><i style="width:' + Math.round(ratio * 100) + '%"></i></div>') +
       '<div class="pc-hint" id="hint-' + id + '"></div>';
     if (hints) {
       Array.prototype.forEach.call(c.querySelectorAll('.mark'), function (m) {
@@ -807,6 +995,18 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       });
     }
     return c;
+  }
+  // もちものを 体の場所ごとに（各2つまで）。PC は2列、スマホは1列（CSS）
+  function renderGrouped(container, ids, makeCard) {
+    container.innerHTML = '';
+    S.LOCS.forEach(function (loc) {
+      var here = ids.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; });
+      if (!here.length) return;
+      var g = el('div', 'pgroup', '<div class="ploc">' + esc(loc.name) + '</div>');
+      var cards = el('div', 'pcards');
+      here.forEach(function (id) { cards.appendChild(makeCard(id)); });
+      g.appendChild(cards); container.appendChild(g);
+    });
   }
   function miniCard(id) {
     var p = S.PART_BY_ID[id];
@@ -840,28 +1040,46 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     e.parts.forEach(function (p) { ep.appendChild(miniCard(p)); });
     $('fName').textContent = 'フィールド：' + f.name;
     $('fDesc').textContent = f.desc;
+    // かてば もらえる（このバトルで初めて見るときに決める。乱数は ここで使う）
+    if (G.reward === null || G.reward === undefined || G.rewardFor !== G.battle) { G.reward = S.rewardFor(e, G.owned, G.rng); G.rewardFor = G.battle; }
+    $('eReward').innerHTML = G.reward ? 'かてば もらえる：<b>' + esc(S.PART_BY_ID[G.reward].name) + '</b>' : 'もう ぜんぶ もっている';
     var d = myDef();
     $('pName').textContent = G.run.name;
     var gh = d.hp - S.CFG.playerHp, ga = d.atk - S.CFG.playerAtk;
     $('pHpV').innerHTML = fmt(d.hp) + (gh > 0 ? '<span class="grow">(+' + fmt(gh) + ')</span>' : '');
     $('pAtkV').innerHTML = fmt(d.atk) + (ga > 0 ? '<span class="grow">(+' + fmt(ga) + ')</span>' : '');
     $('note').textContent = '';
-    $('sameBtn').style.display = (G.lastParts && G.lastParts.length) ? 'inline-block' : 'none';
+    renderGrowRow();
     renderMe();
     renderPlist();
     show('pre');
     if ($('plist').scrollTo) $('plist').scrollTo(0, 0);
     if (OPT.auto) {
       setTimeout(function () {
-        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.wins, G.lv2);
+        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2);
         G.attached = best.parts.slice();
         renderMe(); renderPlist();
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);
       }, 300 / OPT.speed);
     }
   }
+  // つぎの そだち まで あと ○しょう ＋ 3つの傾きのゲージ
+  function renderGrowRow() {
+    var row = $('growRow');
+    var n = S.CFG.grow.every, left = n - (G.wins % n);
+    if (G.wins >= S.CFG.runBattles - 1 || !S.growAfterWin(G.wins + left) && G.wins + left >= S.CFG.runBattles) { row.innerHTML = '<div class="gt">そだちは おわり（' + esc(growHistText(G.growHist)) + '）</div>'; return; }
+    var gd = S.growDirection(G.acc);
+    var max = Math.max(gd.scores.tough, gd.scores.strong, gd.scores.quick, 0.001);
+    var any = (G.acc.received + G.acc.landed + G.acc.first) > 0;
+    var html = '<div class="gt">つぎの そだち まで あと ' + left + 'しょう' + (G.growHist.length ? '　（これまで：' + esc(growHistText(G.growHist)) + '）' : '') + '</div><div class="gauges">';
+    [['tough', 'うけ', 'received'], ['strong', 'あて', 'landed'], ['quick', 'せんて', 'first']].forEach(function (x) {
+      var lead = any && gd.dir === x[0];
+      html += '<div class="gauge' + (lead ? ' lead' : '') + '"><div class="gl"><span>' + x[1] + '</span><b>' + esc(S.GROWS[x[0]].name) + '</b></div><div class="gb"><i style="width:' + Math.round(gd.scores[x[0]] / max * 100) + '%"></i></div></div>';
+    });
+    row.innerHTML = html + '</div>';
+  }
   function renderMe() {
-    $('pMon').innerHTML = monsterSVG('player', G.attached, 'r', [], G.lv2, G.wins);
+    $('pMon').innerHTML = monsterSVG('player', G.attached, 'r', [], G.lv2, G.grow);
     var sl = $('slots'); sl.innerHTML = '';
     sl.appendChild(el('span', 'lbl', 'わく'));
     for (var i = 0; i < 3; i++) {
@@ -872,7 +1090,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var p = S.makeFighter('p', myDef(), G.attached, 1, G.lv2);
     var ef = S.makeFighter('e', e, e.parts, curStage());
     var ps = S.effSpd(p, f.id), es = S.effSpd(ef, f.id);
-    var sv = $('pSpdV'); sv.textContent = ps; sv.className = 'v' + (ps !== S.CFG.playerSpd ? ' chg' : '');
+    var sv = $('pSpdV'); sv.textContent = fmt(ps); sv.className = 'v' + (ps !== S.CFG.playerSpd ? ' chg' : '');
     var first = ps >= es ? G.run.name : 'あいて';
     var gap = Math.abs(ps - es) >= S.CFG.speedGap;
     $('firstTxt').innerHTML = 'さきに うごく：<b>' + esc(first) + (gap ? '（さいしょに 2かい）' : '') + '</b>';
@@ -881,12 +1099,12 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var list = $('plist'); list.innerHTML = '';
     var e = curEnemyDef(), f = curField();
     var known = metCount(e.id) > 0;
-    G.owned.forEach(function (id) {
-      var hints = known ? S.partHints(id, e, f.id, G.attached, G.lv2) : null;
+    renderGrouped(list, G.owned, function (id) {
+      var hints = known ? S.partHints(id, e, f.id, G.attached, G.lv2, G.grow) : null;
       var c = partCard(id, G.attached.indexOf(id) >= 0, hints);
       c.addEventListener('click', function () { togglePart(id); });
       if (swapFlash === id) c.classList.add('swapped');
-      list.appendChild(c);
+      return c;
     });
     swapFlash = null;
     var hw = $('hintWrap'); hw.innerHTML = '';
@@ -910,15 +1128,10 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     $('note').textContent = note;
     renderMe(); renderPlist();
   }
-  $('sameBtn').addEventListener('click', function () {
-    if (!G.lastParts) return;
-    G.attached = G.lastParts.filter(function (p) { return G.owned.indexOf(p) >= 0; });
-    $('note').textContent = '';
-    renderMe(); renderPlist();
-  });
   $('fightBtn').addEventListener('click', function () { initAudio(); startBattle(); });
 
   // ---------- 時間どおりに進める仕組み ----------
+  var stopTimeline = function () {};
   function makeTimeline() {
     var items = [], cur = 0;
     return { at: function (dt, fn) { items.push({ t: cur + dt, fn: fn }); }, add: function (ms) { cur += ms; }, now: function () { return cur; }, items: items };
@@ -932,7 +1145,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       else if (hiddenAt !== null) { t0 += Date.now() - hiddenAt; hiddenAt = null; }
     }
     if (!OPT.bg) document.addEventListener('visibilitychange', onVis);
-    var timer = null;
+    var timer = null, stopped = false;
+    stopTimeline = function () { stopped = true; if (timer) clearInterval(timer); if (!OPT.bg) document.removeEventListener('visibilitychange', onVis); };
     function finish() {
       if (timer) clearInterval(timer);
       if (!OPT.bg) document.removeEventListener('visibilitychange', onVis);
@@ -941,6 +1155,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var lastNow = 0;
     window.__tl = { setSpeed: function (v) { t0 = Date.now() - lastNow / v; OPT.speed = v; document.documentElement.style.setProperty('--spd', String(1 / v)); } };
     function tick() {
+      if (stopped) return;
       if (!OPT.bg && hiddenAt !== null) { requestAnimationFrame(tick); return; }
       var now = (Date.now() - t0) * OPT.speed;
       if (!OPT.bg && now - lastNow > 250) { t0 += (now - lastNow - 50) / OPT.speed; now = lastNow + 50; }
@@ -1106,7 +1321,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var y;
     if (dmgNext[side] === null) y = anchorY(dmgCol[side]);
     else y = down ? dmgNext[side] + h * 1.45 + 4 : dmgNext[side] - h * 0.35 - 4;
-    var over = down ? (y - h * 0.1 > ar.height * 0.86) : (y - h * 1.1 < ar.height * 0.37);
+    var over = down ? (y - h * 0.1 > ar.height * 0.86) : (y - h * 1.1 < ar.height * 0.40);
     if (dmgNext[side] !== null && over) { // 帯か足元に届いたら 次の列。2列目も いっぱいなら、その側の数字を消して 1列目から
       if (dmgCol[side] >= 1) { Array.prototype.forEach.call($('fx').querySelectorAll('.dmg[data-side="' + side + '"]'), function (e) { e.parentNode.removeChild(e); }); dmgCol[side] = 0; }
       else dmgCol[side]++;
@@ -1118,6 +1333,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     d.style.left = x + 'px'; d.style.top = y + 'px';
     dmgNext[side] = down ? y - h * 0.1 : y - h * 1.1; // この文字の箱の端（浮き上がったあと）
     dmgCount[side]++;
+    return d;
   }
   function clearFx() { $('fx').innerHTML = ''; dmgCount = { p: 0, e: 0 }; dmgNext = { p: null, e: null }; dmgCol = { p: 0, e: 0 }; }
   function shakeScreen() {
@@ -1151,6 +1367,53 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       if (cdn[k] === null || cdn[k] === undefined) return;
       bar.appendChild(el('span', 'stchip cd' + (cdn[k] === 0 ? ' now' : ''), cdn[k] === 0 ? names[k] + '！' : names[k] + ' あと' + cdn[k]));
     });
+    if (SPDMOD[side]) bar.appendChild(el('span', 'stchip spd', 'はやさ ' + SPDMOD[side]));
+  }
+  var SPDMOD = { p: 0, e: 0 }, SPDBASE = { p: 0, e: 0 };
+  function flashChip(side, st) {
+    var bar = $(side === 'p' ? 'stP' : 'stE');
+    Array.prototype.forEach.call(bar.querySelectorAll('.stchip.' + st), function (c) { c.classList.remove('up'); void c.offsetWidth; c.classList.add('up'); });
+  }
+  // なれ の小さいゲージ：自分の 付けている Lv2 でないパーツの上に。満タン近くだけ目立つ
+  var NARE_NOW = {};
+  function placeNareBars() {
+    var layer = $('nareLayer'); layer.innerHTML = '';
+    G.attached.forEach(function (pid) {
+      if (G.lv2.indexOf(pid) >= 0) return;
+      var g = animEl('p').querySelector('.part.' + pid); if (!g) return;
+      var c = arenaPt(g, 0.5, 0);
+      var d = el('div', 'nbar'); d.dataset.part = pid; d.style.left = c.x + 'px'; d.style.top = (c.y - 6) + 'px';
+      d.innerHTML = '<i></i>';
+      layer.appendChild(d);
+    });
+    G.attached.forEach(function (pid) { setNareBar(pid, NARE_NOW[pid] !== undefined ? NARE_NOW[pid] : (G.nare[pid] || 0)); });
+  }
+  function setNareBar(pid, n) {
+    NARE_NOW[pid] = n;
+    var d = $('nareLayer').querySelector('.nbar[data-part="' + pid + '"]'); if (!d) return;
+    var full = S.CFG.nare.full, r = Math.min(1, n / full);
+    d.querySelector('i').style.width = Math.round(r * 100) + '%';
+    d.className = 'nbar' + (n >= full ? ' full' : (r >= 0.75 ? ' near' : ''));
+  }
+  function removeNareBar(pid) { var d = $('nareLayer').querySelector('.nbar[data-part="' + pid + '"]'); if (d) d.parentNode.removeChild(d); }
+  function setMax(side, max) {
+    MAX[side] = max; setHp(side, HP[side], true);
+    var bar = $('hp' + up(side)); bar.classList.remove('grow'); void bar.offsetWidth; bar.classList.add('grow');
+  }
+  function scratchFx(side) { var c = bodyPt(side, true); var d = spawn('scratch', c.x, c.y); removeLater(d, 600); }
+  function windFx(side) {
+    var b = bodyEl(side); var r = b.getBoundingClientRect(), ar = $('arena').getBoundingClientRect();
+    for (var i = 0; i < 3; i++) {
+      var d = spawn('windline', r.left - ar.left + (side === 'p' ? -10 : r.width + 10), r.top - ar.top + r.height * (0.3 + 0.2 * i));
+      d.style.setProperty('--dir', side === 'p' ? '1' : '-1'); d.style.animationDelay = (i * 60 / OPT.speed) + 'ms'; removeLater(d, 700);
+    }
+  }
+  var ST_GLYPH = { poison: '<svg viewBox="0 0 34 34"><circle cx="12" cy="20" r="6" fill="#c77dff"/><circle cx="20" cy="12" r="8" fill="#c77dff"/><circle cx="25" cy="23" r="5" fill="#c77dff"/></svg>', stagger: '<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="#fff"/><path d="M17 17 m-8 0 a8 8 0 1 1 8 8 a4 4 0 1 1 -4 -4" fill="none" stroke="#111" stroke-width="3"/></svg>', brittle: '<svg viewBox="0 0 34 34"><path d="M8 6 l8 10 l-6 7 l9 9" fill="none" stroke="#ffd0a0" stroke-width="3"/></svg>' };
+  function reflectFx(fromSide, st) {
+    var a = bodyPt(fromSide), t = bodyPt(other(fromSide));
+    var d = spawn('stfly', a.x, a.y); d.innerHTML = ST_GLYPH[st] || '';
+    void d.offsetWidth; d.style.left = t.x + 'px'; d.style.top = t.y + 'px';
+    removeLater(d, 500);
   }
   function setStatus(side, st, hands) { ST[side][st] = hands; renderStatus(side); }
   var CD = { p: {}, e: {} };
@@ -1171,7 +1434,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   }
   // みつけた！（初めて）：2つの札が左右から飛んできて合体 → 本の印に吸い込まれる
   function foundFx(id, side) {
-    hideCenter();
+    hideCenter(); setBig('p', ''); setBig('e', '');
     var sy = S.SYN_BY_ID[id];
     var names = sy.parts.map(function (pid) { return pid ? S.PART_BY_ID[pid].short : 'じょうたい'; });
     var f = $('found');
@@ -1187,8 +1450,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     setTimeout(function () { f.className = 'found'; $('zkicon').classList.remove('lit'); }, 1900 / OPT.speed);
   }
   // ひらめき：電球「！」、金色の光、専用の音、中央に「ひらめいた！ ○○ Lv2」
-  function sparkFx(side, pid) {
-    hideCenter();
+  function sparkFx(side, pid, byNare) {
+    hideCenter(); setBig('p', ''); setBig('e', '');
     var g = animEl(side).querySelector('.part.' + pid);
     if (g) {
       g.classList.add('lv2');
@@ -1196,7 +1459,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       var b = spawn('bulb', c.x, c.y - 10); b.innerHTML = BULB; removeLater(b, 1600);
       glowPart(side, pid, true);
     }
-    $('sparkName').textContent = S.PART_BY_ID[pid].name + ' Lv2';
+    $('sparkName').textContent = S.PART_BY_ID[pid].name + ' Lv2「' + S.PART_BY_ID[pid].lv2name + '」' + (byNare ? '（なれ！）' : '');
     var pop = $('sparkpop'); pop.classList.remove('on'); void pop.offsetWidth; pop.classList.add('on');
     sfx('sparkle');
     setTimeout(function () { pop.classList.remove('on'); }, 1500 / OPT.speed);
@@ -1275,7 +1538,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     if (!main) main = 'こうげき';
     var suffix = ev.halved ? '…（よろけ）' : '！';
     var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1) ? ' ' + ev.hit + 'かいめ' : '';
-    return { text: main + suffix + cnt, num: ev.dmg };
+    var extra = (ev.stomp ? ' ふみつけ！' : '') + (ev.zushin ? ' ずしん +' + ev.zushin : '');
+    return { text: main + suffix + cnt + extra, num: ev.dmg };
   }
 
   function startBattle() {
@@ -1285,7 +1549,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var p = S.makeFighter('p', myDef(), G.attached, 1, lv2Before);
     var ef = S.makeFighter('e', e, e.parts, stage);
     var brng = S.makeRng(Math.floor(G.rng() * 4294967296));
-    var res = S.simulateBattle(p, ef, f.id, { rng: brng, variance: OPT.rng0 ? 0 : undefined, spark: { stage: stage, pity: G.pity } });
+    var res = S.simulateBattle(p, ef, f.id, { rng: brng, variance: OPT.rng0 ? 0 : undefined, spark: { stage: stage, pity: G.pity, nare: G.nare } });
     var used = G.attached.slice();
     G.curRes = res;
 
@@ -1295,8 +1559,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     $('bHand').textContent = '0';
     $('arena').className = 'arena ' + f.id;
     $('animP').className = 'anim'; $('animE').className = 'anim';
-    $('animP').innerHTML = monsterSVG('player', G.attached, 'r', [], lv2Before, G.wins);
+    $('animP').innerHTML = monsterSVG('player', G.attached, 'r', [], lv2Before, G.grow);
     $('animE').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits);
+    SPDMOD = { p: 0, e: 0 }; NARE_NOW = {}; $('nareLayer').innerHTML = '';
     $('bResult').className = 'result'; $('bResult').textContent = '';
     $('synpop').className = 'synpop'; $('sparkpop').className = 'sparkpop'; $('found').className = 'found'; $('zkicon').classList.remove('lit');
     $('battle').classList.remove('shake');
@@ -1304,11 +1569,14 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     ST = { p: {}, e: {} }; CD = { p: {}, e: {} }; renderStatus('p'); renderStatus('e');
     clearFx();
     setBig('p', ''); setBig('e', '');
-    resetHp('p', res.p.maxHp); resetHp('e', res.e.maxHp);
+    resetHp('p', p.maxHp - (res.p.maxHp - p.maxHp)); resetHp('e', ef.maxHp);
+    resetHp('p', S.makeFighter('p', myDef(), G.attached, 1, lv2Before).maxHp);
     show('battle');
+    placeNareBars();
 
     var tl = makeTimeline();
     var st = res.start;
+    SPDBASE = { p: st.pSpd, e: st.eSpd };
     var names = { p: G.run.name, e: 'あいて' };
     tl.at(0, function () {
       if (st.wingHelped) { glowPart(st.first, 'wing'); playAnim(st.first, 'hop'); sfx('wing'); setBig(st.first, 'はね！ せんこう', null, st.double ? 'さいしょに 2かい うごく' : null); }
@@ -1325,19 +1593,57 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
         flashThisHand = 0;
         updateCountdown(a, hand.countdown);
         animEl(a).querySelector('.mon').classList.remove('chargeglow');
+        placeNareBars();
       });
       hand.events.forEach(function (ev) {
         if (ev.t === 'spark') {
           // ひらめき：0.8秒 止める。その手の効果は Lv2 で出る（sim がそうなっている）
-          tl.at(0, function () { sparkFx(ev.side, ev.part); hitstop(800); });
+          tl.at(0, function () { sparkFx(ev.side, ev.part, ev.by === 'nare'); removeNareBar(ev.part); hitstop(800); });
           tl.add(800);
+        } else if (ev.t === 'act') {
+          tl.at(0, function () { setNareBar(ev.part, ev.n); });
+        } else if (ev.t === 'skip') {
+          tl.at(0, function () { playAnim(ev.side, 'stunned'); setBig(ev.side, 'うごけない', null, null, 'status'); dmgFx(ev.side, 'うごけない', 'weak'); sfx('weak'); });
+          tl.add(800);
+        } else if (ev.t === 'blown') {
+          tl.at(0, function () { playAnim(ev.side, 'blownback'); dustFx(ev.side); setBig(ev.by, 'とばした！', null, null, 'bighit'); sfx('weight'); });
+          tl.add(300);
+        } else if (ev.t === 'dodge') {
+          tl.at(0, function () { playAnim(ev.side, 'dodge'); ghostFx(ev.side); glowPart(ev.side, 'eye', true); setBig(ev.side, 'みきった！', null, null, 'bighit'); sfx('wing'); });
+        } else if (ev.t === 'healBlocked') {
+          tl.at(0, function () { var d = dmgFx(ev.side, '+' + ev.amt, 'heal'); if (d) setTimeout(function () { d.textContent = '✕'; d.style.color = '#e2b7ff'; }, 250 / OPT.speed); setBig(ev.side, 'もうどく：かいふく できない', null, null, 'status'); sfx('poison'); });
+          tl.add(350);
+        } else if (ev.t === 'maxUp') {
+          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '上限 +' + ev.amt, 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい！ 上限 ' + ev.maxHp, null, null, 'bighit'); sfx('leech'); });
+        } else if (ev.t === 'spdDown') {
+          tl.at(0, function () { SPDMOD[ev.side] = ev.spd - (SPDBASE[ev.side] || ev.spd); renderStatus(ev.side); flashChip(ev.side, 'spd'); scratchFx(ev.side); });
+        } else if (ev.t === 'broken') {
+          tl.at(0, function () { var g = animEl(ev.side).querySelector('.part.' + ev.part); if (g) g.classList.add('broken'); dmgFx(ev.side, 'こわれた', 'stat'); setBig(ev.by, 'かいたい！ ' + S.PART_BY_ID[ev.part].short + 'を こわした', null, null, 'bighit'); sfx('crush'); });
+          tl.add(400);
+        } else if (ev.t === 'repaired') {
+          tl.at(0, function () { var g = animEl(ev.side).querySelector('.part.' + ev.part); if (g) { g.classList.remove('broken'); } glowPart(ev.side, ev.part); });
+        } else if (ev.t === 'shellHide') {
+          tl.at(0, function () { var c = bodyPt(ev.side); var sh = spawn('shield big', c.x, c.y); removeLater(sh, 900); glowPart(ev.side, 'shell', true); setBig(ev.side, 'こもった！', null, null, 'bighit'); sfx('shell'); });
+        } else if (ev.t === 'statusExtend') {
+          tl.at(0, function () { ev.statuses.forEach(function (x) { setStatus(ev.side, x.status, x.hands); flashChip(ev.side, x.status); }); glowPart(other(ev.side), 'tail', true); setBig(other(ev.side), 'ふりまわし！ じょうたい +' + S.CFG.lv2.extendHands, null, null, 'status'); sfx('tail'); });
+          tl.add(300);
+        } else if (ev.t === 'store') {
+          tl.at(0, function () { dmgFx(ev.side, '+' + S.CFG.lv2.storeStep + ' こうげき', 'heal'); glowPart(ev.side, 'longtail', true); setBig(ev.side, 'たくわえ！ こうげき ' + ev.atk, null, null, 'bighit'); sfx('longtail'); });
+          tl.add(300);
+        } else if (ev.t === 'tailwind') {
+          tl.at(0, function () { windFx(ev.side); glowPart(ev.side, 'wing'); setBig(ev.side, 'おいかぜ！ こうげき +' + ev.n, null, null, 'bighit'); sfx('wing'); });
+          tl.add(250);
+        } else if (ev.t === 'reflect') {
+          tl.at(0, function () { reflectFx(ev.side, ev.status); glowPart(ev.side, 'fur', true); setBig(ev.side, 'もふもふ！ はねかえした', null, null, 'status'); sfx('fur'); });
+          tl.add(450);
         } else if (ev.t === 'heal') {
           tl.at(0, function () { setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + ev.amt, 'heal'); if (ev.part) glowPart(ev.side, ev.part); sfx(ev.part === 'leech' ? 'leech' : 'heal'); });
         } else if (ev.t === 'charge') {
           tl.at(0, function () { animEl(ev.side).querySelector('.mon').classList.add('chargeglow'); setBig(ev.side, 'つぎ おおわざ', null, null, 'bighit'); sfx('eye'); });
           tl.add(300);
         } else if (ev.t === 'double') {
-          tl.at(0, function () { glowPart(a, 'spring'); playAnim(a, 'hop'); sfx('spring'); setBig(a, 'ばねあし！ 2かい うごく'); });
+          var bigJump = G.lv2.indexOf('spring') >= 0 && a === 'p';
+          tl.at(0, function () { glowPart(a, 'spring', bigJump); playAnim(a, bigJump ? 'bigjump' : 'hop'); sfx('spring'); setBig(a, bigJump ? 'おおジャンプ！ 2かい うごく' : 'ばねあし！ 2かい うごく', null, null, bigJump ? 'bighit' : ''); });
           tl.add(650);
         } else if (ev.t === 'hit') {
           var finisher = ev.hp === 0;
@@ -1346,8 +1652,13 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           var pre = finisher ? 300 : 0;
           if (finisher) tl.at(0, function () { playAnim(a, 'charge', true); });
           tl.at(pre, function () {
-            if (ev.ranged) shoot(a, 230); else { playAnim(a, 'lunge'); ghostFx(a); }
+            if (ev.ranged) shoot(a, 230); else { playAnim(a, ev.stomp ? 'stomp' : 'lunge'); if (!ev.stomp) ghostFx(a); }
           });
+          if (ev.dodged) {
+            tl.at(pre + 230, function () { var ht = hitText(ev); setBig(a, ht.text + ' → よけられた', null, null, ''); dmgFx(d, 'よけた！', 'weak'); });
+            tl.add(pre + 560);
+            return;
+          }
           tl.at(pre + 230, function () {
             setHp(d, ev.hp);
             var firstHit = !firstHitDone[a]; firstHitDone[a] = true;
@@ -1361,13 +1672,19 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             if (big) sfx('bighit');
             if (ev.halved) sfx('weak');
             var ht = hitText(ev);
-            setBig(a, ht.text, ht.num, null, big ? 'bighit' : '');
-            dmgFx(d, ev.dmg, big ? 'bighit' : (ev.halved ? 'weak' : ''));
+            setBig(a, ht.text, ht.num, null, (big || ev.stomp || ev.zushin) ? 'bighit' : '');
+            if (ev.deflect) { var cq = bodyPt(d, true); sparks(cq.x, cq.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(d, 'はじいた！', 'counter'); }
+            else if (ev.shellHide) dmgFx(d, '0', 'weak');
+            else dmgFx(d, ev.dmg, (big || ev.stomp) ? 'bighit' : (ev.halved ? 'weak' : ''));
+            if (ev.zushin) { dustFx(a); dustFx(a); sfx('weight'); }
+            if (ev.stomp) sfx('weight');
             var dtext = [];
-            if (ev.shell) { glowPart(d, 'shell'); shieldFx(d); sfx('shell'); dtext.push('コウラ −' + ev.shell); }
-            if (ev.hard) dtext.push('かたい −' + ev.hardFlat);
+            if (ev.shell && !ev.shellHide) { glowPart(d, 'shell'); shieldFx(d); sfx('shell'); dtext.push('コウラ −' + ev.shell); }
+            if (ev.hard && !ev.deflect) dtext.push('かたい −' + ev.hardFlat);
             if (ev.brittle) dtext.push('もろい ×' + ev.brittle);
-            if (dtext.length) setBig(d, dtext.join(' '));
+            if (ev.deflect) dtext.push('はじいた！');
+            if (ev.jump) dtext.push('はんげき とどかず');
+            if (dtext.length && !ev.shellHide) setBig(d, dtext.join(' '), null, null, ev.deflect || ev.jump ? 'bighit' : '');
             if (finisher) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
           if (finisher) tl.at(pre + 230 + 520, function () { fadeDmg(); showResult(d === 'e' ? 'たおした！' : 'やられた…', d === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
@@ -1397,12 +1714,14 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           var cFin = ev.hp === 0;
           var cPre = cFin ? 300 : 0;
           if (cFin) tl.at(0, function () { spikeExt(cs); });
-          tl.at(cPre, function () {
-            spikeExt(cs); glowPart(cs, 'spike'); sfx('spike'); sfx('don');
+          if (ev.thrown) tl.at(cPre, function () { shoot(cs, 200); });
+          tl.at(cPre + (ev.thrown ? 200 : 0), function () {
+            spikeExt(cs); glowPart(cs, 'spike', ev.thrown); sfx('spike'); sfx('don');
             setHp(tgt, ev.hp);
-            hitFx(tgt, cFin, false); hitstop(cFin ? 250 : 80); zoomArena(cFin);
-            dmgFx(tgt, ev.dmg, 'counter');
-            setBig(cs, 'トゲ！ はんげき', ev.dmg);
+            if (ev.deflect) { var cq2 = bodyPt(tgt, true); sparks(cq2.x, cq2.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(tgt, 'はじいた！', 'counter'); setBig(tgt, 'はじいた！', null, null, 'bighit'); }
+            else { hitFx(tgt, cFin, false); dmgFx(tgt, ev.dmg, 'counter'); }
+            hitstop(cFin ? 250 : 80); zoomArena(cFin);
+            setBig(cs, ev.thrown ? 'ばらまき！ はんげき' : 'トゲ！ はんげき', ev.dmg, null, ev.thrown ? 'bighit' : '');
             if (cFin) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
           if (cFin) tl.at(cPre + 520, function () { fadeDmg(); showResult(tgt === 'e' ? 'たおした！' : 'やられた…', tgt === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
@@ -1455,15 +1774,21 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     runTimeline(tl, function () {
       var mismatch = (HP.p !== res.p.hp) || (HP.e !== res.e.hp) || (handsPlayed !== res.nHands);
       if (mismatch) console.error('[でこもん] 画面と計算がずれた', { shownHp: { p: HP.p, e: HP.e }, simHp: { p: res.p.hp, e: res.e.hp }, shownHands: handsPlayed, simHands: res.nHands });
-      if (OPT.auto) { G.auto.battles++; if (mismatch) G.auto.mismatches++; if (won) G.auto.wins++; if (res.spark) G.auto.sparks++; }
+      if (OPT.auto) { G.auto.battles++; if (mismatch) G.auto.mismatches++; if (won) G.auto.wins++; if (res.spark) G.auto.sparks++; if (res.sparkBy === 'nare') G.auto.sparkNare++; Object.keys(res.summary.lv2Used).forEach(function (pid) { G.auto.lv2Used[pid] = (G.auto.lv2Used[pid] || 0) + 1; }); }
+      // なれ：発動した回数を足す（Lv2 になったパーツは もう数えない）
+      Object.keys(res.summary.activations).forEach(function (pid) { if (lv2Before.indexOf(pid) < 0) G.nare[pid] = (G.nare[pid] || 0) + res.summary.activations[pid]; });
       if (res.spark) { if (G.lv2.indexOf(res.spark) < 0) G.lv2.push(res.spark); G.sparked.push(res.spark); recordSpark(res.spark); G.pity = 0; } else G.pity++;
+      // そだちの材料
+      G.acc.received += res.summary.received; G.acc.landed += res.summary.landed; G.acc.first += res.summary.firstHands;
       G.lastParts = used.slice();
       G.history.push({ enemy: e, field: f, parts: used, win: won, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark });
       G.lastSummary = { sum: res.summary, enemy: e, spark: res.spark };
       if (won) {
         G.wins++;
         G.picked = null;
-        if (S.pickAfterWin(G.wins)) { var pk = S.pickPart(G.owned, G.rng); if (pk) { G.owned.push(pk); G.picked = pk; } }
+        if (G.reward && G.owned.indexOf(G.reward) < 0) { G.owned.push(G.reward); G.picked = G.reward; }
+        G.reward = null;
+        if (S.growAfterWin(G.wins)) { var gd = S.growDirection(G.acc); G.grow[gd.dir]++; G.growHist.push(gd.dir); G.pendingGrow = gd.dir; G.acc = { received: 0, landed: 0, first: 0 }; if (OPT.auto) G.auto.grows[gd.dir]++; }
         if (G.wins >= S.CFG.runBattles) showClear();
         else showWin();
       } else showOver();
@@ -1484,32 +1809,73 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function showWin() {
     $('winTitle').textContent = 'かち！';
     $('winMid').textContent = G.wins === 5 ? '5れんしょう！' : (G.wins + 'れんしょうちゅう');
-    var pk = $('picked');
-    if (G.picked) { pk.style.display = 'block'; pk.textContent = 'ひろった：' + S.PART_BY_ID[G.picked].name; sfx('pick'); } else pk.style.display = 'none';
+    var pk = $('picked'), fly = $('winFly');
+    var en = G.lastSummary.enemy;
+    if (G.picked) {
+      var pid = G.picked;
+      pk.style.display = 'none';
+      fly.style.display = 'block'; fly.className = 'winfly';
+      // 相手の体から そのパーツが はずれる（相手のパーツなら体から消す）
+      var fromEnemy = en.parts.indexOf(pid) >= 0;
+      $('wfE').innerHTML = monsterSVG(en.id, en.parts, 'r', en.traits);
+      $('wfCard').textContent = S.PART_BY_ID[pid].name;
+      $('wfBag').classList.remove('lit');
+      setTimeout(function () {
+        if (fromEnemy) { var g = $('wfE').querySelector('.part.' + pid); if (g) g.classList.remove('on'); }
+        fly.classList.add('go'); sfx('pick');
+      }, 350 / OPT.speed);
+      setTimeout(function () { $('wfBag').classList.add('lit'); pk.style.display = 'block'; pk.textContent = 'ひろった：' + S.PART_BY_ID[pid].name; sfx('heal'); }, 1050 / OPT.speed);
+    } else { fly.style.display = 'none'; pk.style.display = 'none'; }
     $('recap').innerHTML = recapHTML(G.lastSummary.sum, G.lastSummary.enemy.name, true, G.lastSummary.spark);
     show('win');
     if (OPT.auto) setTimeout(function () { $('winNext').click(); }, 300 / OPT.speed);
   }
-  $('winNext').addEventListener('click', function () { if (G.screen !== 'win') return; G.battle++; showPre(); });
+  // 勝ちの画面の「つぎへ」：そだちがあれば そだちの画面、なければ 次のバトル前
+  function afterWinNext() {
+    if (G.pendingGrow) { showGrow(G.pendingGrow, false); return; }
+    G.battle++; showPre();
+  }
+  $('winNext').addEventListener('click', function () { if (G.screen !== 'win') return; afterWinNext(); });
+  // ---------- そだち ----------
+  var growTimer = null;
+  function showGrow(dir, resumed) {
+    var gdef = S.GROWS[dir];
+    var descs = { tough: 'たいりょくの 上限 +' + S.CFG.grow.hp + '（いまの たいりょくも）、りんかくが ふとく', strong: 'こうげき +' + S.CFG.grow.atk + '、まえはんしんが おおきく', quick: 'はやさ +' + S.CFG.grow.spd + '、ほそながく' };
+    $('growTitle').textContent = G.run.name + 'は ' + gdef.name + 'に そだった！';
+    $('growDesc').textContent = descs[dir] + '　（' + growHistText(G.growHist) + '）';
+    var gm = $('growMon'); gm.className = 'gmon'; gm.innerHTML = monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow);
+    void gm.offsetWidth; gm.classList.add('pop');
+    $('growTap').classList.remove('on');
+    show('grow'); sfx('bigwin');
+    clearTimeout(growTimer);
+    growTimer = setTimeout(function () { $('growTap').classList.add('on'); if (OPT.auto) growNext(); }, 1500 / OPT.speed);
+  }
+  function growNext() {
+    if (G.screen !== 'grow') return;
+    G.pendingGrow = null;
+    G.battle++; showPre();
+  }
+  $('grow').addEventListener('click', function () { if ($('growTap').classList.contains('on')) growNext(); });
 
   function historyList(container) {
     container.innerHTML = '';
     G.history.forEach(function (h, i) {
       var it = el('div', 'it');
       it.innerHTML = '<div>' + monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits) + '</div><div class="t"><b>' + (i + 1) + 'せんめ ' + esc(h.enemy.name) + '</b>（' + esc(h.field.name) + '）' + (h.win ? '' : ' <span style="color:var(--bad)">まけ</span>') +
-        '<small>つかった：' + (h.parts.length ? h.parts.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし') + (h.spark ? '　ひらめき：' + esc(S.PART_BY_ID[h.spark].name) : '') + '</small></div>';
+        '<small>つかった：' + (h.parts.length ? h.parts.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし') + (h.spark ? '　ひらめき：' + esc(S.PART_BY_ID[h.spark].name) + '「' + esc(S.PART_BY_ID[h.spark].lv2name) + '」' : '') + '</small></div>';
       container.appendChild(it);
     });
   }
   function growHTML() {
     var d = myDef();
-    var sp = G.sparked.length ? G.sparked.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし';
-    return '<div class="t">そだち</div><div>たいりょく ' + fmt(d.hp) + '（+' + fmt(d.hp - S.CFG.playerHp) + '）／ こうげき ' + fmt(d.atk) + '（+' + fmt(d.atk - S.CFG.playerAtk) + '）</div><div>ひらめいた パーツ：<span class="spk">' + sp + '</span></div>';
+    var sp = G.sparked.length ? G.sparked.map(function (p) { return esc(S.PART_BY_ID[p].name) + '「' + esc(S.PART_BY_ID[p].lv2name) + '」'; }).join('、') : 'なし';
+    return '<div class="t">そだち</div><div><span class="growhist">' + esc(growHistText(G.growHist)) + '</span></div><div>たいりょく ' + fmt(d.hp) + '（+' + fmt(d.hp - S.CFG.playerHp) + '）／ こうげき ' + fmt(d.atk) + '（+' + fmt(d.atk - S.CFG.playerAtk) + '）／ はやさ ' + fmt(d.spd) + '（+' + fmt(d.spd - S.CFG.playerSpd) + '）</div><div>ひらめいた パーツ：<span class="spk">' + sp + '</span></div>';
   }
   function showClear() {
     enterHall(); renderZukan();
     $('clearName').textContent = G.run.name;
-    $('clearMon').innerHTML = '<div style="width:130px;height:130px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.wins) + '</div>';
+    clearSave();
+    $('clearMon').innerHTML = '<div style="width:130px;height:130px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow) + '</div>';
     $('clearRecap').innerHTML = recapHTML(G.lastSummary.sum, G.lastSummary.enemy.name, true, G.lastSummary.spark);
     $('clearGrow').innerHTML = growHTML();
     historyList($('clearList'));
@@ -1521,7 +1887,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var h = G.history[G.history.length - 1];
     $('overTitle').textContent = G.wins + 'れんしょう で おわり';
     $('overName').textContent = G.run.name;
-    $('overMonMe').innerHTML = '<div style="width:110px;height:110px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.wins) + '</div>';
+    clearSave();
+    $('overMonMe').innerHTML = '<div style="width:110px;height:110px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow) + '</div>';
     $('recapOver').innerHTML = recapHTML(h.summary, h.enemy.name, false, h.spark);
     $('overGrow').innerHTML = growHTML();
     $('overMon').innerHTML = monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits);
@@ -1537,17 +1904,29 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function restart() { G.firstRun = false; startRun(); }
   function logAuto() {
     var a = G.auto;
-    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、ひらめき ' + a.sparks + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、図鑑 ' + STORE.zukan.length + '/8・' + STORE.sparks.length + '/16');
+    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '）、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、図鑑 ' + STORE.zukan.length + '/8・' + STORE.sparks.length + '/16');
     window.__dekomonAuto = a;
   }
 
   // ---------- ボタン ----------
-  $('titleMon').innerHTML = monsterSVG('player', ['horn', 'wing'], 'r', [], [], 0);
-  $('startBtn').addEventListener('click', function () { initAudio(); startRun(); });
+  $('titleMon').innerHTML = monsterSVG('player', ['horn', 'wing'], 'r', [], [], null);
+  $('startBtn').addEventListener('click', function () {
+    initAudio();
+    var d = loadSave();
+    if (d && !OPT.auto) resumeRun(d); else startRun();
+  });
+  $('newBtn').addEventListener('click', function () {
+    initAudio();
+    var d = loadSave();
+    if (!d) { startRun(); return; }
+    confirmBox(d.run.name + 'の しゅうかいが きえるよ。いい？', function () { clearSave(); startRun(); });
+  });
   $('againBtn1').addEventListener('click', function () { initAudio(); restart(); });
   $('againBtn2').addEventListener('click', function () { initAudio(); restart(); });
-  renderZukan();
-  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart } };
+  $('titleBtn1').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
+  $('titleBtn2').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
+  renderZukan(); renderTitle();
+  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun } };
   if (OPT.auto) setTimeout(function () { $('startBtn').click(); }, 300);
 })();
 </script>

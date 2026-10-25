@@ -27,14 +27,14 @@
     wingSpd: 10,
     lightSpd: 2, windLightSpd: 5, heavySpd: -3, mudHeavySpd: -8,
     // Lv2（ひらめき後。数字の上乗せではなく「新しく起きること」。数値は調整の対象）
-    lv2: { eyeDodges: 1, maxUpCap: 20, clawSpdDown: 1, brokenHands: 3, stompMult: 1.5, zushinMax: 8,
-           shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 5, storeStep: 1, tailwindMax: 6, tailwindStep: 1 },
+    lv2: { eyeDodges: 1, maxUpCap: 40, clawSpdDown: 1, brokenHands: 3, stompMult: 1.5, zushinMax: 8,
+           shellHideBelow: 0.3, deflectMax: 10, extendHands: 2, storeMax: 8, storeStep: 2, tailwindMax: 6, tailwindStep: 1 },
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
     spark: { base: 0.015, perStage: 0.002, pity: 0.02 },
     // なれ：そのパーツの発動回数（周回で累計）が full になると、次の発動で必ずひらめく
-    nare: { full: 12 },
+    nare: { full: 20 },
     // そだち：3勝・6勝・9勝のあと。前の そだち からの「うけた・あてた・せんて」を norm で割って いちばん大きい方向に育つ
-    grow: { every: 3, hp: 12, atk: 2, spd: 3, size: 0.10, norm: { received: 10, landed: 10, first: 7 } },
+    grow: { every: 3, hp: 12, atk: 2, spd: 3, size: 0.10, norm: { received: 18.5, landed: 20.3, first: 6.7 } },
     // 体の性質
     traitFastSpd: 6, traitHeavySpd: -4, traitHeavyAtk: 3,
     regenHeal: 5, chargeMult: 2, chargeEvery: 3, toughHp: 1.3,
@@ -42,7 +42,7 @@
     poisonRatio: 0.45, poisonHands: 3, staggerMult: 0.5, brittleMult: 1.6, brittleHands: 5, rainStatusHands: 1,
     // 相手の段階
     enemyBase: 1.06,
-    stageHp: 0.07, stageAtk: 0.07,
+    stageHp: 0.10, stageAtk: 0.10,
     variance: 0.15
   };
 
@@ -770,9 +770,13 @@
     var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []);
     if (memo[key]) return memo[key];
     var best = null;
+    // 乱れなし1回 ＋ 種を固定した乱れあり2回 の平均で選ぶ（乱れなしだけだと、1点差の きわどい組み合わせを選んでしまう）
+    var h = 0; for (var ci = 0; ci < key.length; ci++) h = (h * 31 + key.charCodeAt(ci)) >>> 0;
     loadouts(owned).forEach(function (combo) {
       var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [] });
       var s = score(res);
+      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [] }));
+      s /= 3;
       if (!best || s > best.score + 1e-9) best = { parts: combo, score: s, win: res.winner === 'p', nHands: res.nHands };
     });
     memo[key] = best;

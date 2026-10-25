@@ -1538,8 +1538,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     if (!main) main = 'こうげき';
     var suffix = ev.halved ? '…（よろけ）' : '！';
     var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1) ? ' ' + ev.hit + 'かいめ' : '';
-    var extra = (ev.stomp ? ' ふみつけ！' : '') + (ev.zushin ? ' ずしん +' + ev.zushin : '');
-    return { text: main + suffix + cnt + extra, num: ev.dmg };
+    if (ev.zushin) return { text: 'ずしん +' + ev.zushin + suffix, num: ev.dmg };
+    if (ev.stomp) return { text: 'ふみつけ' + suffix + cnt, num: ev.dmg };
+    return { text: main + suffix + cnt, num: ev.dmg };
   }
 
   function startBattle() {
@@ -1624,6 +1625,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           tl.at(0, function () { var g = animEl(ev.side).querySelector('.part.' + ev.part); if (g) { g.classList.remove('broken'); } glowPart(ev.side, ev.part); });
         } else if (ev.t === 'shellHide') {
           tl.at(0, function () { var c = bodyPt(ev.side); var sh = spawn('shield big', c.x, c.y); removeLater(sh, 900); glowPart(ev.side, 'shell', true); setBig(ev.side, 'こもった！', null, null, 'bighit'); sfx('shell'); });
+          tl.add(500); // 「こもった！」を見せてから（直後の反撃の文字に 消されないように）
         } else if (ev.t === 'statusExtend') {
           tl.at(0, function () { ev.statuses.forEach(function (x) { setStatus(ev.side, x.status, x.hands); flashChip(ev.side, x.status); }); glowPart(other(ev.side), 'tail', true); setBig(other(ev.side), 'ふりまわし！ じょうたい +' + S.CFG.lv2.extendHands, null, null, 'status'); sfx('tail'); });
           tl.add(300);
@@ -1673,7 +1675,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             if (ev.halved) sfx('weak');
             var ht = hitText(ev);
             setBig(a, ht.text, ht.num, null, (big || ev.stomp || ev.zushin) ? 'bighit' : '');
-            if (ev.deflect) { var cq = bodyPt(d, true); sparks(cq.x, cq.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(d, 'はじいた！', 'counter'); }
+            if (ev.deflect) { var cq = bodyPt(d, true); sparks(cq.x, cq.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(d, '0', 'weak'); }
             else if (ev.shellHide) dmgFx(d, '0', 'weak');
             else dmgFx(d, ev.dmg, (big || ev.stomp) ? 'bighit' : (ev.halved ? 'weak' : ''));
             if (ev.zushin) { dustFx(a); dustFx(a); sfx('weight'); }
@@ -1718,7 +1720,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           tl.at(cPre + (ev.thrown ? 200 : 0), function () {
             spikeExt(cs); glowPart(cs, 'spike', ev.thrown); sfx('spike'); sfx('don');
             setHp(tgt, ev.hp);
-            if (ev.deflect) { var cq2 = bodyPt(tgt, true); sparks(cq2.x, cq2.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(tgt, 'はじいた！', 'counter'); setBig(tgt, 'はじいた！', null, null, 'bighit'); }
+            if (ev.deflect) { var cq2 = bodyPt(tgt, true); sparks(cq2.x, cq2.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(tgt, '0', 'weak'); setBig(tgt, 'はじいた！', null, null, 'bighit'); }
             else { hitFx(tgt, cFin, false); dmgFx(tgt, ev.dmg, 'counter'); }
             hitstop(cFin ? 250 : 80); zoomArena(cFin);
             setBig(cs, ev.thrown ? 'ばらまき！ はんげき' : 'トゲ！ はんげき', ev.dmg, null, ev.thrown ? 'bighit' : '');

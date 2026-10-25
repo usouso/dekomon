@@ -1,4 +1,4 @@
-// でこもん 版7 — 文字どおりテスト（Node で実行: node tests.js）
+// でこもん 版8 — 文字どおりテスト（Node で実行: node tests.js）
 // 札の文に書いてあることが、そのとおりに起きるかを 1つずつ確かめる。乱れなし（variance 0）。
 // 出力は REPORT.md に貼る表（札・文・期待・実測・一致）。1つでも合わなければ 終了コード 1。
 'use strict';
@@ -386,7 +386,7 @@ var P = CFG.playerAtk; // 13
   row('さいだいの いちげき', '自分の 1げき・はんげきの 最大（ツノ 37）', { dmg: 37, label: 'ツノ' }, rm.summary.maxHit);
 })();
 
-// ======================= 版7：報酬の順・なれ +10・新しい噛み合い =======================
+// ======================= 版7・版8：報酬の順（版8で「新しいパーツを先」に固定）・なれ +10・噛み合い 9〜11 =======================
 (function () {
   var T = S.ENEMY_BY_ID.turtle; // イシガメ：コウラ・ツノ
   var ALL = S.PART_IDS.slice();
@@ -396,21 +396,25 @@ var P = CFG.playerAtk; // 13
   // 1 相手のパーツで 持っていないもの → 拾う
   var r1 = S.rewardsFor(T, [], [], rng(), false);
   row('報酬の順 1', '相手のパーツ（コウラ・ツノ）で 持っていないもの → 拾う', { n: 1, kind: 'part', fromEnemy: true }, { n: r1.length, kind: r1[0] && r1[0].kind, fromEnemy: !!r1[0] && T.parts.indexOf(r1[0].part) >= 0 });
-  // 2 無ければ 相手のパーツで Lv2 でないもの → なれ +10
+  // 2 無ければ 16種で 持っていないもの → 拾う（版8：相手のパーツを 持っていても、新しいパーツが 先）
   var r2 = S.rewardsFor(T, ['shell', 'horn'], [], rng(), false);
-  row('報酬の順 2', '相手のパーツを 両方 持っている（Lv2 でない）→ そのパーツの なれ +10', { n: 1, kind: 'nare', amt: 10, fromEnemy: true }, { n: r2.length, kind: r2[0] && r2[0].kind, amt: r2[0] && r2[0].amt, fromEnemy: !!r2[0] && T.parts.indexOf(r2[0].part) >= 0 });
-  // 3 無ければ 16種で 持っていないもの → 拾う（相手のパーツが 両方 Lv2 のとき）
-  var r3 = S.rewardsFor(T, ['shell', 'horn'], ['shell', 'horn'], rng(), false);
-  row('報酬の順 3', '相手のパーツが 両方 Lv2 → 16種で 持っていないものを 拾う（Lv2 の パーツには なれ が付かない）', { n: 1, kind: 'part', notOwned: true }, { n: r3.length, kind: r3[0] && r3[0].kind, notOwned: !!r3[0] && others.indexOf(r3[0].part) >= 0 });
+  row('報酬の順 2', '相手のパーツを 両方 持っている（Lv2 でない）→ 16種で 持っていないものを 拾う（なれ +10 より 先）', { n: 1, kind: 'part', notOwned: true }, { n: r2.length, kind: r2[0] && r2[0].kind, notOwned: !!r2[0] && others.indexOf(r2[0].part) >= 0 });
+  // 3 無ければ 相手のパーツで Lv2 でないもの → なれ +10（16種 全部 持っているとき）
+  var r3 = S.rewardsFor(T, ALL, [], rng(), false);
+  row('報酬の順 3', '16種 全部 持っていて 相手のパーツは Lv2 でない → 相手のパーツの なれ +10', { n: 1, kind: 'nare', amt: 10, fromEnemy: true }, { n: r3.length, kind: r3[0] && r3[0].kind, amt: r3[0] && r3[0].amt, fromEnemy: !!r3[0] && T.parts.indexOf(r3[0].part) >= 0 });
   // 4 無ければ 持っている Lv2 でないパーツ → なれ +10
   var r4 = S.rewardsFor(T, ALL, ['shell', 'horn'], rng(), false);
   row('報酬の順 4', '16種 全部 持っていて 相手のパーツは Lv2 → 持っている Lv2 でないパーツの なれ +10', { n: 1, kind: 'nare', notLv2: true }, { n: r4.length, kind: r4[0] && r4[0].kind, notLv2: !!r4[0] && others.indexOf(r4[0].part) >= 0 });
   // 5 無ければ なし
   var r5 = S.rewardsFor(T, ALL, ALL, rng(), false);
   row('報酬の順 5', '16種 全部 持っていて 全部 Lv2 → なし', 0, r5.length);
+  // 版8：newFirst の切り替えは 消えた
+  row('報酬の順（版8）', 'CFG.nare.newFirst は 消した（順は 1つだけ）', true, S.CFG.nare.newFirst === undefined);
   // てごわいの 2つ目：持っていない中から 1つ
-  var r6 = S.rewardsFor(T, ALL.filter(function (id) { return id !== 'wing'; }), [], rng(), true);
-  row('てごわいの 2つ目', '1つ目は 相手のパーツの なれ +10、2つ目は 持っていない はね を 拾う', ['nare', 'part:wing'], [r6[0] && r6[0].kind, r6[1] && (r6[1].kind + ':' + r6[1].part)]);
+  var r6 = S.rewardsFor(T, ALL.filter(function (id) { return id !== 'wing' && id !== 'fang'; }), [], rng(), true);
+  row('てごわいの 2つ目', '持っていないのが はね・キバ の 2つ → 1つ目と 2つ目で 両方 拾う（別のもの）', { kinds: ['part', 'part'], set: 'fang,wing' }, { kinds: kinds(r6).map(function (k) { return k.split(':')[0]; }), set: r6.map(function (x) { return x.part; }).sort().join(',') });
+  var r6b = S.rewardsFor(T, ALL.filter(function (id) { return id !== 'wing'; }), [], rng(), true);
+  row('てごわいの 2つ目', '持っていないのが はね だけ → 1つ目 はね を 拾い、2つ目は 持っている Lv2 でないパーツの なれ +10', ['part:wing', 'nare'], [r6b[0] && (r6b[0].kind + ':' + r6b[0].part), r6b[1] && r6b[1].kind]);
   // てごわいの 2つ目：無ければ 持っている Lv2 でないパーツ（1つ目と別）の なれ +10
   var r7 = S.rewardsFor(T, ALL, [], rng(), true);
   row('てごわいの 2つ目', '16種 全部 持っている → 2つ目は 1つ目と別の パーツの なれ +10', { n: 2, kinds: ['nare', 'nare'], different: true }, { n: r7.length, kinds: kinds(r7).map(function (k) { return k.split(':')[0]; }), different: r7.length === 2 && r7[0].part !== r7[1].part });
@@ -436,8 +440,9 @@ var P = CFG.playerAtk; // 13
   row('なれ +10', 'Lv2 のパーツには なれ が付かない（applyReward は null）', null, ap2);
   var ap3 = S.applyReward({ kind: 'nare', part: 'fang', amt: 10 }, ['fang'], { fang: 3 }, []);
   row('なれ +10', 'なれ 3 → 13 は まだ 満タンでない', { to: 13, full: false }, { to: ap3.to, full: ap3.full });
-  // 噛み合い 3 が 消えて、9・10・11 が ある
-  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」を消し、9・10・11 を足した（10 こ）', { n: 10, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11], has3: false }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3] });
+  // 噛み合い 3 が 消えて、9・10・11 が ある（版8：10・11 は 差し替え）
+  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」は なく、9・10・11 が ある（10 こ）。10 ふきとばし＋ばねあし、11 かいたい＋ばねあし', { n: 10, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11], has3: false, n10: 'ふきとばし＋ばねあし', n11: 'かいたい＋ばねあし' }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3], n10: S.SYN_BY_ID[10].name, n11: S.SYN_BY_ID[11].name });
+  row('噛み合いの文', '図鑑の文は 2行まで（40文字 以下）', true, S.SYNERGIES.every(function (x) { return x.desc.length <= 40; }));
   // 9 はじく＋トゲ：起きる（相手の 1げき 11−4 = 7 ≤ 10 → 0 に はじく → 同じ 1げきで トゲの はんげき）
   var r10 = fight({ parts: ['scale', 'spike'], lv2: ['scale'] }, dummy({ spd: 20 }));
   var h10 = r10.hands[0].events.map(function (ev) { return ev.t + (ev.deflect ? '(0)' : '') + (ev.id ? ev.id : ''); });
@@ -445,22 +450,81 @@ var P = CFG.playerAtk; // 13
   // 9 起きない：うろこが Lv1（はじかない）
   var r11 = fight({ parts: ['scale', 'spike'], lv2: [] }, dummy({ spd: 20 }));
   row('はじく＋トゲ', 'うろこが Lv1 なら はじかないので 起きない（はんげきは 出る）', { syn9: false, counters: true }, { syn9: r11.summary.synergies.some(function (x) { return x.id === 9; }), counters: countersBy(r11, 'p').length > 0 });
-  // 10 つめあと＋ふみつけ：起きる（始めは はやさ 12 対 12。つめあとで 11 に → ふみつけ）
-  var r12 = fight({ parts: ['claw', 'longleg'], lv2: ['claw', 'longleg'] }, dummy({ spd: 12 }));
-  var st12 = hitsBy(r12, 'p').slice(0, 2).map(function (x) { return x.stomp; });
-  row('つめあと＋ふみつけ', S.SYN_BY_ID[10].desc + '（始め 12 対 12）', { spd: [12, 12], stomp: [false, true], syn10: true }, { spd: [r12.start.pSpd, r12.start.eSpd], stomp: st12, syn10: r12.summary.synergies.some(function (x) { return x.id === 10; }) });
-  // 10 起きない：始めから 相手が おそい（ふみつけは 出るが 噛み合いでは ない）
-  var r13 = fight({ parts: ['claw', 'longleg'], lv2: ['claw', 'longleg'] }, dummy({ spd: 5 }));
-  row('つめあと＋ふみつけ', '始めから おそい あいて（12 対 5）には ふみつけが 出ても 噛み合いでは ない', { stomp: true, syn10: false }, { stomp: hitsBy(r13, 'p')[0].stomp, syn10: r13.summary.synergies.some(function (x) { return x.id === 10; }) });
-  // 11 かいたい＋キバ：検出は 動く（ふさふさが こわれている あいだに どく）。ただし 実戦では ふさふさが もろい を受けないので かいたい が出ず、起きない（REPORT 3章）
-  var p14 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'fang'], 1, ['crush']);
-  var e14 = S.makeFighter('e', dummy({ spd: 5, parts: ['fur'] }), ['fur'], 1, []);
-  e14.active.fur = false; e14.broken.fur = 3; // ふさふさ が こわれている ところから 始める
+  // 10 ふきとばし＋ばねあし：起きる（自分の 3手め：ばねあしで 2かい、ツノ Lv2 の 1げきで 相手の つぎの手が とぶ → 相手の手が とんで 自分の 4手めが つづく）
+  var r12 = fight({ parts: ['horn', 'spring'], lv2: ['horn'] }, dummy({ spd: 5 }));
+  var dbl12 = r12.hands.filter(function (h) { return h.actor === 'p' && h.events.some(function (ev) { return ev.t === 'double'; }); })[0];
+  var i12 = r12.hands.indexOf(dbl12);
+  var seq12 = r12.hands.slice(i12, i12 + 3).map(function (h) { return h.actor + (h.events.some(function (ev) { return ev.t === 'skip'; }) ? ':skip' : ':' + h.events.filter(function (ev) { return ev.t === 'hit'; }).length + 'hits'); });
+  row('ふきとばし＋ばねあし', S.SYN_BY_ID[10].desc, { hits: 2, blown: true, syn10: true, seq: ['p:2hits', 'e:skip', 'p:1hits'] }, { hits: dbl12.events.filter(function (ev) { return ev.t === 'hit'; }).length, blown: dbl12.events.some(function (ev) { return ev.t === 'blown'; }), syn10: dbl12.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 10; }), seq: seq12 });
+  // 10 起きない：ツノが Lv1 なら とばさない（ツノ＋ばねあし（2）は 起きる）
+  var r13 = fight({ parts: ['horn', 'spring'], lv2: [] }, dummy({ spd: 5 }));
+  row('ふきとばし＋ばねあし', 'ツノが Lv1 なら とばさないので 起きない（2「ツノ＋ばねあし」は 起きる）', { syn10: false, syn2: true, blown: 0 }, { syn10: r13.summary.synergies.some(function (x) { return x.id === 10; }), syn2: r13.summary.synergies.some(function (x) { return x.id === 2; }), blown: evs(r13, function (ev) { return ev.t === 'blown'; }).length });
+  // 10 起きない：ぬま では ばねあしが 2かい こうげきできない（ふきとばしは 出る）
+  var r13m = fight({ parts: ['horn', 'spring'], lv2: ['horn'] }, dummy({ spd: 5 }), 'mud');
+  row('ふきとばし＋ばねあし', 'ぬま では ばねあしが 1かいなので 起きない（ふきとばしは 出る）', { syn10: false, blown: true }, { syn10: r13m.summary.synergies.some(function (x) { return x.id === 10; }), blown: evs(r13m, function (ev) { return ev.t === 'blown'; }).length > 0 });
+  // 11 かいたい＋ばねあし：起きる。相手の トゲを かいたいで こわした あいだ（相手の つぎの手まで）に、ばねあしの 2かいが はんげきなしで 通る。
+  //   相手の トゲが こわれている ところから 始め、自分の 3手めが すぐ来るように ownHands を 2 にしておく（3手めの ばねあし）
+  var p14 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, ['crush']);
+  var e14 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
+  e14.active.spike = false; e14.broken.spike = 3; p14.ownHands = 2;
   var r14 = S.simulateBattle(p14, e14, 'plain', { variance: 0 });
-  var ev14 = r14.hands[0].events.filter(function (ev) { return ev.t === 'status' || ev.t === 'synergy'; }).slice(0, 2).map(function (ev) { return ev.t + ':' + (ev.status || ev.id); });
-  row('かいたい＋キバ', S.SYN_BY_ID[11].desc + '（ふさふさが こわれている ところから）', ['status:poison', 'synergy:11'], ev14);
-  var r15 = fight({ parts: ['crush', 'fang'], lv2: ['crush'] }, dummy({ spd: 5, parts: ['fur'] }));
-  row('かいたい＋キバ', 'ふさふさが こわれていないと どくも もろいも ふせがれ、かいたいが 出ないので 起きない', { syn11: false, broken: 0, blocked: true }, { syn11: r15.summary.synergies.some(function (x) { return x.id === 11; }), broken: evs(r15, function (ev) { return ev.t === 'broken'; }).length, blocked: evs(r15, function (ev) { return ev.t === 'blocked'; }).length > 0 });
+  var h14 = r14.hands[0];
+  row('かいたい＋ばねあし', S.SYN_BY_ID[11].desc + '（トゲが こわれている ところから）', { double: true, hits: 2, counters: 0, syn11: true }, { double: h14.events.some(function (ev) { return ev.t === 'double'; }), hits: h14.events.filter(function (ev) { return ev.t === 'hit'; }).length, counters: h14.events.filter(function (ev) { return ev.t === 'counter'; }).length, syn11: h14.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 11; }) });
+  // 11 起きない：トゲが こわれていなければ 2かいとも はんげきを うける
+  var p15 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, ['crush']);
+  var e15 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
+  p15.ownHands = 2;
+  var r15 = S.simulateBattle(p15, e15, 'plain', { variance: 0 });
+  var h15 = r15.hands[0];
+  row('かいたい＋ばねあし', 'トゲが こわれていない手では 起きない（1かいめは はんげきを うける。2かいめで もろい あいての トゲを こわす）', { hits: 2, counters: 1, brokenNow: true, syn11: false }, { hits: h15.events.filter(function (ev) { return ev.t === 'hit'; }).length, counters: h15.events.filter(function (ev) { return ev.t === 'counter'; }).length, brokenNow: h15.events.some(function (ev) { return ev.t === 'broken' && ev.part === 'spike'; }), syn11: h15.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 11; }) });
+  // 11 起きない：くだくツメが Lv1（かいたい なし）なら、こわれていても 噛み合いでは ない
+  var p16 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, []);
+  var e16 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
+  e16.active.spike = false; e16.broken.spike = 3; p16.ownHands = 2;
+  var r16 = S.simulateBattle(p16, e16, 'plain', { variance: 0 });
+  row('かいたい＋ばねあし', 'くだくツメが Lv1 なら（かいたいで こわしたのでは ないので）起きない', false, r16.summary.synergies.some(function (x) { return x.id === 11; }));
+  // 11 実戦の形：ドロガエル（トゲ・ながいしっぽ）に くだくツメ Lv2＋ばねあし で、こわす→ばねあし の順が そろえば 起きる（乱数の種を 変えて 1つでも 起きるか）
+  var fired11 = 0;
+  for (var sd = 1; sd <= 60; sd++) { var rf = fight({ parts: ['crush', 'spring', 'weight'], lv2: ['crush'] }, S.ENEMY_BY_ID.frog, 'plain', { rng: S.makeRng(sd) }); if (rf.summary.synergies.some(function (x) { return x.id === 11; })) fired11++; }
+  row('かいたい＋ばねあし', 'ドロガエル 相手に 60 戦（乱数の種 1〜60）で 1回以上 起きる', true, fired11 > 0);
+})();
+
+// ======================= 版8：卵（継いだパーツ・おやの ひらめき・名前） =======================
+(function () {
+  // startItems に 継ぐパーツを 渡すと、6つのうち 1つが それ。同じ場所のパーツは 選ばれない。せめ・まもり・うごき は そろう
+  var allOk = true, locOk = true, catOk = true, nOk = true;
+  for (var sd = 1; sd <= 200; sd++) {
+    var pid = S.PART_IDS[sd % 16];
+    var items = S.startItems(S.makeRng(sd), pid);
+    if (items.indexOf(pid) < 0) allOk = false;
+    if (items.length !== 6 || new Set(items).size !== 6) nOk = false;
+    var loc = S.PART_BY_ID[pid].loc;
+    if (items.filter(function (id) { return S.PART_BY_ID[id].loc === loc; }).length !== 1) locOk = false;
+    ['atk', 'def', 'mov'].forEach(function (c) { if (!items.some(function (id) { return S.PART_BY_ID[id].cat === c; })) catOk = false; });
+  }
+  row('卵：始めの もちもの', '継ぐパーツが 6つのうちの 1つ。同じ場所のパーツは 選ばれない。せめ・まもり・うごき が そろう（種 1〜200 × 16種）', { has: true, six: true, loc: true, cat: true }, { has: allOk, six: nOk, loc: locOk, cat: catOk });
+  var plain = S.startItems(S.makeRng(7)), plain2 = S.startItems(S.makeRng(7), null);
+  row('卵：始めの もちもの', '継がないときは いままでと 同じ（乱数の使い方も 同じ）', true, JSON.stringify(plain) === JSON.stringify(plain2) && plain.length === 6);
+  // 継いだパーツは なれ full+1 で始まり、1戦目の 最初の発動で 必ず ひらめく（by: parent）
+  var nare = {}; nare.fang = CFG.nare.full + 1;
+  var pf = S.makeFighter('p', S.playerDef(null, 'テスト'), ['fang'], 1, []);
+  var ef = S.makeFighter('e', dummy(), [], 1, []);
+  var rs = S.simulateBattle(pf, ef, 'plain', { rng: S.makeRng(3), spark: { stage: 1, pity: 0, nare: nare, parent: 'fang' } });
+  var sp = evs(rs, function (ev) { return ev.t === 'spark'; })[0];
+  var firstAct = evs(rs, function (ev) { return ev.t === 'act' && ev.part === 'fang'; })[0];
+  row('卵：おやの ひらめき', '継いだパーツ（なれ 21）は 最初の発動で 必ず ひらめく。spark の by は parent', { part: 'fang', by: 'parent', hand: 1, firstAct: 1, resBy: 'parent' }, { part: sp && sp.part, by: sp && sp.by, hand: sp && sp.handNo, firstAct: firstAct && firstAct.handNo, resBy: rs.sparkBy });
+  // 継いだパーツを 付けなければ 起きない（ほかのパーツは ふつうの ひらめき）
+  var rs2 = S.simulateBattle(S.makeFighter('p', S.playerDef(null, 'テスト'), ['claw'], 1, []), S.makeFighter('e', dummy(), [], 1, []), 'plain', { rng: S.makeRng(3), spark: { stage: 1, pity: 0, nare: nare, parent: 'fang' } });
+  row('卵：おやの ひらめき', '継いだパーツを 付けていなければ おやの ひらめきは 起きない', false, rs2.sparkBy === 'parent');
+  // なれ満タン（parent でない）は by: nare のまま
+  var rs3 = S.simulateBattle(S.makeFighter('p', S.playerDef(null, 'テスト'), ['fang'], 1, []), S.makeFighter('e', dummy(), [], 1, []), 'plain', { rng: S.makeRng(3), spark: { stage: 1, pity: 0, nare: { fang: 21 } } });
+  row('卵：おやの ひらめき', 'ふつうの なれ満タンは by: nare のまま（parent を 渡していない）', 'nare', rs3.sparkBy);
+  // 名前：親の頭の文字を継ぐ
+  var heads = ['ぺっごか', 'えーい', 'あい', 'ぬ'].map(S.nameHead);
+  row('卵：名前の頭', '頭の文字は 1文字。2文字めが「っ」「ー」なら 2文字', ['ぺっ', 'えー', 'あ', 'ぬ'], heads);
+  var okName = true;
+  for (var sd2 = 1; sd2 <= 300; sd2++) { var nm = S.makeName(S.makeRng(sd2), 'ぺっ'); if (nm.slice(0, 2) !== 'ぺっ' || nm.length < 3 || nm.length > 4) okName = false; var nm2 = S.makeName(S.makeRng(sd2), 'あ'); if (nm2.charAt(0) !== 'あ' || nm2.length < 2 || nm2.length > 4) okName = false; }
+  row('卵：名前', '子の名前は 親の頭の文字から 始まり、2〜4文字（種 1〜300）', true, okName);
 })();
 
 // ======================= 出力 =======================

@@ -461,7 +461,7 @@ boss_intro.png（周回の始めの ぬし）、trail_boss.png（10だんめを 
 
 ### 公開
 
-- https://usouso.github.io/dekomon/ が 版7、https://usouso.github.io/dekomon/v6/ が 版6（push の 50秒後に curl で確認：確認中（push 直後。下の追記を見る））。デスクトップの でこもん.url は そのまま。
+- https://usouso.github.io/dekomon/ が 版7、https://usouso.github.io/dekomon/v6/ が 版6（push の 50秒後に curl で確認：root 版7（とどめの揺れの直しも入った build）／ v6/ 版6 ／ v5/ 版5。1回目の push から 約2分で 反映）。デスクトップの でこもん.url は そのまま。
 
 ## 5. 確かめられなかったこと
 

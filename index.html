@@ -703,6 +703,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   .scard .sc-name .nm-short { display: inline; white-space: nowrap; }
   .scard .nare { height: 4px; margin-top: 2px; }
   .items .it-head { margin-bottom: 2px; gap: 2px 10px; }
+  .items { padding: 5px 8px 5px; }
+  .it-grid { gap: 4px; }
   .fork-path .card { margin: 4px 0; padding: 6px 10px; }
   .fork-path .ec-top .mon { width: 76px; height: 76px; flex-basis: 76px; }
   .fork-path .minis { gap: 4px; flex-direction: column; }
@@ -1421,7 +1423,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         '<div class="d">' + esc(p.effect) + '</div><div class="zp-lv2' + (sp ? '' : ' unknown') + '">' + (sp ? 'Lv2「' + esc(p.lv2name) + '」：' + esc(p.lv2text) : 'Lv2 ？？？　まだ ひらめいていない') + '</div>'));
     });
     $('zukanCount').textContent = foundSyn + '／' + S.SYNERGIES.length + '・' + STORE.sparks.length + '／' + S.PARTS.length;
-    $('dendoCount').textContent = STORE.hall.length ? STORE.hall.length + 'ひき' : '';
+    var eggN = eggParents().length;
+    $('dendoCount').textContent = STORE.hall.length ? STORE.hall.length + 'ひき' + (eggN ? '・たまご ' + eggN : '') : '';
   }
   function zukanTab(ch) {
     $('tabParts').classList.toggle('on', ch === 'parts'); $('tabSyn').classList.toggle('on', ch === 'syn');

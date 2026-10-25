@@ -1534,6 +1534,20 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     x = Math.max(w * 0.8, Math.min(ar.width - w * 0.8, x));
     y = Math.max(h * 1.2, y);
     if (!down) y = Math.max(y, ar.height * 0.40 + h * 1.1 + 4); // 体が動いていて 真ん中が上に来ていても、上の帯には入れない
+    // 同じ側に 出ている数字と 重なるなら 横に ずらす（列が違っても 幅の広い文字どうしは 届くことがある）
+    var mine = $('fx').querySelectorAll('.dmg[data-side="' + side + '"]'), arr = $('arena').getBoundingClientRect();
+    for (var tries = 0; tries < 3; tries++) {
+      var clash = null;
+      for (var q = 0; q < mine.length && !clash; q++) {
+        var o = mine[q]; if (o === d) continue;
+        var orr = o.getBoundingClientRect(); var ol = orr.left - arr.left, ort = orr.right - arr.left, ot = orr.top - arr.top, ob = orr.bottom - arr.top;
+        var nl = x - w / 2, nr = x + w / 2, nt = y - h * 1.1, nb = y + h * 0.1;
+        if (nl < ort - 3 && nr > ol + 3 && nt < ob - 3 && nb > ot + 3) clash = { l: ol, r: ort };
+      }
+      if (!clash) break;
+      x += (side === 'p' ? 1 : -1) * ((clash.r - clash.l) / 2 + w / 2 + 8);
+      x = Math.max(w * 0.6, Math.min(ar.width - w * 0.6, x));
+    }
     d.style.left = x + 'px'; d.style.top = y + 'px';
     dmgNext[side] = down ? y - h * 0.1 : y - h * 1.1; // この文字の箱の端（浮き上がったあと）
     dmgCount[side]++;

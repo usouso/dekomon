@@ -28,7 +28,7 @@ function newStats() {
   var st = { runs: 0, clears: 0, reach5: 0, sumWins: 0, winsHist: [], battles: 0, timeouts: 0, hands: [],
     stage: [], use: {}, syn: {}, count: [0, 0, 0, 0], sparks: 0, sparkNare: 0, sparkChance: 0, sparkZero: 0, sparkByPart: {}, actByPart: {}, sparkHist: [],
     growDir: { tough: 0, strong: 0, quick: 0 }, growByStage: [], wins: 0, rewards: 0, rewardsFromEnemy: 0, lv2Used: {},
-    forks: 0, hardChosen: 0, hardB: { n: 0, w: 0 }, normB: { n: 0, w: 0 }, boss: { n: 0, w: 0 }, maxHits: [], maxHitLabel: {}, combos: {} };
+    forks: 0, hardChosen: 0, hardB: { n: 0, w: 0 }, normB: { n: 0, w: 0 }, boss: { n: 0, w: 0 }, maxHits: [], maxHitLabel: {}, combos: {}, bossLv2: {}, bossLv2N: 0 };
   for (var i = 0; i <= NB; i++) st.winsHist.push(0);
   for (var j = 0; j < NB; j++) { st.stage.push({ n: 0, w: 0 }); st.growByStage.push({ n: 0, tough: 0, strong: 0, quick: 0 }); }
   S.PART_IDS.forEach(function (p) { st.use[p] = 0; st.sparkByPart[p] = 0; st.actByPart[p] = 0; st.lv2Used[p] = 0; });
@@ -76,6 +76,7 @@ function playRun(chooser, stats, fixedParts) {
     var won = res.winner === 'p';
     var bucket = enemy.boss ? stats.boss : (hard ? stats.hardB : stats.normB);
     bucket.n++; if (won) bucket.w++;
+    if (enemy.boss) { stats.bossLv2N += lv2.length; lv2.forEach(function (p) { stats.bossLv2[p] = (stats.bossLv2[p] || 0) + 1; }); }
     if (won) { stats.stage[b].w++; wins++; stats.wins++; stats.combos[ck].w++; } else break;
     rewards.forEach(function (rw) { owned.push(rw); stats.rewards++; if (enemy.parts.indexOf(rw) >= 0) stats.rewardsFromEnemy++; });
     if (S.growAfterWin(wins)) {
@@ -294,8 +295,19 @@ S.ENEMIES.concat([S.BOSS]).forEach(function (e) {
     if (e.boss) bossTable = r;
     else if (s === 10 && r < tableMin10) { tableMin10 = r; tableMinName = e.name; }
   });
-  console.log('| ' + e.name + (e.boss ? '（段10・育ちあり）' : '') + ' | ' + cells.map(function (x) { return x === null ? '-' : pct(x) + (e.boss ? (x < 0.6 || x > 0.85 ? ' ⚠' : '') : (x < 0.6 ? ' ⚠' : '')); }).join(' | ') + ' | ' + cname(best10.parts) + ' |');
+  console.log('| ' + e.name + (e.boss ? '（段10・育ちあり・Lv2なし）' : '') + ' | ' + cells.map(function (x) { return x === null ? '-' : pct(x) + (e.boss ? (x < 0.6 || x > 0.85 ? ' ⚠' : '') : (x < 0.6 ? ' ⚠' : '')); }).join(' | ') + ' | ' + cname(best10.parts) + ' |');
 });
+// 参考：合わせボットが ぬしに挑むときの 平均的な Lv2（よく出る順に 平均の個数ぶん）を持った場合
+var bossLv2Avg = stM.boss.n ? Math.round(stM.bossLv2N / stM.boss.n) : 0;
+var bossLv2 = Object.keys(stM.bossLv2).sort(function (a, b) { return stM.bossLv2[b] - stM.bossLv2[a]; }).slice(0, bossLv2Avg);
+var bossTableLv2 = 0, bossBest = null;
+(function () {
+  var g = meanGrowAt(9), w = 0;
+  bossBest = S.bestLoadout(S.PART_IDS, 'boss', 10, S.SUMMIT.id, g, bossLv2);
+  for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(bossBest.parts, 'boss', 10, S.SUMMIT.id, { rng: rng, grow: g, lv2: bossLv2 }).winner === 'p') w++; }
+  bossTableLv2 = w / TABLE_TRIALS;
+})();
+console.log('| やまの ぬし（段10・育ちあり・Lv2 ' + bossLv2.length + 'つ：' + bossLv2.map(function (p) { return S.PART_BY_ID[p].lv2name; }).join('・') + '） | - | - | ' + pct(bossTableLv2) + (bossTableLv2 < 0.6 || bossTableLv2 > 0.85 ? ' ⚠' : '') + ' | ' + cname(bossBest.parts) + ' |');
 console.log('');
 
 // ---------- 目標との比較 ----------
@@ -325,15 +337,15 @@ console.log('| てごわい側の戦いの勝率が ふつう側の 70% 以上�
 console.log('| てごわいボットの10連勝率が 合わせの 50〜90% | てごわい ' + pct(hClear) + ' ／ 合わせ ' + pct(mClear) + ' → ' + (mClear ? (hClear / mClear * 100).toFixed(0) : '-') + '% | ' + ok(mClear > 0 && hClear >= mClear * 0.5 && hClear <= mClear * 0.9) + ' |');
 console.log('| 合わせの ぬし勝率 60〜85% | ' + pct(mBoss) + '（てごわい ' + pct(rate(stH.boss)) + '、ランダム ' + pct(rate(stR.boss)) + '） | ' + ok(mBoss >= 0.6 && mBoss <= 0.85) + ' |');
 console.log('| 相手×段階（育ちあり）：どの相手も段階10で 60% 以上 | 最低 ' + pct(tableMin10) + '（' + tableMinName + '） | ' + ok(tableMin10 >= 0.6) + ' |');
-console.log('| 相手×段階：ぬし（段階10・育ちあり）60〜85% | ' + pct(bossTable) + ' | ' + ok(bossTable >= 0.6 && bossTable <= 0.85) + ' |');
-console.log('| パーツ使用率が 16種すべて 7% 以上 | 最低 ' + pct(minUse) + '（' + minUseName + '） | ' + ok(minUse >= 0.07) + ' |');
+console.log('| 相手×段階：ぬし（段階10・育ちあり）60〜85% | Lv2なし ' + pct(bossTable) + '（参考：合わせの平均的な Lv2 ' + bossLv2.length + 'つあり ' + pct(bossTableLv2) + '） | ' + ok(bossTable >= 0.6 && bossTable <= 0.85) + ' |');
+console.log('| パーツ使用率が 16種すべて 7% 以上 | 最低 ' + (minUse * 100).toFixed(2) + '%（' + minUseName + '） | ' + ok(minUse >= 0.07) + ' |');
 console.log('| 噛み合い8つが それぞれ 12% 以上 | 最低 ' + pct(minSyn) + '（' + minSynName + '） | ' + ok(minSyn >= 0.12) + ' |');
 console.log('| ひらめき 1周回あたり 2〜4回 | ' + f2(sparksPerRun) + ' 回 | ' + ok(sparksPerRun >= 2 && sparksPerRun <= 4) + ' |');
 console.log('| ひらめき 0回の周回 10% 以下 | ' + pct(stM.sparkZero / stM.runs) + ' | ' + ok(stM.sparkZero / stM.runs <= 0.10) + ' |');
 console.log('| なれ満タンによるひらめき 1周回に 0.5〜1.5回（合わせ） | ' + f2(nareSparks) + ' 回 | ' + ok(nareSparks >= 0.5 && nareSparks <= 1.5) + ' |');
 console.log('| Lv2 の効き：16種すべて +3 以上（上限なし） | 最低 ' + (minDelta * 100).toFixed(1) + '（' + minDeltaName + '）、最高 ' + (maxDelta * 100).toFixed(1) + '（' + maxDeltaName + '） | ' + ok(minDelta >= 0.03) + ' |');
 console.log('| そだちの方向：ランダムで3方向が それぞれ 20〜50% | がんじょう ' + pct(gR.tough) + '・たくましい ' + pct(gR.strong) + '・すばやい ' + pct(gR.quick) + ' | ' + ok(gRmin >= 0.2 && gRmax <= 0.5) + ' |');
-console.log('| そだちの方向：合わせでも3方向とも 10% 以上 | がんじょう ' + pct(gM.tough) + '・たくましい ' + pct(gM.strong) + '・すばやい ' + pct(gM.quick) + ' | ' + ok(gMmin >= 0.1) + ' |');
+console.log('| そだちの方向：合わせでも3方向とも 10% 以上 | がんじょう ' + (gM.tough * 100).toFixed(2) + '%・たくましい ' + pct(gM.strong) + '・すばやい ' + pct(gM.quick) + ' | ' + ok(gMmin >= 0.1) + ' |');
 console.log('| 手数は 8〜14 が中心 | 合わせ：平均 ' + f1(hsM.mean) + '・中央 ' + hsM.p50 + '・範囲内 ' + pct(hsM.within) + ' ／ ランダム：平均 ' + f1(hsR.mean) + '・中央 ' + hsR.p50 + '・範囲内 ' + pct(hsR.within) + ' | ' + ok(handsOk(hsM) && handsOk(hsR)) + ' |');
 console.log('（参考）16種それぞれの ひらめきの割合：最低 ' + pct(minShare) + '（' + minShareName + '）、最高 ' + pct(maxShare) + '（' + maxShareName + '）');
 console.log('');

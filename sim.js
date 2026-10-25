@@ -31,9 +31,9 @@
            shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 8, storeStep: 2, tailwindMax: 6, tailwindStep: 1 },
     // 分かれ道の「てごわい」相手と、頂上の ぬし
     hard: { hp: 1.15, atk: 1.15 },
-    boss: { hp: 1.5, atk: 1.1 },
+    boss: { hp: 1.6, atk: 1.1 },
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
-    spark: { base: 0.015, perStage: 0.002, pity: 0.02 },
+    spark: { base: 0.012, perStage: 0.002, pity: 0.02 },
     // なれ：そのパーツの発動回数（周回で累計）が full になると、次の発動で必ずひらめく
     nare: { full: 20 },
     // そだち：3勝・6勝・9勝のあと。前の そだち からの「うけた・あてた・せんて」を norm で割って いちばん大きい方向に育つ
@@ -117,7 +117,7 @@
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'あめ（どくが 1手で きえる）', when: function (c) { return c.f === 'rain'; } }] },
     { id: 'leech', name: 'すいつくくち', short: 'すいつく', loc: 'mouth', cat: 'def', weight: 'none',
-      effect: 'あたえた ダメージの 1/3 を 1げきごとに かいふく', lv2name: 'おおぐい', lv2text: 'すいついた ぶんの はんぶんが 上限に なる（+40まで）',
+      effect: 'あたえた ダメージの 1/3 を 1げきごとに かいふく', lv2name: 'おおぐい', lv2text: 'すいついた ぶんの はんぶんが 上限と たいりょくに たされる（+40まで）',
       goods: [{ text: 'しぶとい・かいふくの あいて（ながい たたかい）', when: function (c) { return hasTrait(c, 'tough') || hasTrait(c, 'regen'); } }],
       bads: [{ text: 'かたい あいて（ダメージが へる）', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } }] },
     { id: 'claw', name: 'するどいツメ', short: 'ツメ', loc: 'fore', cat: 'atk', weight: 'light',
@@ -213,7 +213,7 @@
   // 頂上の ぬし（10戦目）。基礎は ふつうの相手の平均（たいりょく 75.5・こうげき 10.3）の ×1.5／×1.1。段階の伸びは他と同じ
   var AVG_HP = ENEMIES.reduce(function (a, e) { return a + e.hp; }, 0) / ENEMIES.length;   // 75.5
   var AVG_ATK = ENEMIES.reduce(function (a, e) { return a + e.atk; }, 0) / ENEMIES.length; // 10.3
-  var BOSS = { id: 'boss', name: 'やまの ぬし', hp: AVG_HP, atk: AVG_ATK, spd: 8, traits: ['hard', 'regen'], parts: ['horn', 'shell', 'tail'], boss: true, index: 'boss',
+  var BOSS = { id: 'boss', name: 'やまの ぬし', hp: AVG_HP, atk: AVG_ATK, spd: 8, traits: ['heavy', 'regen'], parts: ['horn', 'weight', 'fur'], boss: true, index: 'boss',
     look: { size: 1.6, color: '#6b3fa0', eyes: 'glow' } };
   var ENEMY_BY_ID = {}; ENEMIES.forEach(function (e) { ENEMY_BY_ID[e.id] = e; }); ENEMY_BY_ID.boss = BOSS;
   function enemyDefOf(idx) { return idx === 'boss' ? BOSS : ENEMIES[idx]; }
@@ -227,6 +227,8 @@
   ];
   var FIELD_BY_ID = {};
   FIELDS.forEach(function (f, i) { f.index = i; FIELD_BY_ID[f.id] = f; });
+  var SUMMIT = { id: 'summit', name: 'ちょうじょう', short: 'ちょうじょう', color: '#d8e6f2', desc: 'なにも おきない。ぬしが まっている。', index: 4 };
+  FIELD_BY_ID.summit = SUMMIT;
 
   // ---------- そだち ----------
   // grow = { tough: n, strong: n, quick: n }（それぞれの方向に育った回数）
@@ -412,11 +414,11 @@
       if (amt <= 0 || f.hp <= 0) return 0;
       var before = f.hp;
       if (part === 'leech' && f.lv2.leech && f.active.leech && f.maxUp < CFG.lv2.maxUpCap) {
-        // おおぐい：すいついた ぶんの はんぶんが 上限に なる（+40まで）
+        // おおぐい：すいついた ぶんの はんぶんが 上限と たいりょくに たされる（+40まで）
         var up = Math.min(Math.floor(amt * CFG.lv2.maxUpRatio), CFG.lv2.maxUpCap - f.maxUp);
         if (up > 0) {
           f.maxUp += up; f.maxHp += up; usedLv2('leech');
-          f.hp = Math.min(f.maxHp, f.hp + amt);
+          f.hp = Math.min(f.maxHp, f.hp + amt + up);
           events.push({ t: 'maxUp', side: f.side, amt: up, maxHp: f.maxHp, hp: f.hp, healed: f.hp - before });
           return f.hp - before;
         }
@@ -744,8 +746,7 @@
       var a = { enemy: pair[0], field: f1, hard: hardSide === 0 }, b = { enemy: pair[1], field: f2, hard: hardSide === 1 };
       steps.push([a, b]);
     }
-    var bossField = FIELDS[randInt(rng, FIELDS.length)].id;
-    return { steps: steps, boss: { enemy: 'boss', field: bossField, hard: false }, battle: 0, wins: 0, history: [], name: makeName(rng) };
+    return { steps: steps, boss: { enemy: 'boss', field: SUMMIT.id, hard: false }, battle: 0, wins: 0, history: [], name: makeName(rng) };
   }
   // その戦いの道（選んだ側）。battle 0..8 は steps[battle][choice]、9 は ぬし
   function pathOf(run, battle, choice) { return battle >= CFG.runBattles - 1 ? run.boss : run.steps[battle][choice || 0]; }
@@ -842,7 +843,7 @@
     GROWS: GROWS, GROW_IDS: GROW_IDS, emptyGrow: emptyGrow, growCount: growCount, growDirection: growDirection, growAfterWin: growAfterWin,
     SYNERGIES: SYNERGIES, SYN_BY_ID: SYN_BY_ID,
     PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS, CATS: CATS,
-    ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDefOf: enemyDefOf, FIELDS: FIELDS, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName,
+    ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDefOf: enemyDefOf, FIELDS: FIELDS, SUMMIT: SUMMIT, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName,
     makeRng: makeRng, randInt: randInt, shuffle: shuffle,
     makeFighter: makeFighter, effSpd: effSpd, effAtk: effAtk, isHard: isHard, isRanged: isRanged,
     simulateBattle: simulateBattle, runBattle: runBattle,

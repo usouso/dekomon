@@ -49,7 +49,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 #title .mon { width: 180px; height: 180px; margin: 10px auto 0; }
 #title .btn.sub { max-width: 260px; margin: 14px auto 0; }
 .ver { color: var(--sub); font-size: 1rem; margin-top: 18px; }
-.topbar { padding-right: 60px; min-height: 48px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.topbar { padding-right: 120px; min-height: 48px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* カード */
 .card { background: var(--panel); border-radius: 16px; padding: 12px 14px; margin: 10px 0; }
@@ -119,17 +119,18 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 @keyframes bob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-4px);} }
 
 /* バトル前の並び */
-#pre { padding-bottom: 120px; }
-.fight-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 14px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--bg) 70%, rgba(27,31,42,0)); z-index: 5; }
+#pre { height: 100vh; height: 100dvh; overflow: hidden; padding: 10px 14px 0; flex-direction: column; }
+#pre.on { display: flex; }
+.pre-grid { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 6px; }
+.fight-bar { flex: 0 0 auto; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); background: var(--bg); }
 .fight-bar .btn { max-width: 560px; margin: 0 auto; }
 @media (min-width: 900px) {
-  #pre { max-width: 1240px; height: 100vh; overflow: hidden; padding: 10px 16px 12px; flex-direction: column; }
-  #pre.on { display: flex; }
-  .pre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; min-height: 0; }
+  #pre { max-width: 1240px; padding: 10px 16px 0; }
+  .pre-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 16px; overflow: hidden; }
   .col-l { overflow-y: auto; min-height: 0; padding-right: 4px; }
   .col-r { display: flex; flex-direction: column; min-height: 0; }
   .col-r .plist { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; align-content: start; }
-  .fight-bar { position: static; padding: 10px 0 0; background: none; }
+  .fight-bar { padding: 10px 0 10px; }
   .fight-bar .btn { max-width: none; }
   #pre .card { margin: 0 0 10px; }
   .ec-top .mon { width: 124px; height: 124px; flex-basis: 124px; }
@@ -187,7 +188,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 #battle.on { display: flex; }
 #battle.shake { animation: shake calc(.2s * var(--spd)) linear; }
 @keyframes shake { 0%,100% { transform: translate(0,0);} 20% { transform: translate(-8px, 5px);} 40% { transform: translate(7px, -4px);} 60% { transform: translate(-6px, -5px);} 80% { transform: translate(5px, 4px);} }
-.b-top { display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; color: var(--sub); padding-right: 56px; }
+.b-top { display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; color: var(--sub); padding-right: 120px; min-height: 52px; }
 .b-top b { color: var(--text); font-size: 1.3rem; }
 .hpRow { display: flex; gap: 12px; margin: 6px 0 4px; }
 .hpBox { flex: 1; min-width: 0; }
@@ -404,15 +405,79 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .winfly.go .wf-card { left: 68%; top: 48px; transform: scale(.5); opacity: 0; }
 .winfly .wf-bag.lit { filter: drop-shadow(0 0 12px #ffcc4d); transform: scale(1.15); }
 /* 版5：そだち */
-#grow { text-align: center; padding-top: 6vh; }
-#grow .gmon { width: 220px; height: 220px; margin: 10px auto; }
-#grow .gmon.pop { animation: growPop calc(1.2s * var(--spd)) ease-out; }
-@keyframes growPop { 0% { transform: scale(.91); filter: brightness(1);} 55% { transform: scale(1.06); filter: brightness(1.6);} 100% { transform: scale(1); filter: brightness(1);} }
-#grow .gtitle { font-size: 1.9rem; font-weight: 900; color: var(--accent); min-height: 2.4em; }
-#grow .gdesc { font-size: 1.2rem; margin-top: 6px; }
+#grow { text-align: center; padding-top: 2vh; }
+#grow .gtitle { font-size: 1.6rem; font-weight: 900; color: var(--accent); min-height: 1.3em; }
+.garena { position: relative; width: min(92vw, 440px); height: min(58vw, 290px); margin: 6px auto; background: linear-gradient(#232838, #1b1f2a 70%); border-radius: 16px; overflow: hidden; border: 2px solid var(--line); }
+.garena::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 12%; background: #2b3042; }
+.garena .gmon { position: absolute; left: 10%; right: 10%; top: 4%; bottom: 6%; transition: opacity calc(1s * var(--spd)) ease-in-out, transform calc(1s * var(--spd)) ease-in-out; z-index: 1; }
+.garena .gmon .mon { width: 100%; height: 100%; }
+.garena .gmon.after { opacity: 0; transform: scale(.94); }
+.garena.go .gmon.before { opacity: 0; }
+.garena.go .gmon.after { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 14px #9fe3a8); }
+#grow .gdir { font-size: 2.6rem; font-weight: 900; color: var(--accent); line-height: 1.15; margin-top: 4px; }
+#grow .gnum { font-size: 1.9rem; font-weight: 900; margin-top: 2px; }
+#grow .gnum .to { color: var(--good); }
+#grow .gnum .arrow { color: var(--sub); margin: 0 .25em; }
+#grow .gdesc { font-size: 1.1rem; margin-top: 6px; color: var(--sub); }
 #grow .gtap { color: var(--sub); margin-top: 18px; opacity: 0; transition: opacity .3s; }
 #grow .gtap.on { opacity: 1; }
 .growhist { color: var(--accent); font-weight: 700; }
+/* 版6：わかれみち、山の道、ちょうじょう、てごわい、ぬし */
+.fork-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 6px; }
+@media (min-width: 900px) { #fork { max-width: 1240px; } .fork-grid { grid-template-columns: 1fr 1fr; gap: 16px; } }
+.fork-path { background: #20242f; border: 3px solid var(--line); border-radius: 18px; padding: 10px 12px 12px; cursor: pointer; }
+.fork-path:active { transform: scale(.99); }
+.fork-path.hard { border-color: rgba(255,107,107,.7); }
+.fork-path .card { margin: 8px 0; }
+.fork-path .btn { margin-top: 10px; }
+.fork-path .btn.hardbtn { background: #ff6b6b; box-shadow: 0 4px 0 #a52a2a; }
+.fk-top { display: flex; align-items: center; gap: 10px; }
+.fk-no { font-size: 1.25rem; font-weight: 900; color: var(--accent); }
+.hardmark { display: inline-block; font-size: 1rem; font-weight: 900; padding: 2px 10px; border-radius: 10px; background: #ff6b6b; color: #1b1f2a; white-space: nowrap; }
+.hardtxt { color: var(--e); font-weight: 700; }
+.bossmark { display: inline-block; font-size: 1rem; font-weight: 900; padding: 2px 10px; border-radius: 10px; background: #6b3fa0; color: #fff; white-space: nowrap; }
+.card.e.hard { border-color: rgba(255,107,107,.9); box-shadow: 0 0 0 1px rgba(255,107,107,.4) inset; }
+.card.e.boss { border-color: #9a7ad0; box-shadow: 0 0 14px rgba(155,122,208,.35); }
+.stat .v.hard { color: var(--e); }
+.fsw { display: inline-block; width: 1em; height: 1em; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid #0006; }
+.reward.two { border-color: #ff6b6b; background: #3a2a30; }
+.reward.two b { color: #ffb0b0; }
+.trail { position: relative; margin: 4px 0 6px; }
+.trail svg { display: block; width: 100%; height: 84px; }
+.trail.compact svg { height: 64px; }
+.trail .tl { display: flex; align-items: baseline; gap: 8px; font-size: 1rem; color: var(--sub); }
+.trail .tl b { font-size: 1.25rem; color: var(--accent); }
+#summit { text-align: center; padding-top: 2vh; }
+#summit .smt-name { font-size: 2rem; font-weight: 900; color: #c9a9ff; margin-top: 4px; }
+#summit .smt-mon { width: 200px; height: 200px; margin: 0 auto; }
+#summit .card { text-align: left; }
+#summit .gtap { color: var(--sub); margin-top: 14px; opacity: 0; transition: opacity .3s; }
+#summit .gtap.on { opacity: 1; }
+.mon.boss .body { filter: drop-shadow(0 0 10px #9a7ad0); }
+.mon-wrap.e.boss { width: 70%; height: 66%; bottom: 4%; }
+@media (min-width: 900px) { .mon-wrap.e.boss { width: 50%; height: 72%; } }
+.arena.bossfight .mon-wrap.p { z-index: 2; }
+.recap .mh { color: #ffe08a; font-size: 1.2em; }
+/* 版6：場所の背景（もり・ぬま・おね・あめのたに・ちょうじょう）。揺れ・点滅はしない */
+.arena.plain { background: linear-gradient(#1d3a2a, #2f5a3a 60%, #1b1f2a 100%); }
+.arena.plain .ground { background: #24472e; }
+.arena.plain::before { content: ''; position: absolute; left: 0; right: 0; bottom: 14%; height: 34%; background: radial-gradient(ellipse 18% 100% at 8% 100%, #163020 60%, transparent 61%), radial-gradient(ellipse 22% 100% at 30% 100%, #1a3a26 60%, transparent 61%), radial-gradient(ellipse 18% 100% at 54% 100%, #163020 60%, transparent 61%), radial-gradient(ellipse 22% 100% at 78% 100%, #1a3a26 60%, transparent 61%), radial-gradient(ellipse 18% 100% at 98% 100%, #163020 60%, transparent 61%); pointer-events: none; }
+.arena.mud { background: linear-gradient(#3a2f26, #5a4228 60%, #2a2018 100%); }
+.arena.mud .ground { background: #3d2c1c; }
+.arena.mud::before { content: ''; position: absolute; left: 0; right: 0; bottom: 14%; height: 10%; background: radial-gradient(ellipse 30% 100% at 20% 100%, #2a1c10 60%, transparent 61%), radial-gradient(ellipse 36% 100% at 70% 100%, #2a1c10 60%, transparent 61%); pointer-events: none; }
+.arena.wind { background: linear-gradient(#6f8398, #a9b8c8 65%, #4a5668 100%); }
+.arena.wind .ground { background: #d8e0e8; }
+.arena.wind::before { content: ''; position: absolute; left: 0; right: 0; bottom: 14%; height: 40%; background: linear-gradient(170deg, transparent 55%, #8b9bb0 56%, #8b9bb0 100%), linear-gradient(195deg, transparent 60%, #7a8aa0 61%, #7a8aa0 100%); pointer-events: none; opacity: .8; }
+.arena.rain { background: linear-gradient(#1f3350, #2b4f7a 60%, #1a2a40 100%); }
+.arena.rain .ground { background: #1e3a5a; }
+.arena.summit { background: linear-gradient(#5b7fb0, #cfe0f0 55%, #f0f4f8 100%); }
+.arena.summit .ground { background: #e8eef4; }
+.arena.summit::before { content: ''; position: absolute; left: 0; right: 0; bottom: 14%; height: 36%; background: linear-gradient(175deg, transparent 50%, #b8c8d8 51%, #b8c8d8 100%), linear-gradient(185deg, transparent 54%, #a8b8cc 55%, #a8b8cc 100%); pointer-events: none; }
+.arena.wind .big, .arena.summit .big { text-shadow: 0 2px 0 #000, 0 0 14px #000, 0 0 4px #000; }
+/* 版6：紙ふぶき */
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.confetti i { position: absolute; top: -20px; width: 12px; height: 18px; border-radius: 3px; opacity: .95; animation: confetti 3s linear forwards; }
+@keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity: 1;} 100% { transform: translateY(110vh) rotate(720deg); opacity: .8;} }
 /* 版5：殿堂のまとめと王冠 */
 .hallsum { background: var(--panel2); border-radius: 12px; padding: 8px 12px; margin: 8px 0; font-weight: 700; }
 .hall.best { border-color: var(--gold); }
@@ -443,7 +508,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <button class="btn sub" id="newBtn" style="display:none">はじめから</button>
   <button class="btn sub" id="zukanBtn">ずかん <span id="zukanCount"></span></button>
   <button class="btn sub" id="dendoBtn">でんどう <span id="dendoCount"></span></button>
-  <div class="ver">版5</div>
+  <div class="ver">版6</div>
 </div>
 
 <!-- 図鑑 -->
@@ -473,15 +538,34 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <button class="btn" id="startGo" style="margin-top:14px">すすむ</button>
 </div>
 
+<!-- わかれみち（1〜9戦目） -->
+<div id="fork" class="screen">
+  <div class="topbar"><div class="big-title">わかれみち</div><b id="forkNo" style="font-size:1.2rem"></b><span class="sub" id="forkWins"></span></div>
+  <div id="forkTrail"></div>
+  <div class="sub" style="margin:6px 0 2px">どちらの みちへ？　たっぷで すすむ</div>
+  <div class="fork-grid" id="forkPaths"></div>
+</div>
+
+<!-- ちょうじょう（10戦目の前） -->
+<div id="summit" class="screen">
+  <div class="topbar"><div class="big-title">ちょうじょう</div></div>
+  <div id="summitTrail"></div>
+  <div class="smt-name" id="summitName"></div>
+  <div class="smt-mon" id="summitMon"></div>
+  <div class="card e boss"><div class="traits" id="summitTraits" style="border-top:0;margin-top:0;padding-top:0"></div><div class="label">つけている パーツ</div><div class="minis" id="summitParts"></div></div>
+  <div class="gtap" id="summitTap">タップで つぎへ</div>
+</div>
+
 <!-- バトル前 -->
 <div id="pre" class="screen">
   <div class="topbar"><b id="preNo" style="font-size:1.2rem"></b><span class="sub" id="preWins"></span></div>
   <div class="pre-grid">
     <div class="col-l">
-      <div class="card e">
+      <div id="preTrail"></div>
+      <div class="card e" id="preECard">
         <div class="ec-top">
           <div style="flex:1;min-width:0">
-            <div class="ec-head"><span class="ec-name" id="eName"></span><span class="met" id="eMet"></span></div>
+            <div class="ec-head"><span class="ec-name" id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
             <div class="stats">
               <div class="stat"><span class="k">たいりょく</span><span class="v" id="eHpV"></span></div>
               <div class="stat"><span class="k">こうげき</span><span class="v" id="eAtkV"></span></div>
@@ -495,7 +579,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
         <div class="minis" id="eParts"></div>
         <div class="reward" id="eReward"></div>
       </div>
-      <div class="card f">
+      <div class="card f" id="preFCard">
         <div class="f-name" id="fName"></div>
         <div class="f-desc" id="fDesc"></div>
       </div>
@@ -520,9 +604,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     <div class="col-r">
       <div id="hintWrap"></div>
       <div class="plist" id="plist"></div>
-      <div class="fight-bar"><button class="btn" id="fightBtn">たたかう</button></div>
     </div>
   </div>
+  <div class="fight-bar"><button class="btn" id="fightBtn">たたかう</button></div>
 </div>
 
 <!-- バトル -->
@@ -566,14 +650,18 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 <div id="grow" class="screen">
   <div class="sub">そだち</div>
   <div class="gtitle" id="growTitle"></div>
-  <div class="gmon" id="growMon"></div>
+  <div class="garena" id="growArena"><div class="gmon before" id="growBefore"></div><div class="gmon after" id="growAfter"></div></div>
+  <div class="gdir" id="growDir"></div>
+  <div class="gnum" id="growNum"></div>
   <div class="gdesc" id="growDesc"></div>
   <div class="gtap" id="growTap">タップで つぎへ</div>
 </div>
 
 <!-- クリア -->
 <div id="clear" class="screen">
-  <div class="topbar"><div class="big-title win-title">10れんしょう！</div></div>
+  <div class="confetti" id="confetti"></div>
+  <div class="topbar"><div class="big-title win-title">ぬしを たおした！</div></div>
+  <div class="mid-title">ちょうじょうに たどりついた（10れんしょう）</div>
   <div class="row"><div class="namebig" id="clearName"></div><div id="clearMon"></div></div>
   <div class="dendo-note">でんどうに はいった</div>
   <div class="recap" id="clearRecap"></div>
@@ -598,7 +686,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <div class="end-btns"><button class="btn round" id="againBtn2" aria-label="もういちど">↻</button><button class="btn sub" id="titleBtn2">タイトルへ</button></div>
 </div>
 
-<script src="sim.js?v=5"></script>
+<script src="sim.js?v=6"></script>
 <script>
 (function () {
   'use strict';
@@ -620,15 +708,15 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function fmt(x) { return Number.isInteger(x) ? String(x) : (Math.round(x * 10) / 10).toFixed(1); }
 
   // ---------- 保存 ----------
-  var KEY = { zukan: 'dekomon5.zukan', sparks: 'dekomon5.sparks', met: 'dekomon5.met', vol: 'dekomon5.vol', hall: 'dekomon5.hall', run: 'dekomon5.run' };
+  var KEY = { zukan: 'dekomon6.zukan', sparks: 'dekomon6.sparks', met: 'dekomon6.met', vol: 'dekomon6.vol', hall: 'dekomon6.hall', run: 'dekomon6.run' };
   function load(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function remove(k) { try { localStorage.removeItem(k); } catch (e) {} }
   if (OPT.reset) { try { Object.keys(KEY).forEach(function (k) { localStorage.removeItem(KEY[k]); }); } catch (e) {} }
-  // 版4 からの引き継ぎ（版5 のキーが まだ無いときだけ）
-  ['zukan', 'sparks', 'met', 'vol', 'hall'].forEach(function (k) { try { if (localStorage.getItem(KEY[k]) === null && localStorage.getItem('dekomon4.' + k) !== null && !OPT.reset) localStorage.setItem(KEY[k], localStorage.getItem('dekomon4.' + k)); } catch (e) {} });
+  // 版5（なければ 版4）からの引き継ぎ（版6 のキーが まだ無いときだけ）。途中セーブは 形が変わったので 引き継がない
+  ['zukan', 'sparks', 'met', 'vol', 'hall'].forEach(function (k) { try { if (localStorage.getItem(KEY[k]) === null && !OPT.reset) { var old = localStorage.getItem('dekomon5.' + k); if (old === null) old = localStorage.getItem('dekomon4.' + k); if (old !== null) localStorage.setItem(KEY[k], old); } } catch (e) {} });
   var STORE = { zukan: load(KEY.zukan, []), sparks: load(KEY.sparks, []), met: load(KEY.met, {}), vol: load(KEY.vol, { vol: 40, mute: false }), hall: load(KEY.hall, []) };
-  STORE.hall.forEach(function (h) { if (!h.grow) h.grow = S.emptyGrow(); if (!h.growHist) h.growHist = []; });
+  STORE.hall.forEach(function (h) { if (!h.grow) h.grow = S.emptyGrow(); if (!h.growHist) h.growHist = []; if (!h.maxHit) h.maxHit = null; if (h.boss === undefined) h.boss = false; });
 
   // ---------- 見た目のデータ ----------
   var LOOK = {
@@ -637,7 +725,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     hedgehog: { shape: 'round', color: '#9c7a5a' }, bird: { shape: 'tall', color: '#d9b36c' }, frog: { shape: 'blob', color: '#7b6a4e' },
     wolf: { shape: 'blob', color: '#5fa86a' }, jelly: { shape: 'dome', color: '#6f9ceb' }, boar: { shape: 'wide', color: '#b5413a' }, cat: { shape: 'round', color: '#4a4f66' }
   };
-  var WEIGHT = { heavy: 'おもい', light: 'かるい' };
+  var WEIGHT = { heavy: 'おもい −3', light: 'かるい +2' };
+  LOOK.boss = { shape: 'wide', color: '#6b3fa0' };
 
   function bodyShape(shape, color, strokeW) {
     var st = ' fill="' + color + '" stroke="#111" stroke-width="' + strokeW + '" class="body"';
@@ -650,8 +739,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     }
   }
   // 右向きの体。face:'l' で左向き。traits で見た目が変わる。lv2 のパーツは金色のふち。grow（そだち）で体が大きくなり、方向で形が変わる。
-  function monsterSVG(lookKey, parts, face, traits, lv2, grow) {
+  function monsterSVG(lookKey, parts, face, traits, lv2, grow, big) {
     var look = LOOK[lookKey] || LOOK.player;
+    var isBoss = lookKey === 'boss';
     var on = {}; (parts || []).forEach(function (p) { on[p] = true; });
     var L = {}; (lv2 || []).forEach(function (p) { L[p] = true; });
     var T = {}; (traits || []).forEach(function (t) { T[t] = true; });
@@ -659,17 +749,17 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var flip = face === 'l' ? 'translate(200,0) scale(-1,1)' : '';
     var gr = grow && typeof grow === 'object' ? grow : S.emptyGrow();
     var gn = S.growCount(gr);
-    var g = 1 + S.CFG.grow.size * gn;
+    var g = (1 + S.CFG.grow.size * gn) * (isBoss && big ? 1.6 : 1);
     // すばやい：細長く。たくましい：前半身（右）が大きく
     var sx = Math.pow(0.94, gr.quick || 0) * Math.pow(1.04, gr.strong || 0), sy = Math.pow(1.05, gr.quick || 0);
     var growT = (g !== 1 || sx !== 1 || sy !== 1) ? 'translate(100,204) scale(' + (g * sx) + ',' + (g * sy) + ') translate(-100,-204)' : '';
     var strongT = (gr.strong || 0) > 0 ? 'translate(60,125) scale(' + (1 + 0.06 * gr.strong) + ',' + (1 + 0.02 * gr.strong) + ') translate(-60,-125)' : '';
-    var strokeW = (T.tough ? 6 : 3) + 1.6 * (gr.tough || 0);
+    var strokeW = (T.tough ? 6 : 3) + 1.6 * (gr.tough || 0) + (isBoss ? 2 : 0);
     var bodyG = (T.heavy ? '<g transform="translate(100,125) scale(1.12) translate(-100,-125)">' : '<g>') +
       (strongT ? '<g transform="' + strongT + '">' : '<g>') + bodyShape(look.shape, look.color, strokeW) + '</g></g>';
-    var eyeFill = T.charge ? '#ffe066' : '#fff';
-    var eyeGlow = T.charge ? ' style="filter: drop-shadow(0 0 6px #ffd54a)"' : '';
-    return '<svg class="mon" viewBox="0 0 200 205" xmlns="http://www.w3.org/2000/svg"' + (T.regen ? ' style="filter: drop-shadow(0 0 10px #7ee787)"' : '') + '><g transform="' + flip + ' ' + growT + '">' +
+    var eyeFill = isBoss ? '#ff5a5a' : (T.charge ? '#ffe066' : '#fff');
+    var eyeGlow = isBoss ? ' style="filter: drop-shadow(0 0 8px #ff3b3b) drop-shadow(0 0 3px #fff)"' : (T.charge ? ' style="filter: drop-shadow(0 0 6px #ffd54a)"' : '');
+    return '<svg class="mon' + (isBoss ? ' boss' : '') + '" viewBox="0 0 200 205" xmlns="http://www.w3.org/2000/svg"' + (T.regen ? ' style="filter: drop-shadow(0 0 10px #7ee787)"' : '') + '><g transform="' + flip + ' ' + growT + '">' +
       (T.fast ? '<g stroke="#cfe9ff" stroke-width="4" stroke-linecap="round" opacity=".8"><path d="M14 96 h26"/><path d="M6 118 h30"/><path d="M14 140 h26"/></g>' : '') +
       P('tail', '<path d="M54 140 Q10 150 18 110 Q22 96 36 104 Q30 126 58 128Z" fill="#a0693d" stroke="#5a2d0c" stroke-width="3"/>') +
       P('longtail', '<path d="M52 142 Q0 160 8 100" fill="none" stroke="#c99a5b" stroke-width="7" stroke-linecap="round"/>') +
@@ -794,6 +884,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     finish:  function () { tone(70, 1.4, 'sawtooth', 0.26, 0, 38); tone(140, 1.2, 'sine', 0.2, 0, 70); tone(1046, 0.7, 'triangle', 0.14, 0.05, 523); noise(0.6, 0.3, 0, 'lowpass', 1400, 90); },
     win:     function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.28, 'triangle', 0.26, i * 0.13); }); },
     bigwin:  function () { [523, 659, 784, 1047, 1319, 1568].forEach(function (f, i) { tone(f, 0.4, 'triangle', 0.24, i * 0.12); }); },
+    fanfare: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.3, 'triangle', 0.22, i * 0.11); }); [784, 988, 1175, 1568].forEach(function (f, i) { tone(f, 0.35, 'triangle', 0.2, 0.55 + i * 0.11); }); [1047, 1319, 1568].forEach(function (f) { tone(f, 1.6, 'triangle', 0.16, 1.1); tone(f / 2, 1.8, 'sine', 0.12, 1.1); }); tone(2093, 1.4, 'sine', 0.1, 1.2); noise(0.5, 0.08, 1.1, 'highpass', 5000); },
     lose:    function () { [392, 311, 233].forEach(function (f, i) { tone(f, 0.4, 'sawtooth', 0.14, i * 0.22); }); }
   };
   function sfx(id) { if (SFX[id]) SFX[id](); }
@@ -817,55 +908,61 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   renderVol();
 
   // ---------- 画面切り替え ----------
-  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
+  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
     window.scrollTo(0, 0);
     G.screen = id;
     $('menuPop').classList.remove('on');
-    if (id === 'start' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
+    if (id === 'start' || id === 'fork' || id === 'summit' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
   }
 
   // ---------- ゲームの状態 ----------
   var G = { screen: 'title', firstRun: true, rng: null, run: null, owned: [], attached: [], lastParts: null, battle: 0, wins: 0, lv2: [], pity: 0, sparked: [], history: [], lastSummary: null, picked: null,
-    nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, reward: null, pendingGrow: null, backTo: 'title',
-    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0 }, brightChanges: 0 };
+    nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, rewards: [], forkFor: -1, pendingGrow: null, backTo: 'title',
+    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, saveChecks: 0, saveFails: 0 }, brightChanges: 0 };
   var seed = OPT.seed ? parseInt(OPT.seed, 10) : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
   G.rng = S.makeRng(seed);
 
   function startRun() {
-    G.run = S.newRun(G.rng);
-    G.owned = S.startItems(G.rng).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = null;
-    G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.reward = null; G.pendingGrow = null;
+    G.run = S.newRun(G.rng); G.run.choices = [];
+    G.owned = S.startItems(G.rng).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
+    G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.rewards = []; G.forkFor = -1; G.pendingGrow = null;
     showStart();
   }
-  function curEnemyDef() { return S.ENEMIES[G.run.enemies[G.battle]]; }
-  function curField() { return S.FIELD_BY_ID[G.run.fields[G.battle]]; }
+  // いまの戦いの道（分かれ道で選んだ側。10戦目は ぬし）
+  function curPath() { return S.pathOf(G.run, G.battle, G.run.choices[G.battle] || 0); }
+  function curEnemyDef() { return S.enemyDefOf(curPath().enemy); }
+  function curField() { return S.FIELD_BY_ID[curPath().field]; }
+  function curHard() { return !!curPath().hard; }
+  function isBossBattle() { return G.battle >= S.CFG.runBattles - 1; }
   function curStage() { return G.battle + 1; }
   function myDef() { return S.playerDef(G.grow, G.run.name); }
 
   // ---------- 途中セーブ ----------
-  // 画面が変わるたびに保存。phase: start（周回の始め）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
+  // 画面が変わるたびに保存。phase: start（周回の始め）/ fork（わかれみち）/ summit（ちょうじょう）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
+  function sumSave(sum) { return { dealt: sum.dealt, synergies: sum.synergies, spark: sum.spark, maxHit: sum.maxHit || null }; }
   function saveRun(phase) {
     if (OPT.auto || !G.run) return;
-    var data = { v: 5, phase: phase, seed: seed, rngState: G.rng.getState(), run: { enemies: G.run.enemies, fields: G.run.fields, name: G.run.name },
-      owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, reward: G.reward, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
-      history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark } }; }),
-      lastSummary: G.lastSummary ? { sum: { dealt: G.lastSummary.sum.dealt, synergies: G.lastSummary.sum.synergies, spark: G.lastSummary.sum.spark }, enemy: G.lastSummary.enemy.id, spark: G.lastSummary.spark } : null };
+    var data = { v: 6, phase: phase, seed: seed, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
+      owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, rewards: G.rewards, forkFor: G.forkFor, picked: G.picked, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
+      history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: sumSave(h.summary) }; }),
+      lastSummary: G.lastSummary ? { sum: sumSave(G.lastSummary.sum), enemy: G.lastSummary.enemy.id, spark: G.lastSummary.spark } : null };
     save(KEY.run, data);
   }
   function clearSave() { remove(KEY.run); }
-  function loadSave() { var d = load(KEY.run, null); return d && d.v === 5 && d.run ? d : null; }
-  var EBYID = {}; S.ENEMIES.forEach(function (e) { EBYID[e.id] = e; });
+  function loadSave() { var d = load(KEY.run, null); return d && d.v === 6 && d.run && d.run.steps ? d : null; }
   function resumeRun(d) {
     G.rng = S.makeRng(0, d.rngState);
-    G.run = { enemies: d.run.enemies, fields: d.run.fields, name: d.run.name };
+    G.run = { steps: d.run.steps, boss: d.run.boss, name: d.run.name, choices: d.run.choices || [] };
     G.owned = d.owned.slice(); G.attached = []; G.lastParts = null; G.battle = d.battle; G.wins = d.wins; G.lv2 = d.lv2.slice(); G.pity = d.pity; G.sparked = d.sparked.slice();
-    G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.reward = d.reward || null; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
-    G.history = (d.history || []).map(function (h) { return { enemy: EBYID[h.enemy], field: S.FIELD_BY_ID[h.field], parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark, activations: {} } }; });
-    G.lastSummary = d.lastSummary ? { sum: d.lastSummary.sum, enemy: EBYID[d.lastSummary.enemy], spark: d.lastSummary.spark } : null;
+    G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.rewards = d.rewards || []; G.forkFor = (d.forkFor === undefined) ? -1 : d.forkFor; G.picked = d.picked || []; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
+    G.history = (d.history || []).map(function (h) { return { enemy: S.ENEMY_BY_ID[h.enemy], field: S.FIELD_BY_ID[h.field], hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark, maxHit: h.summary.maxHit || null, activations: {} } }; });
+    G.lastSummary = d.lastSummary ? { sum: d.lastSummary.sum, enemy: S.ENEMY_BY_ID[d.lastSummary.enemy], spark: d.lastSummary.spark } : null;
     if (d.phase === 'start') showStart();
-    else if (d.phase === 'win') afterWinNext();
+    else if (d.phase === 'fork') showFork();
+    else if (d.phase === 'summit') showSummit();
+    else if (d.phase === 'win') showWin(true);
     else if (d.phase === 'grow') showGrow(G.pendingGrow || (G.growHist[G.growHist.length - 1] || 'tough'), true);
     else showPre();
   }
@@ -906,26 +1003,32 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var h = G.history, last = h[h.length - 1];
     var syn = {}; h.forEach(function (x) { x.summary.synergies.forEach(function (s) { if (s.side === 'p') syn[s.id] = true; }); });
     var d = new Date();
+    var mh = runMaxHit();
     var entry = { name: G.run.name, wins: G.wins, parts: last ? last.parts.slice() : [], lv2: G.lv2.slice(), sparked: G.sparked.slice(), synergies: Object.keys(syn).map(Number),
-      grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }, growHist: G.growHist.slice(),
+      grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }, growHist: G.growHist.slice(), maxHit: mh, boss: G.wins >= S.CFG.runBattles,
       enemies: h.map(function (x) { return x.enemy.id; }), date: d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2), cleared: G.wins >= S.CFG.runBattles };
     STORE.hall.unshift(entry);
     if (STORE.hall.length > 50) STORE.hall.length = 50;
     save(KEY.hall, STORE.hall);
   }
   function growHistText(hist) { return hist && hist.length ? hist.map(function (g) { return S.GROWS[g].name; }).join('・') : 'なし'; }
+  // この周回の さいだいの いちげき（全戦の最大）
+  function runMaxHit() { var best = null; G.history.forEach(function (x) { var m = x.summary && x.summary.maxHit; if (m && m.dmg > 0 && (!best || m.dmg > best.dmg)) best = { dmg: m.dmg, label: m.label }; }); return best; }
+  function maxHitText(m) { return m && m.dmg > 0 ? m.dmg + '（' + m.label + 'で）' : 'なし'; }
   function renderDendo() {
     var list = $('dendoList'); list.innerHTML = '';
     if (!STORE.hall.length) { $('dendoSub').textContent = 'まだ だれも いない'; return; }
     var best = STORE.hall.reduce(function (b, h) { return (!b || h.wins > b.wins) ? h : b; }, null);
-    $('dendoSub').innerHTML = '<div class="hallsum">' + STORE.hall.length + 'たい ／ さいこう ' + best.wins + 'れんしょう ／ かみあい ' + STORE.zukan.length + '/' + S.SYNERGIES.length + ' ／ ひらめき ' + STORE.sparks.length + '/' + S.PARTS.length + '</div><div class="sub">あたらしい じゅん</div>';
+    var bossN = STORE.hall.filter(function (h) { return h.boss; }).length;
+    var hallHit = STORE.hall.reduce(function (b, h) { return (h.maxHit && h.maxHit.dmg > 0 && (!b || h.maxHit.dmg > b.dmg)) ? h.maxHit : b; }, null);
+    $('dendoSub').innerHTML = '<div class="hallsum">' + STORE.hall.length + 'たい ／ さいこう ' + best.wins + 'れんしょう ／ ぬしを たおした ' + bossN + 'かい ／ さいだいの いちげき ' + esc(maxHitText(hallHit)) + '</div><div class="hallsum">かみあい ' + STORE.zukan.length + '/' + S.SYNERGIES.length + ' ／ ひらめき ' + STORE.sparks.length + '/' + S.PARTS.length + '</div><div class="sub">あたらしい じゅん</div>';
     STORE.hall.forEach(function (h) {
       var names = function (ids) { return ids.length ? ids.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし'; };
       var syn = h.synergies.length ? h.synergies.map(function (id) { return esc(S.SYN_BY_ID[id].name); }).join('、') : 'なし';
       var isBest = h === best;
       list.appendChild(el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '</div>' +
-        '<div><b>' + h.wins + 'れんしょう</b>' + (h.cleared ? '（クリア）' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
-        '<small>そだち：<span class="growhist">' + esc(growHistText(h.growHist)) + '</span></small><small>Lv2：' + names(h.lv2) + '</small><small>さいごの パーツ：' + names(h.parts) + '</small><small>みつけた かみあい：' + syn + '</small></div>'));
+        '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
+        '<small>さいだいの いちげき：' + esc(maxHitText(h.maxHit)) + '</small><small>そだち：<span class="growhist">' + esc(growHistText(h.growHist)) + '</span></small><small>Lv2：' + names(h.lv2) + '</small><small>さいごの パーツ：' + names(h.parts) + '</small><small>みつけた かみあい：' + syn + '</small></div>'));
     });
   }
   function openZukan() { G.backTo = (G.screen === 'zukan' || G.screen === 'dendo') ? G.backTo : G.screen; renderZukan(); show('zukan'); }
@@ -936,7 +1039,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   $('dendoBtn').addEventListener('click', function () { initAudio(); openDendo(); });
   $('dendoBack').addEventListener('click', goBack);
   // ≡メニュー：タイトルへ・ずかん・でんどう。周回の途中でも保存があるので消えない
-  function inRun() { return !!G.run && ['start', 'pre', 'battle', 'win', 'grow'].indexOf(G.screen) >= 0; }
+  function inRun() { return !!G.run && ['start', 'fork', 'summit', 'pre', 'battle', 'win', 'grow'].indexOf(G.screen) >= 0; }
   $('menuBtn').addEventListener('click', function (ev) {
     ev.stopPropagation(); initAudio();
     var pop = $('menuPop');
@@ -960,7 +1063,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     show('start');
     if (OPT.auto) setTimeout(function () { $('startGo').click(); }, 300 / OPT.speed);
   }
-  $('startGo').addEventListener('click', function () { initAudio(); showPre(); });
+  $('startGo').addEventListener('click', function () { initAudio(); nextStep(); });
 
   // ---------- パーツ札 ----------
   function partCard(id, on, hints) {
@@ -1018,31 +1121,131 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     return el('div', 'trait', '<span class="ticon">' + TRAIT_ICON[t] + '</span><b>' + esc(T.name) + '</b>' + (withDesc ? '<span>' + esc(T.desc) + '</span>' : ''));
   }
 
+  // ---------- 山の道（10だん）。わかれみち と バトル前に出す ----------
+  // 通った道は その場所の色。いまの段は 白いふち。先は 灰色。10だんめは いつも ぬし。
+  function trailHTML(compact) {
+    var n = S.CFG.runBattles, W = 400, H = compact ? 64 : 84;
+    var pts = [];
+    for (var i = 0; i < n; i++) pts.push({ x: 22 + i * (W - 44) / (n - 1), y: H - 16 - i * (H - 34) / (n - 1) });
+    var poly = 'M0 ' + H + ' L0 ' + (H - 6);
+    pts.forEach(function (p, i) { poly += ' L' + (p.x - (i === n - 1 ? 0 : 0)) + ' ' + (p.y + 7); });
+    poly += ' L' + W + ' ' + (pts[n - 1].y + 7) + ' L' + W + ' ' + H + ' Z';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path d="' + poly + '" fill="#2c3142"/>';
+    for (var k = 0; k < n - 1; k++) svg += '<line x1="' + pts[k].x + '" y1="' + pts[k].y + '" x2="' + pts[k + 1].x + '" y2="' + pts[k + 1].y + '" stroke="#4a5168" stroke-width="3"/>';
+    pts.forEach(function (p, i) {
+      var passed = i < G.battle, cur = i === G.battle, boss = i === n - 1;
+      var col = '#3e4558';
+      if (passed) { var path = S.pathOf(G.run, i, G.run.choices[i] || 0); col = S.FIELD_BY_ID[path.field].color; }
+      if (boss) {
+        svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (cur ? 13 : 11) + '" fill="#6b3fa0" stroke="' + (cur ? '#fff' : '#9a7ad0') + '" stroke-width="' + (cur ? 3 : 2) + '"/>' +
+          '<polygon points="' + (p.x - 4) + ',' + (p.y - 4) + ' ' + (p.x + 2) + ',' + (p.y - 15) + ' ' + (p.x + 5) + ',' + (p.y - 3) + '" fill="#f5d76e" stroke="#7a5c00" stroke-width="1.5"/>' +
+          '<circle cx="' + (p.x + 3) + '" cy="' + (p.y + 1) + '" r="2.6" fill="#ff5a5a"/>';
+      } else {
+        svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (cur ? 10 : 7) + '" fill="' + (cur ? (G.history[i] ? col : '#ffcc4d') : col) + '" stroke="' + (cur ? '#fff' : (passed ? '#f4f1ea' : '#2c3142')) + '" stroke-width="' + (cur ? 3 : 1.5) + '"/>';
+      }
+      if (cur) svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="16" fill="none" stroke="#ffcc4d" stroke-width="2" opacity=".7"/>';
+    });
+    svg += '</svg>';
+    var place = isBossBattle() ? 'ちょうじょう' : (G.battle + 1) + 'ごうめ';
+    return '<div class="trail' + (compact ? ' compact' : '') + '">' + svg + '<div class="tl"><b>' + place + '</b><span>／ ' + n + 'ごうめが ちょうじょう：ぬし</span></div></div>';
+  }
+
+  // ---------- わかれみち（1〜9戦目）。2つの道：相手・場所・かてば もらえる。片方は てごわい ----------
+  function enemyCardHTML(def, stage, hard, fieldId, idPrefix) {
+    var ef = S.makeFighter('e', def, def.parts, stage, [], { hard: hard });
+    var met = metCount(def.id);
+    var h = '<div class="ec-top"><div style="flex:1;min-width:0"><div class="ec-head"><span class="ec-name">' + esc(def.name) + '</span><span class="met' + (met ? '' : ' first') + '">' + (met ? (met + 1) + 'かいめ' : 'はじめて') + '</span></div>' +
+      '<div class="stats"><div class="stat"><span class="k">たいりょく</span><span class="v' + (hard ? ' hard' : '') + '">' + ef.maxHp + '</span></div><div class="stat"><span class="k">こうげき</span><span class="v' + (hard ? ' hard' : '') + '">' + Math.round(S.effAtk(ef)) + '</span></div><div class="stat"><span class="k">はやさ</span><span class="v">' + S.effSpd(ef, fieldId) + '</span></div></div></div>' +
+      '<div>' + monsterSVG(def.id, def.parts, 'l', def.traits) + '</div></div>';
+    h += '<div class="traits">' + def.traits.map(function (t) { return traitRow(t, true).outerHTML; }).join('') + '</div>';
+    h += '<div class="label">つけている パーツ</div><div class="minis">' + def.parts.map(function (p) { return miniCard(p).outerHTML; }).join('') + '</div>';
+    return h;
+  }
+  function rewardText(rewards) { return rewards && rewards.length ? 'かてば もらえる：' + rewards.map(function (r) { return '<b>' + esc(S.PART_BY_ID[r].name) + '</b>'; }).join('、') : 'もう ぜんぶ もっている'; }
+  function showFork() {
+    if (isBossBattle()) { showSummit(); return; }
+    // 両方の道の「かてば もらえる」を、この分かれ道に初めて来たときに決める（乱数は ここで使う）
+    if (G.forkFor !== G.battle) { S.forkRewards(G.run, G.battle, G.owned, G.rng); G.forkFor = G.battle; }
+    var paths = G.run.steps[G.battle], stage = curStage();
+    $('forkNo').textContent = (G.battle + 1) + 'せんめ ／ ' + S.CFG.runBattles;
+    $('forkWins').textContent = G.wins ? G.wins + 'れんしょうちゅう' : '';
+    $('forkTrail').innerHTML = trailHTML(false);
+    var box = $('forkPaths'); box.innerHTML = '';
+    paths.forEach(function (path, k) {
+      var def = S.enemyDefOf(path.enemy), fld = S.FIELD_BY_ID[path.field];
+      var d = el('div', 'fork-path' + (path.hard ? ' hard' : ''));
+      d.innerHTML = '<div class="fk-top"><span class="fk-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="hardmark">てごわい</span>' : '') + '</div>' +
+        '<div class="card e' + (path.hard ? ' hard' : '') + '">' + enemyCardHTML(def, stage, path.hard, fld.id) + '</div>' +
+        '<div class="card f" style="border-color:' + fld.color + '"><div class="f-name"><span class="fsw" style="background:' + fld.color + '"></span>ばしょ：' + esc(fld.name) + '</div><div class="f-desc">' + esc(fld.desc) + '</div></div>' +
+        '<div class="reward' + (path.hard ? ' two' : '') + '">' + rewardText(path.rewards) + '</div>' +
+        '<button class="btn' + (path.hard ? ' hardbtn' : '') + '">' + (k === 0 ? 'ひだりへ' : 'みぎへ') + '</button>';
+      d.addEventListener('click', function () { chooseFork(k); });
+      box.appendChild(d);
+    });
+    show('fork');
+    if (OPT.auto) setTimeout(function () {
+      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard).score;
+      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard).score;
+      chooseFork(s1 > s0 ? 1 : 0);
+    }, 300 / OPT.speed);
+  }
+  function chooseFork(k) {
+    if (G.screen !== 'fork') return;
+    initAudio(); sfx('pick');
+    G.run.choices[G.battle] = k;
+    G.rewards = (G.run.steps[G.battle][k].rewards || []).slice();
+    showPre();
+  }
+  // ちょうじょう（10戦目の前）：ぬしの名前・性質・パーツを 1.5秒 見せてから バトル前へ
+  var summitTimer = null;
+  function showSummit() {
+    var def = S.BOSS;
+    G.rewards = [];
+    $('summitTrail').innerHTML = trailHTML(false);
+    $('summitMon').innerHTML = monsterSVG('boss', def.parts, 'l', def.traits, [], null, false);
+    $('summitName').textContent = def.name;
+    var tr = $('summitTraits'); tr.innerHTML = ''; def.traits.forEach(function (t) { tr.appendChild(traitRow(t, true)); });
+    var pp = $('summitParts'); pp.innerHTML = ''; def.parts.forEach(function (p) { pp.appendChild(miniCard(p)); });
+    $('summitTap').classList.remove('on');
+    show('summit'); sfx('horn');
+    clearTimeout(summitTimer);
+    summitTimer = setTimeout(function () { $('summitTap').classList.add('on'); if (OPT.auto) summitNext(); }, 1500 / OPT.speed);
+  }
+  function summitNext() { if (G.screen !== 'summit') return; showPre(); }
+  $('summit').addEventListener('click', function () { if ($('summitTap').classList.contains('on')) summitNext(); });
+  // つぎの戦いへ：1〜9戦目は わかれみち、10戦目は ちょうじょう
+  function nextStep() { if (isBossBattle()) showSummit(); else showFork(); }
+
   // ---------- バトル前 ----------
   function metCount(enemyId) { return STORE.met[enemyId] || 0; }
   var swapFlash = null;
   function showPre() {
-    var e = curEnemyDef(), f = curField(), stage = curStage();
-    var ef = S.makeFighter('e', e, e.parts, stage);
+    var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
+    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
     var met = metCount(e.id);
     G.attached = []; // 毎戦、装備を外した状態で始める
     $('preNo').textContent = (G.battle + 1) + 'せんめ ／ ' + S.CFG.runBattles;
     $('preWins').textContent = G.wins ? G.wins + 'れんしょうちゅう' : '';
+    $('preTrail').innerHTML = trailHTML(true);
     $('eName').textContent = e.name;
     var mb = $('eMet'); mb.textContent = met ? (met + 1) + 'かいめ' : 'はじめて'; mb.className = 'met' + (met ? '' : ' first');
-    $('eHpV').textContent = ef.maxHp;
-    $('eAtkV').textContent = Math.round(S.effAtk(ef));
+    $('eHard').style.display = hard ? 'inline-block' : 'none';
+    $('eBoss').style.display = e.boss ? 'inline-block' : 'none';
+    $('preECard').className = 'card e' + (hard ? ' hard' : '') + (e.boss ? ' boss' : '');
+    $('eHpV').textContent = ef.maxHp; $('eHpV').className = 'v' + (hard ? ' hard' : '');
+    $('eAtkV').textContent = Math.round(S.effAtk(ef)); $('eAtkV').className = 'v' + (hard ? ' hard' : '');
     $('eSpdV').textContent = S.effSpd(ef, f.id);
     $('eMon').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits);
     var tr = $('eTraits'); tr.innerHTML = '';
     e.traits.forEach(function (t) { tr.appendChild(traitRow(t, true)); });
     var ep = $('eParts'); ep.innerHTML = '';
     e.parts.forEach(function (p) { ep.appendChild(miniCard(p)); });
-    $('fName').textContent = 'フィールド：' + f.name;
+    $('fName').innerHTML = '<span class="fsw" style="background:' + f.color + '"></span>ばしょ：' + esc(f.name);
+    $('preFCard').style.borderColor = f.color;
     $('fDesc').textContent = f.desc;
-    // かてば もらえる（このバトルで初めて見るときに決める。乱数は ここで使う）
-    if (G.reward === null || G.reward === undefined || G.rewardFor !== G.battle) { G.reward = S.rewardFor(e, G.owned, G.rng); G.rewardFor = G.battle; }
-    $('eReward').innerHTML = G.reward ? 'かてば もらえる：<b>' + esc(S.PART_BY_ID[G.reward].name) + '</b>' : 'もう ぜんぶ もっている';
+    // かてば もらえる：わかれみちで決めたもの（ぬしは なし）
+    $('eReward').innerHTML = e.boss ? 'ぬしを たおせば ちょうじょう！' : rewardText(G.rewards);
+    $('eReward').className = 'reward' + (G.rewards.length > 1 ? ' two' : '');
     var d = myDef();
     $('pName').textContent = G.run.name;
     var gh = d.hp - S.CFG.playerHp, ga = d.atk - S.CFG.playerAtk;
@@ -1056,7 +1259,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     if ($('plist').scrollTo) $('plist').scrollTo(0, 0);
     if (OPT.auto) {
       setTimeout(function () {
-        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2);
+        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard);
         G.attached = best.parts.slice();
         renderMe(); renderPlist();
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);
@@ -1088,7 +1291,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     }
     var e = curEnemyDef(), f = curField();
     var p = S.makeFighter('p', myDef(), G.attached, 1, G.lv2);
-    var ef = S.makeFighter('e', e, e.parts, curStage());
+    var ef = S.makeFighter('e', e, e.parts, curStage(), [], { hard: curHard() });
     var ps = S.effSpd(p, f.id), es = S.effSpd(ef, f.id);
     var sv = $('pSpdV'); sv.textContent = fmt(ps); sv.className = 'v' + (ps !== S.CFG.playerSpd ? ' chg' : '');
     var first = ps >= es ? G.run.name : 'あいて';
@@ -1468,9 +1671,30 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 
   // ---------- 検査：文字の重なり・はみ出し、後ろの画面の透け（?auto=1 のあいだ） ----------
   var seenOverlap = {};
+  // 文字そのものの範囲（箱ではなく、字が描かれている範囲）
+  function textRect(e) {
+    var rg = document.createRange(); rg.selectNodeContents(e);
+    var rs = rg.getClientRects(), u = null;
+    for (var i = 0; i < rs.length; i++) { var r = rs[i]; if (r.width <= 0 || r.height <= 0) continue; u = u ? { left: Math.min(u.left, r.left), top: Math.min(u.top, r.top), right: Math.max(u.right, r.right), bottom: Math.max(u.bottom, r.bottom) } : { left: r.left, top: r.top, right: r.right, bottom: r.bottom }; }
+    if (!u) return null;
+    u.width = u.right - u.left; u.height = u.bottom - u.top; return u;
+  }
+  function isect(a, b) { var r = { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top), right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) }; r.width = r.right - r.left; r.height = r.bottom - r.top; return (r.width > 0 && r.height > 0) ? r : null; }
+  // 文字の範囲を その要素の箱に、そして overflow で切り取る親の箱に おさめる（見えていない部分は数えない）
+  function clipRect(e, r) {
+    var er = e.getBoundingClientRect();
+    var out = isect(r, { left: er.left - 1, top: er.top - 1, right: er.right + 1, bottom: er.bottom + 1 });
+    var p = e.parentElement;
+    while (out && p && p !== document.body) {
+      var cs = getComputedStyle(p);
+      if (cs.overflow !== 'visible' || cs.overflowY !== 'visible' || cs.overflowX !== 'visible') { var pr = p.getBoundingClientRect(); out = isect(out, pr); }
+      p = p.parentElement;
+    }
+    return out;
+  }
   function textElements() {
     var out = [];
-    var all = document.querySelectorAll('.screen.on *, .volbtn');
+    var all = document.querySelectorAll('.screen.on *');
     var vw = window.innerWidth, vh = window.innerHeight;
     for (var i = 0; i < all.length; i++) {
       var e = all[i];
@@ -1481,10 +1705,17 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       var cs = getComputedStyle(e);
       if (!e.offsetParent && cs.position !== 'fixed') continue;
       if (parseFloat(cs.opacity) < 0.3) continue; // ほぼ透明（消えていく途中）は数えない
-      var r = e.getBoundingClientRect();
-      if (r.width <= 0 || r.height <= 0 || r.bottom < 0 || r.top > vh || r.right < 0 || r.left > vw) continue;
-      out.push({ el: e, r: r, text: e.textContent.trim().slice(0, 30) });
+      var er = e.getBoundingClientRect();
+      if (er.width <= 0 || er.height <= 0 || er.bottom < 0 || er.top > vh || er.right < 0 || er.left > vw) continue;
+      var r = clipRect(e, textRect(e) || er); // 文字の範囲を 箱と、切り取る親（スクロールする列など）の中に おさめる
+      if (!r) continue;
+      out.push({ el: e, r: r, er: er, text: e.textContent.trim().slice(0, 30) });
     }
+    // ボタン（≡・音量・たたかう）も相手に入れる：文字が その下に 入っていたら 重なり
+    [$('menuBtn'), $('volBtn'), G.screen === 'pre' ? $('fightBtn') : null].forEach(function (b) {
+      if (!b) return; var r = b.getBoundingClientRect(); if (r.width <= 0) return;
+      out.push({ el: b, r: r, er: r, text: 'ボタン ' + (b.id === 'menuBtn' ? '≡' : (b.id === 'volBtn' ? 'おんりょう' : b.textContent.trim())), button: true });
+    });
     return out;
   }
   function checkOverlap() {
@@ -1492,18 +1723,21 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var els = textElements();
     for (var i = 0; i < els.length; i++) {
       var a = els[i];
+      if (a.button) continue;
       // はみ出し
-      if (a.el.scrollWidth > a.el.clientWidth + 2 && a.el.clientWidth > 0 && getComputedStyle(a.el).overflow !== 'visible') report('はみ出し', a.text, '(箱 ' + a.el.clientWidth + 'px / 文字 ' + a.el.scrollWidth + 'px)', a.r, null);
+      if (a.el.scrollWidth > a.el.clientWidth + 2 && a.el.clientWidth > 0 && getComputedStyle(a.el).overflow !== 'visible') report('はみ出し', a.text, '(箱 ' + a.el.clientWidth + 'px / 文字 ' + a.el.scrollWidth + 'px)', a.er, null);
       var par = a.el.parentElement;
       if (par && par !== document.body) {
         var pr = par.getBoundingClientRect();
         if (pr.width > 0 && (a.r.right > pr.right + 3 || a.r.left < pr.left - 3)) report('親の外', a.text, (par.className || par.id || par.tagName), a.r, pr);
       }
-      if (a.el.closest('.fight-bar, .volbtn, .volpop')) continue;
-      for (var j = i + 1; j < els.length; j++) {
+      if (a.el.closest('.volpop, .menupop')) continue;
+      for (var j = 0; j < els.length; j++) {
+        if (j === i) continue;
         var b = els[j];
+        if (!b.button && j < i) continue; // 文字どうしは 1回だけ比べる。ボタンとは どの文字も比べる
         if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
-        if (b.el.closest('.fight-bar, .volbtn, .volpop')) continue;
+        if (b.el.closest('.volpop, .menupop')) continue;
         var ox = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
         var oy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
         if (ox > 3 && oy > 3) report('重なり', a.text, b.text, a.r, b.r);
@@ -1541,28 +1775,30 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1 && labels.length === 1) ? ' ' + ev.hit + 'かいめ' : ''; // 2つ以上の名前が並ぶときは「かいめ」を省く（スマホで4行になる）
     if (ev.zushin) return { text: 'ずしん +' + ev.zushin + suffix, num: ev.dmg };
     if (ev.stomp) return { text: 'ふみつけ' + suffix + cnt, num: ev.dmg };
+    if (ev.jump2) return { text: 'おおジャンプ ×1.3' + suffix, num: ev.dmg };
     return { text: main + suffix + cnt, num: ev.dmg };
   }
 
   function startBattle() {
-    var e = curEnemyDef(), f = curField(), stage = curStage();
+    var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
     STORE.met[e.id] = (STORE.met[e.id] || 0) + 1; save(KEY.met, STORE.met);
     var lv2Before = G.lv2.slice();
     var p = S.makeFighter('p', myDef(), G.attached, 1, lv2Before);
-    var ef = S.makeFighter('e', e, e.parts, stage);
+    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
     var brng = S.makeRng(Math.floor(G.rng() * 4294967296));
     var res = S.simulateBattle(p, ef, f.id, { rng: brng, variance: OPT.rng0 ? 0 : undefined, spark: { stage: stage, pity: G.pity, nare: G.nare } });
     var used = G.attached.slice();
     G.curRes = res;
 
-    $('bField').textContent = 'フィールド：' + f.name;
+    $('bField').textContent = f.name + (hard ? '　てごわい' : '');
     $('bPName').textContent = G.run.name;
     $('bEName').textContent = e.name;
     $('bHand').textContent = '0';
-    $('arena').className = 'arena ' + f.id;
+    $('arena').className = 'arena ' + f.id + (e.boss ? ' bossfight' : '');
+    $('monE').className = 'mon-wrap e' + (e.boss ? ' boss' : '');
     $('animP').className = 'anim'; $('animE').className = 'anim';
     $('animP').innerHTML = monsterSVG('player', G.attached, 'r', [], lv2Before, G.grow);
-    $('animE').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits);
+    $('animE').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits, [], null, true);
     SPDMOD = { p: 0, e: 0 }; NARE_NOW = {}; $('nareLayer').innerHTML = '';
     $('bResult').className = 'result'; $('bResult').textContent = '';
     $('synpop').className = 'synpop'; $('sparkpop').className = 'sparkpop'; $('found').className = 'found'; $('zkicon').classList.remove('lit');
@@ -1579,7 +1815,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var tl = makeTimeline();
     var st = res.start;
     SPDBASE = { p: st.pSpd, e: st.eSpd };
-    var names = { p: G.run.name, e: 'あいて' };
+    var names = { p: G.run.name, e: e.boss ? 'ぬし' : 'あいて' };
     tl.at(0, function () {
       if (st.wingHelped) { glowPart(st.first, 'wing'); playAnim(st.first, 'hop'); sfx('wing'); setBig(st.first, 'はね！ せんこう', null, st.double ? 'さいしょに 2かい うごく' : null); }
       else setBig(st.first, names[st.first] + 'が せんこう', null, st.double ? 'さいしょに 2かい うごく' : null);
@@ -1616,7 +1852,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           tl.at(0, function () { var d = dmgFx(ev.side, '+' + ev.amt, 'heal'); if (d) setTimeout(function () { d.textContent = '✕'; d.style.color = '#e2b7ff'; }, 250 / OPT.speed); setBig(ev.side, 'もうどく：かいふく できない', null, null, 'status'); sfx('poison'); });
           tl.add(350);
         } else if (ev.t === 'maxUp') {
-          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '上限 +' + ev.amt, 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい！ 上限 ' + ev.maxHp, null, null, 'bighit'); sfx('leech'); });
+          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + (ev.healed || 0), 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい！ 上限 +' + ev.amt, null, '上限 ' + ev.maxHp, 'bighit'); sfx('leech'); });
         } else if (ev.t === 'spdDown') {
           tl.at(0, function () { SPDMOD[ev.side] = ev.spd - (SPDBASE[ev.side] || ev.spd); renderStatus(ev.side); flashChip(ev.side, 'spd'); scratchFx(ev.side); });
         } else if (ev.t === 'broken') {
@@ -1646,7 +1882,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           tl.add(300);
         } else if (ev.t === 'double') {
           var bigJump = G.lv2.indexOf('spring') >= 0 && a === 'p';
-          tl.at(0, function () { glowPart(a, 'spring', bigJump); playAnim(a, bigJump ? 'bigjump' : 'hop'); sfx('spring'); setBig(a, bigJump ? 'おおジャンプ！ 2かい うごく' : 'ばねあし！ 2かい うごく', null, null, bigJump ? 'bighit' : ''); });
+          tl.at(0, function () { glowPart(a, 'spring', bigJump); playAnim(a, bigJump ? 'bigjump' : 'hop'); sfx('spring'); setBig(a, bigJump ? 'おおジャンプ！ 2かい こうげき' : 'ばねあし！ 2かい こうげき', null, bigJump ? '2かいめは ×1.3' : null, bigJump ? 'bighit' : ''); });
           tl.add(650);
         } else if (ev.t === 'hit') {
           var finisher = ev.hp === 0;
@@ -1675,7 +1911,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             if (big) sfx('bighit');
             if (ev.halved) sfx('weak');
             var ht = hitText(ev);
-            setBig(a, ht.text, ht.num, null, (big || ev.stomp || ev.zushin) ? 'bighit' : '');
+            setBig(a, ht.text, ht.num, null, (big || ev.stomp || ev.zushin || ev.jump2) ? 'bighit' : '');
             if (ev.deflect) { var cq = bodyPt(d, true); sparks(cq.x, cq.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(d, '0', 'weak'); }
             else if (ev.shellHide) dmgFx(d, '0', 'weak');
             else dmgFx(d, ev.dmg, (big || ev.stomp) ? 'bighit' : (ev.halved ? 'weak' : ''));
@@ -1686,8 +1922,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
             if (ev.hard && !ev.deflect) dtext.push('かたい −' + ev.hardFlat);
             if (ev.brittle) dtext.push('もろい ×' + ev.brittle);
             if (ev.deflect) dtext.push('はじいた！');
-            if (ev.jump) dtext.push('はんげき とどかず');
-            if (dtext.length && !ev.shellHide) setBig(d, dtext.join(' '), null, null, ev.deflect || ev.jump ? 'bighit' : '');
+            if (dtext.length && !ev.shellHide) setBig(d, dtext.join(' '), null, null, ev.deflect ? 'bighit' : '');
             if (finisher) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
           if (finisher) tl.at(pre + 230 + 520, function () { fadeDmg(); showResult(d === 'e' ? 'たおした！' : 'やられた…', d === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
@@ -1737,7 +1972,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
           tl.at(0, function () {
             setHp(ev.side, ev.hp);
             dmgFx(ev.side, ev.dmg, 'poison');
-            setBig(ev.side, 'どく', ev.dmg, null, 'status');
+            setBig(ev.side, 'どく', ev.dmg, ev.grow ? 'もうどく：つぎは +' + ev.grow : null, 'status');
             sfx('poison');
             if (ST[ev.side].poison) setStatus(ev.side, 'poison', Math.max(1, ST[ev.side].poison - 1));
             if (ev.hp === 0) { playAnim(ev.side, 'blow', true); sfx('finish'); }
@@ -1784,13 +2019,14 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       // そだちの材料
       G.acc.received += res.summary.received; G.acc.landed += res.summary.landed; G.acc.first += res.summary.firstHands;
       G.lastParts = used.slice();
-      G.history.push({ enemy: e, field: f, parts: used, win: won, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark });
+      G.history.push({ enemy: e, field: f, hard: hard, parts: used, win: won, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark });
       G.lastSummary = { sum: res.summary, enemy: e, spark: res.spark };
+      if (OPT.auto) { if (hard) { G.auto.hardB++; if (won) G.auto.hardW++; } else if (e.boss) { G.auto.bossB++; if (won) G.auto.bossW++; } }
       if (won) {
         G.wins++;
-        G.picked = null;
-        if (G.reward && G.owned.indexOf(G.reward) < 0) { G.owned.push(G.reward); G.picked = G.reward; }
-        G.reward = null;
+        G.picked = [];
+        G.rewards.forEach(function (r) { if (G.owned.indexOf(r) < 0) { G.owned.push(r); G.picked.push(r); } });
+        G.rewards = [];
         if (S.growAfterWin(G.wins)) { var gd = S.growDirection(G.acc); G.grow[gd.dir]++; G.growHist.push(gd.dir); G.pendingGrow = gd.dir; G.acc = { received: 0, landed: 0, first: 0 }; if (OPT.auto) G.auto.grows[gd.dir]++; }
         if (G.wins >= S.CFG.runBattles) showClear();
         else showWin();
@@ -1807,56 +2043,70 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var syn = sum.synergies.filter(function (s) { return s.side === 'p'; }).map(function (s) { return S.SYN_BY_ID[s.id].name; });
     var line2 = syn.length ? '<div>かみあい：<span class="syn">' + syn.map(esc).join('、') + '</span></div>' : '';
     var line3 = spark ? '<div>ひらめき：<span class="spk">' + esc(S.PART_BY_ID[spark].name) + ' Lv2</span></div>' : '';
-    return '<div class="t">ふりかえり</div><div>' + line1 + '</div>' + line2 + line3;
+    var mh = sum.maxHit && sum.maxHit.dmg > 0 ? '<div>さいだいの いちげき：<b class="mh">' + sum.maxHit.dmg + '</b>（' + esc(sum.maxHit.label) + 'で）</div>' : '';
+    return '<div class="t">ふりかえり</div><div>' + line1 + '</div>' + mh + line2 + line3;
   }
-  function showWin() {
+  var winTimers = [];
+  function showWin(resumed) {
     $('winTitle').textContent = 'かち！';
     $('winMid').textContent = G.wins === 5 ? '5れんしょう！' : (G.wins + 'れんしょうちゅう');
     var pk = $('picked'), fly = $('winFly');
     var en = G.lastSummary.enemy;
-    if (G.picked) {
-      var pid = G.picked;
+    winTimers.forEach(clearTimeout); winTimers = [];
+    var picked = G.picked || [];
+    if (picked.length && !resumed) {
       pk.style.display = 'none';
       fly.style.display = 'block'; fly.className = 'winfly';
-      // 相手の体から そのパーツが はずれる（相手のパーツなら体から消す）
-      var fromEnemy = en.parts.indexOf(pid) >= 0;
       $('wfE').innerHTML = monsterSVG(en.id, en.parts, 'r', en.traits);
-      $('wfCard').textContent = S.PART_BY_ID[pid].name;
       $('wfBag').classList.remove('lit');
-      setTimeout(function () {
-        if (fromEnemy) { var g = $('wfE').querySelector('.part.' + pid); if (g) g.classList.remove('on'); }
-        fly.classList.add('go'); sfx('pick');
-      }, 350 / OPT.speed);
-      setTimeout(function () { $('wfBag').classList.add('lit'); pk.style.display = 'block'; pk.textContent = 'ひろった：' + S.PART_BY_ID[pid].name; sfx('heal'); }, 1050 / OPT.speed);
-    } else { fly.style.display = 'none'; pk.style.display = 'none'; }
+      // 1つずつ 飛ぶ（相手の体から そのパーツが はずれる。相手のパーツなら体から消す）
+      picked.forEach(function (pid, i) {
+        var base = i * 1100;
+        winTimers.push(setTimeout(function () { fly.className = 'winfly'; $('wfCard').textContent = S.PART_BY_ID[pid].name; }, base / OPT.speed));
+        winTimers.push(setTimeout(function () {
+          if (en.parts.indexOf(pid) >= 0) { var g = $('wfE').querySelector('.part.' + pid); if (g) g.classList.remove('on'); }
+          fly.classList.add('go'); sfx('pick');
+        }, (base + 350) / OPT.speed));
+        winTimers.push(setTimeout(function () { $('wfBag').classList.add('lit'); pk.style.display = 'block'; pk.textContent = 'ひろった：' + picked.slice(0, i + 1).map(function (q) { return S.PART_BY_ID[q].name; }).join('、'); sfx('heal'); }, (base + 1050) / OPT.speed));
+      });
+    } else if (picked.length) { fly.style.display = 'none'; pk.style.display = 'block'; pk.textContent = 'ひろった：' + picked.map(function (q) { return S.PART_BY_ID[q].name; }).join('、'); }
+    else { fly.style.display = 'none'; pk.style.display = 'none'; }
     $('recap').innerHTML = recapHTML(G.lastSummary.sum, G.lastSummary.enemy.name, true, G.lastSummary.spark);
     show('win');
     if (OPT.auto) setTimeout(function () { $('winNext').click(); }, 300 / OPT.speed);
   }
-  // 勝ちの画面の「つぎへ」：そだちがあれば そだちの画面、なければ 次のバトル前
+  // 勝ちの画面の「つぎへ」：そだちがあれば そだちの画面、なければ 次の わかれみち（10戦目なら ちょうじょう）
   function afterWinNext() {
     if (G.pendingGrow) { showGrow(G.pendingGrow, false); return; }
-    G.battle++; showPre();
+    G.battle++; nextStep();
   }
   $('winNext').addEventListener('click', function () { if (G.screen !== 'win') return; afterWinNext(); });
   // ---------- そだち ----------
   var growTimer = null;
   function showGrow(dir, resumed) {
     var gdef = S.GROWS[dir];
-    var descs = { tough: 'たいりょくの 上限 +' + S.CFG.grow.hp + '（いまの たいりょくも）、りんかくが ふとく', strong: 'こうげき +' + S.CFG.grow.atk + '、まえはんしんが おおきく', quick: 'はやさ +' + S.CFG.grow.spd + '、ほそながく' };
-    $('growTitle').textContent = G.run.name + 'は ' + gdef.name + 'に そだった！';
-    $('growDesc').textContent = descs[dir] + '　（' + growHistText(G.growHist) + '）';
-    var gm = $('growMon'); gm.className = 'gmon'; gm.innerHTML = monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow);
-    void gm.offsetWidth; gm.classList.add('pop');
+    var descs = { tough: 'りんかくが ふとく なった', strong: 'まえはんしんが おおきく なった', quick: 'ほそながく なった' };
+    // そだつ前の体と数字（いまの そだちから この1回ぶんを 引く）
+    var before = { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }; before[dir] = Math.max(0, before[dir] - 1);
+    var dB = S.playerDef(before, G.run.name), dA = myDef();
+    var pair = dir === 'tough' ? ['たいりょく', dB.hp, dA.hp] : (dir === 'strong' ? ['こうげき', dB.atk, dA.atk] : ['はやさ', dB.spd, dA.spd]);
+    $('growTitle').textContent = G.run.name + 'は そだった！';
+    $('growBefore').innerHTML = monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, before);
+    $('growAfter').innerHTML = monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow);
+    $('growDir').textContent = gdef.name;
+    $('growNum').innerHTML = esc(pair[0]) + '　' + fmt(pair[1]) + '<span class="arrow">→</span><span class="to">' + fmt(pair[2]) + '</span>';
+    $('growDesc').textContent = descs[dir] + '　（これまで：' + growHistText(G.growHist) + '）';
+    var ga = $('growArena'); ga.classList.remove('go'); void ga.offsetWidth;
     $('growTap').classList.remove('on');
     show('grow'); sfx('bigwin');
     clearTimeout(growTimer);
-    growTimer = setTimeout(function () { $('growTap').classList.add('on'); if (OPT.auto) growNext(); }, 1500 / OPT.speed);
+    setTimeout(function () { ga.classList.add('go'); }, 120 / OPT.speed);
+    growTimer = setTimeout(function () { $('growTap').classList.add('on'); if (OPT.auto) growNext(); }, 1700 / OPT.speed);
   }
   function growNext() {
     if (G.screen !== 'grow') return;
     G.pendingGrow = null;
-    G.battle++; showPre();
+    G.battle++; nextStep();
   }
   $('grow').addEventListener('click', function () { if ($('growTap').classList.contains('on')) growNext(); });
 
@@ -1864,7 +2114,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     container.innerHTML = '';
     G.history.forEach(function (h, i) {
       var it = el('div', 'it');
-      it.innerHTML = '<div>' + monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits) + '</div><div class="t"><b>' + (i + 1) + 'せんめ ' + esc(h.enemy.name) + '</b>（' + esc(h.field.name) + '）' + (h.win ? '' : ' <span style="color:var(--bad)">まけ</span>') +
+      it.innerHTML = '<div>' + monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits) + '</div><div class="t"><b>' + (i + 1) + 'せんめ ' + esc(h.enemy.name) + '</b>（' + esc(h.field.name) + (h.hard ? '・<span class="hardtxt">てごわい</span>' : '') + '）' + (h.win ? '' : ' <span style="color:var(--bad)">まけ</span>') +
         '<small>つかった：' + (h.parts.length ? h.parts.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし') + (h.spark ? '　ひらめき：' + esc(S.PART_BY_ID[h.spark].name) + '「' + esc(S.PART_BY_ID[h.spark].lv2name) + '」' : '') + '</small></div>';
       container.appendChild(it);
     });
@@ -1880,9 +2130,10 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     clearSave();
     $('clearMon').innerHTML = '<div style="width:130px;height:130px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow) + '</div>';
     $('clearRecap').innerHTML = recapHTML(G.lastSummary.sum, G.lastSummary.enemy.name, true, G.lastSummary.spark);
-    $('clearGrow').innerHTML = growHTML();
+    $('clearGrow').innerHTML = growHTML() + '<div>この しゅうかいの さいだいの いちげき：<b class="mh">' + esc(maxHitText(runMaxHit())) + '</b></div>';
     historyList($('clearList'));
-    show('clear'); sfx('bigwin');
+    confettiFx();
+    show('clear'); sfx('fanfare');
     if (OPT.auto) { G.auto.runs++; G.auto.clears++; logAuto(); setTimeout(restart, 700 / OPT.speed); }
   }
   function showOver() {
@@ -1893,21 +2144,34 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     clearSave();
     $('overMonMe').innerHTML = '<div style="width:110px;height:110px">' + monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, G.grow) + '</div>';
     $('recapOver').innerHTML = recapHTML(h.summary, h.enemy.name, false, h.spark);
-    $('overGrow').innerHTML = growHTML();
+    $('overGrow').innerHTML = growHTML() + '<div>この しゅうかいの さいだいの いちげき：<b class="mh">' + esc(maxHitText(runMaxHit())) + '</b></div>';
     $('overMon').innerHTML = monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits);
     $('overEName').textContent = h.enemy.name;
     var tr = $('overTraits'); tr.innerHTML = '';
     h.enemy.traits.forEach(function (t) { tr.appendChild(traitRow(t, false)); });
-    $('overField').textContent = 'フィールド：' + h.field.name;
+    $('overField').textContent = 'ばしょ：' + h.field.name + (h.hard ? '（てごわい）' : '');
     $('overParts').textContent = 'あなたの パーツ：' + (h.parts.length ? h.parts.map(function (p) { return S.PART_BY_ID[p].name; }).join('、') : 'なし');
     historyList($('overList'));
     show('over');
     if (OPT.auto) { G.auto.runs++; logAuto(); setTimeout(restart, 700 / OPT.speed); }
   }
   function restart() { G.firstRun = false; startRun(); }
+  // 紙ふぶき：3秒 ふってくる（色は 場所の色と 金）
+  function confettiFx() {
+    var box = $('confetti'); box.innerHTML = '';
+    var cols = ['#ffd54a', '#ff8fab', '#9fe3a8', '#58c7ff', '#c77dff', '#ffe08a'];
+    for (var i = 0; i < 46; i++) {
+      var p = el('i');
+      p.style.left = (Math.random() * 100) + '%'; p.style.background = cols[i % cols.length];
+      p.style.animationDelay = (Math.random() * 1.2 / OPT.speed) + 's'; p.style.animationDuration = ((2.2 + Math.random() * 1.4) / OPT.speed) + 's';
+      p.style.transform = 'rotate(' + Math.round(Math.random() * 360) + 'deg)';
+      box.appendChild(p);
+    }
+    setTimeout(function () { box.innerHTML = ''; }, 4200 / OPT.speed);
+  }
   function logAuto() {
     var a = G.auto;
-    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '）、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、図鑑 ' + STORE.zukan.length + '/8・' + STORE.sparks.length + '/16');
+    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、てごわい ' + a.hardW + '/' + a.hardB + '、ぬし ' + a.bossW + '/' + a.bossB + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '）、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、図鑑 ' + STORE.zukan.length + '/8・' + STORE.sparks.length + '/16');
     window.__dekomonAuto = a;
   }
 
@@ -1929,7 +2193,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   $('titleBtn1').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   $('titleBtn2').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   renderZukan(); renderTitle();
-  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun } };
+  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, showFork: showFork, showSummit: showSummit, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun, trailHTML: trailHTML } };
   if (OPT.auto) setTimeout(function () { $('startBtn').click(); }, 300);
 })();
 </script>

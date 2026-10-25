@@ -222,8 +222,8 @@ var P = CFG.playerAtk; // 13
 (function () {
   // おおぐい：すいついた ぶんの はんぶんが 上限に（+40まで）
   var r = fight({ parts: ['leech'], lv2: ['leech'] }, dummy({ spd: 20 }));
-  var ups = evs(r, function (ev) { return ev.t === 'maxUp'; }).slice(0, 2).map(function (x) { return [x.amt, x.maxHp]; });
-  row('Lv2 おおぐい', S.PART_BY_ID.leech.lv2text + '（かいふく 4 → 上限 +2）', [[2, 117], [2, 119]], ups);
+  var ups = evs(r, function (ev) { return ev.t === 'maxUp'; }).slice(0, 2).map(function (x) { return [x.amt, x.maxHp, x.healed]; });
+  row('Lv2 おおぐい', S.PART_BY_ID.leech.lv2text + '（11 うけて 104 → かいふく 4＋2、上限 117）', [[2, 117, 6], [2, 119, 6]], ups);
   var saved = CFG.maxHands; CFG.maxHands = 80;
   var r2 = fight({ parts: ['leech', 'claw'], lv2: ['leech'] }, dummy({ hp: 100000, spd: 1 }));
   CFG.maxHands = saved;
@@ -380,7 +380,7 @@ var P = CFG.playerAtk; // 13
   row('てごわい', 'たいりょく・こうげき ×1.15（100×1.06×1.15 = 121.9 → 122 ／ 1げき 10.6×1.15 = 12.2 → 12）', [122, 12], [rh.e.maxHp, hitsBy(rh, 'e')[0].dmg]);
   // ぬし：段階10で ふつうの相手の平均 × 1.5 ／ × 1.1
   var rb = fight({ parts: [] }, S.BOSS, 'plain', { stage: 10 });
-  row('やまの ぬし', 'たいりょく 75.5×1.06×1.9×1.5 = 228、こうげき 10.3×1.06×1.9×1.1 = 22.8（かたい・かいふく、ツノ・コウラ・ふといしっぽ）', [228, 22.8], [rb.e.maxHp, Math.round(rb.ef.baseAtk * 10) / 10]);
+  row('やまの ぬし', 'たいりょく 75.5×1.06×1.9×1.6 = 243、こうげき 10.3×1.06×1.9×1.1 = 22.8（＋おもい +3）。おもい・かいふく、ツノ・おもし・ふさふさ', [243, 22.8, 'heavy,regen', 'horn,weight,fur'], [rb.e.maxHp, Math.round(rb.ef.baseAtk * 10) / 10, S.BOSS.traits.join(','), S.BOSS.parts.join(',')]);
   // さいだいの いちげき
   var rm = fight({ parts: ['horn', 'weight'] }, dummy());
   row('さいだいの いちげき', '自分の 1げき・はんげきの 最大（ツノ 37）', { dmg: 37, label: 'ツノ' }, rm.summary.maxHit);

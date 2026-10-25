@@ -1321,7 +1321,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var y;
     if (dmgNext[side] === null) y = anchorY(dmgCol[side]);
     else y = down ? dmgNext[side] + h * 1.45 + 4 : dmgNext[side] - h * 0.35 - 4;
-    var over = down ? (y - h * 0.1 > ar.height * 0.86) : (y - h * 1.1 < ar.height * 0.40);
+    var over = down ? (y - h * 0.1 > ar.height * 0.76) : (y - h * 1.1 < ar.height * 0.40); // 下は 足元の札（2段になることがある）の上まで
     if (dmgNext[side] !== null && over) { // 帯か足元に届いたら 次の列。2列目も いっぱいなら、その側の数字を消して 1列目から
       if (dmgCol[side] >= 1) { Array.prototype.forEach.call($('fx').querySelectorAll('.dmg[data-side="' + side + '"]'), function (e) { e.parentNode.removeChild(e); }); dmgCol[side] = 0; }
       else dmgCol[side]++;
@@ -1330,6 +1330,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var x = c.x + (side === 'p' ? 1 : -1) * dmgCol[side] * 110;
     x = Math.max(w * 0.8, Math.min(ar.width - w * 0.8, x));
     y = Math.max(h * 1.2, y);
+    if (!down) y = Math.max(y, ar.height * 0.40 + h * 1.1 + 4); // 体が動いていて 真ん中が上に来ていても、上の帯には入れない
     d.style.left = x + 'px'; d.style.top = y + 'px';
     dmgNext[side] = down ? y - h * 0.1 : y - h * 1.1; // この文字の箱の端（浮き上がったあと）
     dmgCount[side]++;
@@ -1424,7 +1425,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   // 噛み合い（2回目以降）：中央に名前、2つのパーツが光る
   function hideCenter() { $('sparkpop').classList.remove('on'); $('synpop').classList.remove('on'); $('found').className = 'found'; }
   function synergyPop(id, side) {
-    hideCenter();
+    hideCenter(); setBig('p', ''); setBig('e', '');
     var sy = S.SYN_BY_ID[id];
     $('synName').textContent = sy.name + '！';
     var pop = $('synpop'); pop.classList.remove('on'); void pop.offsetWidth; pop.classList.add('on');
@@ -1537,7 +1538,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     if (ev.bigmove) main = (main ? main + '＋' : '') + 'おおわざ';
     if (!main) main = 'こうげき';
     var suffix = ev.halved ? '…（よろけ）' : '！';
-    var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1) ? ' ' + ev.hit + 'かいめ' : '';
+    var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1 && labels.length === 1) ? ' ' + ev.hit + 'かいめ' : ''; // 2つ以上の名前が並ぶときは「かいめ」を省く（スマホで4行になる）
     if (ev.zushin) return { text: 'ずしん +' + ev.zushin + suffix, num: ev.dmg };
     if (ev.stomp) return { text: 'ふみつけ' + suffix + cnt, num: ev.dmg };
     return { text: main + suffix + cnt, num: ev.dmg };

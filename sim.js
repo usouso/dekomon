@@ -1,4 +1,4 @@
-// でこもん 版6 — ゲームのルール（画面のコードは入れない）
+// でこもん 版7 — ゲームのルール（画面のコードは入れない）
 // ブラウザ（index.html）と Node（bot.js）の両方から同じファイルを読み込む。
 (function (root, factory) {
   var api = factory();
@@ -35,7 +35,7 @@
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
     spark: { base: 0.010, perStage: 0.002, pity: 0.015 },
     // なれ：そのパーツの発動回数（周回で累計）が full になると、次の発動で必ずひらめく
-    nare: { full: 20 },
+    nare: { full: 20, dup: 10, newFirst: false },   // dup：もう持っているパーツを もらったときの「なれ +10」（版7）。0 なら その報酬は なし。newFirst は A/B 用（true なら 3 を 2 より先に）
     // そだち：3勝・6勝・9勝のあと。前の そだち からの「うけた・あてた・せんて」を norm で割って いちばん大きい方向に育つ
     grow: { every: 3, hp: 12, atk: 2, spd: 3, size: 0.10, norm: { received: 18.5, landed: 20.3, first: 6.7 } },
     // 体の性質
@@ -88,13 +88,17 @@
   var SYNERGIES = [
     { id: 1, name: 'おもし＋ツメ',       parts: ['weight', 'claw'],  desc: 'おもしの +4 が、ツメの 2〜3げき ぜんぶに のる' },
     { id: 2, name: 'ツノ＋ばねあし',     parts: ['horn', 'spring'],  desc: '2かい こうげきする手は、ツノの ×2.5 も 2かい' },
-    { id: 3, name: 'じょうたい＋ひかるめ', parts: ['eye', null],     desc: 'どく・よろけ・もろいの あいてに ひかるめの ×1.5' },
     { id: 4, name: 'しっぽ＋はね',       parts: ['tail', 'wing'],    desc: 'さきに よろけさせて、あいての つぎの こうげきを ×0.5 に' },
     { id: 5, name: 'キバ＋コウラ',       parts: ['fang', 'shell'],   desc: 'コウラで うけながら、どくで たおす（どくは へらない）' },
     { id: 6, name: 'すいつくくち＋ツメ', parts: ['leech', 'claw'],   desc: '2〜3げきの こうげきで 1げきごとに かいふく' },
     { id: 7, name: 'くだくツメ＋ツノ',   parts: ['crush', 'horn'],   desc: 'もろくした あいてに ツノの ×2.5' },
-    { id: 8, name: 'はね＋ツメ',         parts: ['wing', 'claw'],    desc: 'はねで はやさを こえて、ツメが 3げきに' }
+    { id: 8, name: 'はね＋ツメ',         parts: ['wing', 'claw'],    desc: 'はねで はやさを こえて、ツメが 3げきに' },
+    // 版7：Lv2 入りの噛み合い（lv2 に その Lv2 が いるパーツ）。3「じょうたい＋ひかるめ」は 札の文そのものなので 消した
+    { id: 9,  name: 'はじく＋トゲ',       parts: ['scale', 'spike'],  lv2: ['scale'],           desc: '0 に はじいた 1げきにも、トゲが はんげきする' },
+    { id: 10, name: 'つめあと＋ふみつけ', parts: ['claw', 'longleg'], lv2: ['claw', 'longleg'], desc: 'つめあとで あいてを おそくして、ふみつけの ×1.5 を きかせる' },
+    { id: 11, name: 'かいたい＋キバ',     parts: ['crush', 'fang'],   lv2: ['crush'],           desc: 'かいたいで ふさふさを こわした あいだに、どくを 入れる' }
   ];
+  SYNERGIES.forEach(function (s) { if (!s.lv2) s.lv2 = []; });
   var SYN_BY_ID = {}; SYNERGIES.forEach(function (s) { SYN_BY_ID[s.id] = s; });
 
   // ---------- パーツ（16種。場所8つ×2） ----------
@@ -397,6 +401,7 @@
     var synergies = [];
     var statusHands = fieldId === 'rain' ? CFG.rainStatusHands : null;
     var received = 0, landed = 0, firstHands = 0; // そだち用：自分が受けた回数・当てた回数・先手の手
+    var startSpd = { p: spd.p, e: spd.e }; // 噛み合い10（つめあと＋ふみつけ）：戦いの始めの はやさ
     var maxHit = { dmg: 0, label: '' }; // さいだいの いちげき（自分の 1げき・はんげき）
     function noteHit(side, label, dmg) { if (side === 'p' && dmg > maxHit.dmg) maxHit = { dmg: dmg, label: label }; }
     var lv2Used = {}; // この戦いで Lv2 の効果が出たパーツ（確認用）
@@ -448,6 +453,8 @@
         if (cur && cur.by === a.side) { dmg = Math.max(dmg, cur.dmg); grow = Math.max(grow, cur.grow || 0); }
         d.status.poison = { left: statusHands || CFG.poisonHands, dmg: dmg, by: a.side, grow: grow };
         events.push({ t: 'status', side: d.side, status: 'poison', by: a.side, hands: d.status.poison.left, grow: grow });
+        // 噛み合い11：かいたいで ふさふさのけ が こわれているあいだに どくが かかった
+        if (d.broken.fur && a.lv2.crush) fireSyn(a.side, 11, events);
       } else if (st === 'brittle') {
         d.status.brittle = { left: statusHands || CFG.brittleHands, mult: CFG.brittleMult };
         events.push({ t: 'status', side: d.side, status: 'brittle', by: a.side, hands: d.status.brittle.left, mult: CFG.brittleMult });
@@ -503,7 +510,11 @@
         if (jump2) mult *= CFG.lv2.jump2Mult;
         // ふみつけ：じぶんより おそい あいてに ×1.5
         var stomp = false;
-        if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) { mult *= CFG.lv2.stompMult; stomp = true; usedLv2('longleg'); }
+        if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) {
+          mult *= CFG.lv2.stompMult; stomp = true; usedLv2('longleg');
+          // 噛み合い10：戦いの始めは おそくなかった相手を、つめあと（はやさ −1）で おそくして ふみつけが 出た
+          if (a.active.claw && a.lv2.claw && d.spdMod < 0 && startSpd[a.side] <= startSpd[d.side]) fireSyn(a.side, 10, events);
+        }
         var flat = 0, zushin = 0;
         if (a.active.weight) {
           if (h === 0) trySpark(a, 'weight', events);
@@ -576,6 +587,7 @@
           if (c > 0) { addDealt(d.side, 'はんげき', c); if (d.side === 'p') landed++; else received++; }
           events.push({ t: 'counter', side: d.side, part: 'spike', dmg: c, hp: a.hp, thrown: thrown, deflect: cDeflect });
           noteHit(d.side, 'はんげき', c);
+          if (deflect) fireSyn(d.side, 9, events); // 噛み合い9：0 に はじいた 1げきにも はんげき
           if (a.hp <= 0) break;
         }
       }
@@ -589,7 +601,6 @@
       }
       if (a.active.weight && landedHere >= 2) fireSyn(a.side, 1, events);
       if (isDouble && hornHit) fireSyn(a.side, 2, events);
-      if (eyeHit) fireSyn(a.side, 3, events);
       if (wingMadeThree && landedHere > 0) fireSyn(a.side, 8, events);
     }
 
@@ -759,30 +770,57 @@
     var rest = PART_IDS.filter(function (id) { return picked.indexOf(id) < 0; });
     return picked.concat(shuffle(rest, rng).slice(0, 3));
   }
-  // かてば もらえる パーツ：相手のパーツのうち 持っていないもの → なければ 16種の持っていないもの → 全部持っていれば null
-  function rewardFor(enemyDef, owned, rng) {
-    var fromEnemy = enemyDef.parts.filter(function (id) { return owned.indexOf(id) < 0; });
-    if (fromEnemy.length) return fromEnemy[randInt(rng, fromEnemy.length)];
-    var rest = PART_IDS.filter(function (id) { return owned.indexOf(id) < 0; });
-    return rest.length ? rest[randInt(rng, rest.length)] : null;
+  // かてば もらえる（版7）。報酬は { kind:'part', part }（拾う）か { kind:'nare', part, amt }（そのパーツの なれ +10）。なしは null。
+  // 順：1 相手のパーツで 持っていないもの → 2 相手のパーツで Lv2 でないもの（なれ +10）→ 3 16種で 持っていないもの → 4 持っている Lv2 でないもの（なれ +10）→ 5 なし
+  function pickOne(cands, rng) { return cands.length ? cands[randInt(rng, cands.length)] : null; }
+  function rewardFor(enemyDef, owned, lv2, rng) {
+    lv2 = lv2 || [];
+    var notOwned = function (id) { return owned.indexOf(id) < 0; };
+    var ownedNotLv2 = function (id) { return owned.indexOf(id) >= 0 && lv2.indexOf(id) < 0; };
+    var r = pickOne(enemyDef.parts.filter(notOwned), rng);
+    if (r) return { kind: 'part', part: r };
+    if (CFG.nare.newFirst) { r = pickOne(PART_IDS.filter(notOwned), rng); if (r) return { kind: 'part', part: r }; }
+    if (CFG.nare.dup > 0) { r = pickOne(enemyDef.parts.filter(ownedNotLv2), rng); if (r) return { kind: 'nare', part: r, amt: CFG.nare.dup }; }
+    r = pickOne(PART_IDS.filter(notOwned), rng);
+    if (r) return { kind: 'part', part: r };
+    if (CFG.nare.dup > 0) { r = pickOne(PART_IDS.filter(ownedNotLv2), rng); if (r) return { kind: 'nare', part: r, amt: CFG.nare.dup }; }
+    return null;
   }
-  // 分かれ道に来たとき：両方の道の「かてば もらえる」を決めて path.rewards に入れる（ぬしは なし）
-  function forkRewards(run, battle, owned, rng) {
-    if (battle >= CFG.runBattles - 1) { run.boss.rewards = []; return [run.boss]; }
-    var step = run.steps[battle];
-    step.forEach(function (path) { path.rewards = rewardsFor(enemyDefOf(path.enemy), owned, rng, path.hard); });
-    return step;
-  }
-  // てごわい なら 2つ（相手のパーツ1つ ＋ 持っていない中から もう1つ）。配列で返す（0〜2個）
-  function rewardsFor(enemyDef, owned, rng, hard) {
+  // てごわい なら 2つ。2つ目：持っていない中から 1つ → なければ 持っている Lv2 でないパーツ（1つ目と別）の なれ +10 → なければ なし。配列で返す（0〜2個）
+  function rewardsFor(enemyDef, owned, lv2, rng, hard) {
+    lv2 = lv2 || [];
     var out = [];
-    var r1 = rewardFor(enemyDef, owned, rng);
+    var r1 = rewardFor(enemyDef, owned, lv2, rng);
     if (r1) out.push(r1);
     if (hard) {
-      var rest = PART_IDS.filter(function (id) { return owned.indexOf(id) < 0 && id !== r1; });
-      if (rest.length) out.push(rest[randInt(rng, rest.length)]);
+      var p1 = r1 ? r1.part : null;
+      var r2 = pickOne(PART_IDS.filter(function (id) { return owned.indexOf(id) < 0 && id !== p1; }), rng);
+      if (r2) out.push({ kind: 'part', part: r2 });
+      else if (CFG.nare.dup > 0) {
+        r2 = pickOne(PART_IDS.filter(function (id) { return owned.indexOf(id) >= 0 && lv2.indexOf(id) < 0 && id !== p1; }), rng);
+        if (r2) out.push({ kind: 'nare', part: r2, amt: CFG.nare.dup });
+      }
     }
     return out;
+  }
+  // 分かれ道に来たとき：両方の道の「かてば もらえる」を決めて path.rewards に入れる（ぬしは なし）。画面とボットで 同じ順に乱数を使う
+  function forkRewards(run, battle, owned, lv2, rng) {
+    if (battle >= CFG.runBattles - 1) { run.boss.rewards = []; return [run.boss]; }
+    var step = run.steps[battle];
+    step.forEach(function (path) { path.rewards = rewardsFor(enemyDefOf(path.enemy), owned, lv2, rng, path.hard); });
+    return step;
+  }
+  // 勝ったあと 報酬を受け取る（owned・nare を書き換える）。返り値：{ kind:'part', part } ／ { kind:'nare', part, amt, from, to, full }（full：つぎの発動で ひらめく）／ null
+  function applyReward(r, owned, nare, lv2) {
+    if (!r) return null;
+    if (r.kind === 'part') { if (owned.indexOf(r.part) >= 0) return null; owned.push(r.part); return { kind: 'part', part: r.part }; }
+    if (r.kind === 'nare') {
+      if ((lv2 || []).indexOf(r.part) >= 0) return null; // Lv2 のパーツには なれ は付かない
+      var from = nare[r.part] || 0, to = from + r.amt;
+      nare[r.part] = to;
+      return { kind: 'nare', part: r.part, amt: r.amt, from: from, to: to, full: to >= CFG.nare.full };
+    }
+    return null;
   }
 
   // ---------- ボットの判断 ----------
@@ -848,7 +886,7 @@
     makeFighter: makeFighter, effSpd: effSpd, effAtk: effAtk, isHard: isHard, isRanged: isRanged,
     simulateBattle: simulateBattle, runBattle: runBattle,
     partHints: partHints, withPart: withPart,
-    newRun: newRun, pathOf: pathOf, forkRewards: forkRewards, startItems: startItems, rewardFor: rewardFor, rewardsFor: rewardsFor,
+    newRun: newRun, pathOf: pathOf, forkRewards: forkRewards, startItems: startItems, rewardFor: rewardFor, rewardsFor: rewardsFor, applyReward: applyReward,
     loadouts: loadouts, bestLoadout: bestLoadout, randomLoadout: randomLoadout, clearMemo: clearMemo, score: score
   };
 });

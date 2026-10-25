@@ -17,6 +17,7 @@ html, body { margin: 0; background: var(--bg); color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
   font-size: 18px; line-height: 1.45; overflow-x: hidden; }
 body { min-height: 100vh; }
+body.battle-on { overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; }
 .screen { display: none; max-width: 560px; margin: 0 auto; padding: 12px 14px 32px; min-height: 100vh; background: var(--bg); }
 .screen.on { display: block; }
@@ -398,7 +399,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .hp.grow { animation: hpGrow calc(.6s * var(--spd)) ease-out; }
 @keyframes hpGrow { 0% { box-shadow: 0 0 0 0 #9fe3a8;} 100% { box-shadow: 0 0 0 10px rgba(159,227,168,0);} }
 /* 版5：拾いの演出（勝ちの画面） */
-.winfly { position: relative; height: 120px; margin: 6px 0; }
+.winfly { position: relative; height: 150px; margin: 6px 0; }
 .winfly .wf-e { position: absolute; left: 8%; top: 0; width: 100px; height: 100px; }
 .winfly .wf-bag { position: absolute; right: 8%; top: 20px; width: 70px; height: 70px; transition: transform calc(.3s * var(--spd)); }
 .winfly .wf-card { position: absolute; left: 14%; top: 40px; padding: 6px 12px; border-radius: 10px; background: var(--panel2); border: 3px solid #bcd0ff; font-weight: 900; font-size: 1.1rem; white-space: nowrap; transition: left calc(.7s * var(--spd)) cubic-bezier(.3,.9,.4,1.1), top calc(.7s * var(--spd)) ease-in, transform calc(.7s * var(--spd)) ease-in, opacity calc(.2s * var(--spd)); z-index: 2; }
@@ -424,7 +425,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .growhist { color: var(--accent); font-weight: 700; }
 /* 版6：わかれみち、山の道、ちょうじょう、てごわい、ぬし */
 .fork-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 6px; }
-@media (min-width: 900px) { #fork { max-width: 1240px; } .fork-grid { grid-template-columns: 1fr 1fr; gap: 16px; } }
+@media (min-width: 900px) { .fork-grid { gap: 16px; } }
 .fork-path { background: #20242f; border: 3px solid var(--line); border-radius: 18px; padding: 10px 12px 12px; cursor: pointer; }
 .fork-path:active { transform: scale(.99); }
 .fork-path.hard { border-color: rgba(255,107,107,.7); }
@@ -432,6 +433,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .fork-path .btn { margin-top: 10px; }
 .fork-path .btn.hardbtn { background: #ff6b6b; box-shadow: 0 4px 0 #a52a2a; }
 .fk-top { display: flex; align-items: center; gap: 10px; }
+.fk-top .fk-go { display: none; margin-left: auto; }
 .fk-no { font-size: 1.25rem; font-weight: 900; color: var(--accent); }
 .hardmark { display: inline-block; font-size: 1rem; font-weight: 900; padding: 2px 10px; border-radius: 10px; background: #ff6b6b; color: #1b1f2a; white-space: nowrap; }
 .hardtxt { color: var(--e); font-weight: 700; }
@@ -485,6 +487,166 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 .end-btns { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
 .end-btns .btn.round { margin: 0; width: 110px; height: 110px; font-size: 2.8rem; }
 .end-btns .btn.sub { width: auto; min-width: 160px; }
+/* 版7：PC は 横に広く、ページは スクロールしない（長い一覧だけ 中でスクロール）。スマホは いままで通り */
+.cols2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.tabs { display: flex; gap: 8px; margin-left: 6px; flex-wrap: wrap; }
+.tab { border: 2px solid var(--line); background: var(--panel2); color: var(--sub); border-radius: 12px; padding: 6px 14px; font-size: 1.1rem; font-weight: 700; min-height: 44px; }
+.tab.on { background: #3a3420; border-color: var(--accent); color: var(--accent); }
+.tab .sub { font-size: .9rem; font-weight: 400; }
+.zk-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.zp { background: var(--panel); border-radius: 14px; padding: 10px 14px; border: 3px solid var(--line); }
+.zp.had { border-color: var(--accent); }
+.zp.sp { border-color: var(--gold); }
+.zp-top { display: flex; gap: 10px; align-items: flex-start; }
+.zp-mon { width: 72px; height: 72px; flex: 0 0 72px; }
+.zp-mon .mon { width: 100%; height: 100%; }
+.zp .n { font-size: 1.25rem; font-weight: 800; }
+.zp-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.zp-marks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.zmark { font-size: .9rem; padding: 1px 8px; border-radius: 8px; border: 1px solid var(--line); color: #7d8290; }
+.zmark.on { color: var(--accent); border-color: var(--accent); background: #3a3420; font-weight: 700; }
+.zmark.on.sp { color: var(--gold); border-color: var(--gold); }
+.zp .d { margin-top: 6px; }
+.zp-lv2 { margin-top: 4px; color: var(--gold); font-weight: 700; }
+.zp-lv2.unknown { color: #8a8f9c; font-weight: 400; }
+.zk .tag.lv { margin-left: 6px; vertical-align: 2px; }
+.hall-grid { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+.card.lost .ec-top .mon { width: 84px; height: 84px; flex-basis: 84px; }
+.card.lost .traits { display: inline-flex; gap: 10px; border-top: 0; padding-top: 0; margin-top: 0; flex-wrap: wrap; }
+.card.lost .trait b { min-width: 0; }
+.card.lost .label { margin: 2px 0; }
+.boss-wait { font-size: 1.3rem; font-weight: 800; color: #c9a9ff; text-align: center; margin-top: 8px; }
+.garena.bossarena { background: linear-gradient(#5b7fb0, #cfe0f0 55%, #f0f4f8 100%); }
+.garena.bossarena::after { background: #e8eef4; }
+.garena.bossarena .gmon { opacity: 1; transform: none; left: 10%; right: 10%; top: 2%; bottom: 4%; }
+.garena.bossarena .gmon .mon { transform: scale(1.18); transform-origin: 50% 100%; }
+.bp-mon { width: 120px; height: 120px; margin: 0 auto; }
+.bp-mon .mon { width: 100%; height: 100%; }
+.overlay.pop .box { max-width: 520px; padding: 12px 14px; max-height: 92vh; overflow-y: auto; }
+.overlay.pop .box.partbox { max-width: 560px; }
+.overlay.pop .box .pcard { cursor: default; }
+.overlay.pop .box .smt-name { font-size: 1.7rem; font-weight: 900; color: #c9a9ff; text-align: center; }
+.trail .tboss { cursor: pointer; }
+.trail .tl-boss { position: absolute; transform: translateX(-50%); font-size: .9rem; font-weight: 900; color: #c9a9ff; line-height: 1; white-space: nowrap; }
+.fk-q { flex-basis: 100%; }
+/* わかれみちの もちもの（小札。Lv2 は 金リボン、なれゲージ、前の戦いの3つは 青白い枠） */
+.items { background: #20242f; border: 3px solid var(--line); border-radius: 18px; padding: 8px 10px 10px; order: -1; }
+.items .it-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 6px; }
+.items .it-head b { font-size: 1.2rem; }
+.items .it-head .sub { font-size: 1rem; }
+.it-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.scard { position: relative; background: var(--panel2); border: 3px solid var(--line); border-radius: 12px; padding: 4px 8px; cursor: pointer; min-width: 0; }
+.scard .sc-head { display: flex; align-items: center; gap: 6px; }
+.scard .tag.loc { display: none; }
+.trailbox { flex: 0 0 calc(100% + 120px); max-width: none; }
+.trail .tl b { white-space: nowrap; }
+.scard .sc-name { font-size: 1.05rem; font-weight: 700; white-space: nowrap; }
+.scard .nare { margin-top: 3px; height: 5px; }
+.scard.last { border-color: #9fd8ff; background: #233247; box-shadow: 0 0 0 2px rgba(159,216,255,.28); }
+.scard.lv2 { padding-right: 40px; }
+.scard.lv2::after { content: 'Lv2'; position: absolute; top: -3px; right: 6px; padding: 5px 5px 7px; background: linear-gradient(#ffe08a, #d4a017); color: #4a3000; font-weight: 900; font-size: .75rem; line-height: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); box-shadow: 0 2px 0 #7a5c00; }
+.scard:active { transform: scale(.98); }
+.it-legend { font-size: .95rem; color: var(--sub); margin-top: 6px; }
+.it-legend i { display: inline-block; width: 1em; height: 1em; border: 2px solid #9fd8ff; border-radius: 4px; vertical-align: -2px; margin-right: 4px; background: #233247; }
+/* かてば もらえる：拾う札 と なれ +10 */
+.reward .rw { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 2px 8px; border-radius: 8px; background: #1b2238; margin: 2px 4px 2px 0; }
+.reward .rw b { color: #bcd0ff; }
+.reward .rw.rw-nare b { color: #ffe08a; }
+.naretag { display: inline-block; font-size: .9rem; font-weight: 900; padding: 1px 7px; border-radius: 8px; background: #5a4a10; color: var(--gold); white-space: nowrap; }
+.reward .rw small { font-size: .95rem; color: var(--sub); white-space: nowrap; }
+.reward .rw .nare { width: 60px; margin-top: 0; height: 6px; flex: 0 0 60px; }
+/* 勝ちの画面：なれ +10 は 自分の そのパーツに 飛ぶ */
+.winfly .wf-me { position: absolute; right: 6%; top: 0; width: 110px; display: none; }
+.winfly .wf-me.on { display: block; }
+.winfly .wf-me-mon { width: 100px; height: 100px; margin: 0 auto; transition: transform calc(.3s * var(--spd)); }
+.winfly .wf-me-mon .mon { width: 100%; height: 100%; }
+.winfly .wf-me.lit .wf-me-mon { transform: scale(1.12); filter: drop-shadow(0 0 12px #ffd54a); }
+.winfly .wf-nare { height: 9px; margin-top: 2px; }
+.winfly .wf-nare i { transition: width calc(.7s * var(--spd)) ease-out; }
+.winfly.nare .wf-bag { display: none; }
+.winfly.nare .wf-card { border-color: #ffe08a; }
+.picked .pk-full { display: inline-block; margin-left: 8px; color: var(--gold); }
+@media (min-width: 900px) {
+  .screen { max-width: none; padding: 10px 24px 10px; }
+  .screen.on:not(#title):not(#battle):not(#pre) { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+  .pcbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+  .cols2 { grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .cols2 > .col { min-width: 0; }
+  .end-btns { flex: 0 0 auto; padding-top: 10px; }
+  .end-btns > .btn:not(.round):not(.sub) { flex: 1 1 auto; max-width: 560px; }
+  #title { max-width: 640px; padding-top: 5vh; }
+  #title .btn.round { margin-top: 24px; }
+  .topbar .big-title { margin-right: 8px; }
+  .trail { max-width: 760px; margin-left: auto; margin-right: auto; }
+  #fork .pcbody { display: flex; flex-direction: column; }
+  #fork .topbar, #summit .topbar { align-items: flex-start; flex-wrap: nowrap; }
+  .trailbox { flex: 1 1 320px; max-width: 760px; margin-left: 12px; }
+  .trailbox .trail { margin: 0; }
+  .trailbox .trail .tl { display: none; }
+  .fk-q { display: none; }
+  #summit .minis .mini, #boss .minis .mini, .bossbox .minis .mini { flex: 1 1 30%; }
+  #fork .pcbody { overflow: hidden; }
+  .fork-grid { grid-template-columns: 1fr 1fr; flex: 1 1 auto; min-height: 0; align-items: stretch; grid-auto-rows: minmax(0, 1fr); }
+  .fork-path, .items { overflow-y: auto; min-height: 0; }
+  .fk-top .fk-go { display: inline-block; }
+  .fork-path > .btn { display: none; }
+  .items { order: 0; grid-column: 1 / -1; }
+  .it-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .scard { padding: 6px 10px; }
+  .scard .sc-name { white-space: normal; }
+  .scard .nare { height: 7px; margin-top: 5px; }
+  #summit .cols2 { max-width: 1100px; margin: 0 auto; }
+  #summit .smt-mon { width: 240px; height: 240px; }
+  #boss .cols2 { max-width: 1100px; margin: 0 auto; }
+  .garena.bossarena { width: 100%; height: 360px; margin: 0; }
+  .zk-grid { grid-template-columns: 1fr 1fr; }
+  .hall-grid { grid-template-columns: 1fr 1fr; }
+  .list.hist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; align-content: start; }
+  .list.hist .it { align-items: flex-start; }
+  #grow { padding-top: 60px; }
+  #clear .pcbody, #over .pcbody { overflow: hidden; }
+  #clear .cols2, #over .cols2 { height: 100%; align-items: stretch; }
+  #clear .col, #over .col { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+  #clear .list.hist, #over .list.hist { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  #clear .col > .sub, #over .col > .sub { flex: 0 0 auto; }
+  .start-cols .plist { grid-template-columns: 1fr 1fr 1fr; align-content: start; }
+  .fk-q { flex-basis: auto; }
+  .fork-path { padding: 8px 10px 10px; }
+  .fork-path .card { margin: 6px 0; padding: 8px 10px; }
+  .fork-path .ec-top .mon { width: 88px; height: 88px; flex-basis: 88px; }
+  .fork-path .stat { min-width: 3.6em; }
+  .fork-path .stats { gap: 10px; margin-top: 2px; }
+  .fork-path .traits { margin-top: 4px; padding-top: 2px; }
+  .fork-path .trait { padding: 1px 0; }
+  .fork-path .label { margin: 4px 0 2px; }
+  .fork-path .mini { padding: 4px 8px; }
+  .fork-path .card.f { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+  .fork-path .card.f .f-desc { margin-top: 0; font-size: 1rem; color: var(--sub); }
+  .fork-path .reward { margin-top: 6px; padding: 5px 10px; }
+  .fork-path .btn { margin-top: 8px; min-height: 48px; font-size: 1.25rem; }
+  .items { padding: 8px 10px 8px; }
+  .items .it-head { margin-bottom: 4px; }
+  .scard { padding: 4px 8px; }
+  .scard .nare { height: 5px; margin-top: 3px; }
+  .list.hist .it { padding: 3px 0; }
+  .card.lost { padding: 8px 12px; }
+  .list.hist .it .mon { width: 48px; height: 48px; flex-basis: 48px; }
+  .winfly { max-width: 560px; }
+}
+@media (min-width: 1200px) {
+  .fork-grid { grid-template-columns: 1fr 1fr 0.75fr; }
+  .items { grid-column: auto; order: 0; }
+  .it-grid { grid-template-columns: 1fr 1fr; }
+  .zk-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .start-cols { grid-template-columns: 1fr 1.6fr; }
+  #clear .cols2, #over .cols2 { grid-template-columns: 1fr 1.5fr; }
+}
+@media (min-width: 1700px) {
+  .fork-grid { max-width: 1800px; margin-left: auto; margin-right: auto; width: 100%; }
+  .it-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .zk-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .hall-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
 </style>
 </head>
 <body>
@@ -492,6 +654,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 <div class="volbtn" id="volBtn" title="おんりょう"></div>
 <div class="menubtn" id="menuBtn" title="メニュー">≡</div>
 <div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button></div>
+<div class="overlay pop" id="bossPop"><div class="box bossbox"><div class="smt-name">やまの ぬし</div><div class="bp-mon" id="bpMon"></div><div class="card e boss" id="bpCard" style="margin:8px 0"></div><div class="sub center">10ごうめ ちょうじょうで まっている　／　タップで とじる</div></div></div>
+<div class="overlay pop" id="partPop"><div class="box partbox" id="partPopBox"></div></div>
 <div class="overlay" id="confirm"><div class="box"><div class="q" id="confirmQ"></div><button class="btn" id="confirmYes">いいよ</button><button class="btn sub" id="confirmNo">やめる</button></div></div>
 <div class="volpop" id="volPop">
   <div class="row"><b>おんりょう</b><span id="volVal">40%</span></div>
@@ -508,52 +672,69 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   <button class="btn sub" id="newBtn" style="display:none">はじめから</button>
   <button class="btn sub" id="zukanBtn">ずかん <span id="zukanCount"></span></button>
   <button class="btn sub" id="dendoBtn">でんどう <span id="dendoCount"></span></button>
-  <div class="ver">版6</div>
+  <div class="ver">版7</div>
 </div>
 
 <!-- 図鑑 -->
 <div id="zukan" class="screen">
-  <div class="topbar"><div class="big-title">ずかん</div></div>
-  <div class="mid-title" style="margin-top:6px">かみあい <span class="sub" id="zukanSub"></span></div>
-  <div id="zukanList"></div>
-  <div class="mid-title" style="margin-top:18px">ひらめき <span class="sub" id="sparkSub"></span></div>
-  <div id="sparkList"></div>
-  <button class="btn sub" id="zukanBack" style="margin-top:14px">もどる</button>
+  <div class="topbar"><div class="big-title">ずかん</div><div class="tabs"><button class="tab on" id="tabParts" data-ch="parts">パーツ <span class="sub" id="sparkSub"></span></button><button class="tab" id="tabSyn" data-ch="syn">かみあい <span class="sub" id="zukanSub"></span></button></div></div>
+  <div class="pcbody">
+    <div class="sub" id="zkHead" style="margin-bottom:6px"></div>
+    <div class="zk-grid" id="sparkList"></div>
+    <div class="zk-grid" id="zukanList" style="display:none"></div>
+  </div>
+  <div class="end-btns"><button class="btn sub" id="zukanBack">もどる</button></div>
 </div>
 
 <!-- 殿堂 -->
 <div id="dendo" class="screen">
   <div class="topbar"><div class="big-title">でんどう</div></div>
-  <div class="sub" id="dendoSub"></div>
-  <div id="dendoList"></div>
-  <button class="btn sub" id="dendoBack" style="margin-top:14px">もどる</button>
+  <div class="pcbody">
+    <div class="sub" id="dendoSub"></div>
+    <div class="hall-grid" id="dendoList"></div>
+  </div>
+  <div class="end-btns"><button class="btn sub" id="dendoBack">もどる</button></div>
 </div>
 
 <!-- 周回の始め：名前ともちもの -->
 <div id="start" class="screen">
   <div class="topbar"><span class="sub">あたらしい なかま</span></div>
-  <div class="row"><div><div class="namebig" id="startName"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div></div><div id="startMon"></div></div>
-  <div class="label">もちもの（6つ）</div>
-  <div class="plist" id="startList"></div>
-  <button class="btn" id="startGo" style="margin-top:14px">すすむ</button>
+  <div class="pcbody cols2 start-cols">
+    <div class="col"><div class="row"><div><div class="namebig" id="startName"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div></div><div id="startMon"></div></div></div>
+    <div class="col"><div class="label">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
+  </div>
+  <div class="end-btns"><button class="btn" id="startGo">すすむ</button></div>
+</div>
+
+<!-- 版7：やまの ぬし（周回の始めに 1枚。自動では 消えない） -->
+<div id="boss" class="screen">
+  <div class="topbar"><div class="big-title" style="color:#c9a9ff">やまの ぬし</div></div>
+  <div class="pcbody cols2">
+    <div class="col"><div class="garena bossarena" id="bossArena"></div><div class="boss-wait">10ごうめ ちょうじょうで まっている</div></div>
+    <div class="col"><div class="card e boss" id="bossCard"></div></div>
+  </div>
+  <div class="end-btns"><button class="btn" id="bossGo">すすむ</button></div>
 </div>
 
 <!-- わかれみち（1〜9戦目） -->
 <div id="fork" class="screen">
-  <div class="topbar"><div class="big-title">わかれみち</div><b id="forkNo" style="font-size:1.2rem"></b><span class="sub" id="forkWins"></span></div>
-  <div id="forkTrail"></div>
-  <div class="sub" style="margin:6px 0 2px">どちらの みちへ？　たっぷで すすむ</div>
-  <div class="fork-grid" id="forkPaths"></div>
+  <div class="topbar"><div class="big-title">わかれみち</div><b id="forkNo" style="font-size:1.2rem"></b><span class="sub" id="forkWins"></span><span class="sub fk-q">どちらの みちへ？　たっぷで すすむ</span><div id="forkTrail" class="trailbox"></div></div>
+  <div class="pcbody">
+    <div class="fork-grid" id="forkPaths"></div>
+  </div>
 </div>
 
 <!-- ちょうじょう（10戦目の前） -->
 <div id="summit" class="screen">
-  <div class="topbar"><div class="big-title">ちょうじょう</div></div>
-  <div id="summitTrail"></div>
-  <div class="smt-name" id="summitName"></div>
-  <div class="smt-mon" id="summitMon"></div>
-  <div class="card e boss"><div class="traits" id="summitTraits" style="border-top:0;margin-top:0;padding-top:0"></div><div class="label">つけている パーツ</div><div class="minis" id="summitParts"></div></div>
-  <div class="gtap" id="summitTap">タップで つぎへ</div>
+  <div class="topbar"><div class="big-title">ちょうじょう</div><div id="summitTrail" class="trailbox"></div></div>
+  <div class="pcbody">
+    <div class="cols2">
+      <div class="col"><div class="smt-name" id="summitName"></div><div class="smt-mon" id="summitMon"></div></div>
+      <div class="col"><div class="card e boss" id="summitCard"></div></div>
+    </div>
+    <div class="gtap on" id="summitTap">タップ／ボタンで ぬしに いどむ</div>
+  </div>
+  <div class="end-btns"><button class="btn" id="summitGo">ぬしに いどむ</button></div>
 </div>
 
 <!-- バトル前 -->
@@ -638,12 +819,15 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 
 <!-- 勝ち -->
 <div id="win" class="screen">
-  <div class="topbar"><div class="big-title win-title" id="winTitle"></div></div>
-  <div class="mid-title" id="winMid"></div>
-  <div class="winfly" id="winFly" style="display:none"><div class="wf-e" id="wfE"></div><div class="wf-card" id="wfCard"></div><svg class="wf-bag" id="wfBag" viewBox="0 0 70 70"><path d="M14 26h42l-5 36H19z" fill="#8a6a3a" stroke="#4a3010" stroke-width="3"/><path d="M22 26c0-14 26-14 26 0" fill="none" stroke="#4a3010" stroke-width="4"/><text x="35" y="52" text-anchor="middle" font-size="14" font-weight="900" fill="#ffe08a">もちもの</text></svg></div>
-  <div class="picked" id="picked" style="display:none"></div>
-  <div class="recap" id="recap"></div>
-  <button class="btn" id="winNext" style="margin-top:14px">つぎへ</button>
+  <div class="topbar"><div class="big-title win-title" id="winTitle"></div><div class="mid-title" id="winMid"></div></div>
+  <div class="pcbody cols2">
+    <div class="col">
+      <div class="winfly" id="winFly" style="display:none"><div class="wf-e" id="wfE"></div><div class="wf-card" id="wfCard"></div><svg class="wf-bag" id="wfBag" viewBox="0 0 70 70"><path d="M14 26h42l-5 36H19z" fill="#8a6a3a" stroke="#4a3010" stroke-width="3"/><path d="M22 26c0-14 26-14 26 0" fill="none" stroke="#4a3010" stroke-width="4"/><text x="35" y="52" text-anchor="middle" font-size="14" font-weight="900" fill="#ffe08a">もちもの</text></svg><div class="wf-me" id="wfMe"><div class="wf-me-mon" id="wfMeMon"></div><div class="nare wf-nare" id="wfNare"><i></i></div></div></div>
+      <div class="picked" id="picked" style="display:none"></div>
+    </div>
+    <div class="col"><div class="recap" id="recap"></div></div>
+  </div>
+  <div class="end-btns"><button class="btn" id="winNext">つぎへ</button></div>
 </div>
 
 <!-- そだち -->
@@ -660,33 +844,41 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 <!-- クリア -->
 <div id="clear" class="screen">
   <div class="confetti" id="confetti"></div>
-  <div class="topbar"><div class="big-title win-title">ぬしを たおした！</div></div>
-  <div class="mid-title">ちょうじょうに たどりついた（10れんしょう）</div>
-  <div class="row"><div class="namebig" id="clearName"></div><div id="clearMon"></div></div>
-  <div class="dendo-note">でんどうに はいった</div>
-  <div class="recap" id="clearRecap"></div>
-  <div class="recap" id="clearGrow"></div>
-  <div class="sub" style="margin-top:8px">たおした あいてと、つかった パーツ</div>
-  <div class="list" id="clearList"></div>
+  <div class="topbar"><div class="big-title win-title">ぬしを たおした！</div><div class="mid-title">ちょうじょうに たどりついた（10れんしょう）</div></div>
+  <div class="pcbody cols2">
+    <div class="col">
+      <div class="row"><div class="namebig" id="clearName"></div><div id="clearMon"></div></div>
+      <div class="dendo-note">でんどうに はいった</div>
+      <div class="recap" id="clearRecap"></div>
+      <div class="recap" id="clearGrow"></div>
+    </div>
+    <div class="col"><div class="sub">たおした あいてと、つかった パーツ</div><div class="list hist" id="clearList"></div></div>
+  </div>
   <div class="end-btns"><button class="btn round" id="againBtn1" aria-label="もういちど">↻</button><button class="btn sub" id="titleBtn1">タイトルへ</button></div>
 </div>
 
 <!-- 負け -->
 <div id="over" class="screen">
   <div class="topbar"><div class="big-title lose-title" id="overTitle"></div></div>
-  <div class="row"><div class="namebig" id="overName"></div><div id="overMonMe"></div></div>
-  <div class="dendo-note">でんどうに はいった</div>
-  <div class="recap" id="recapOver"></div>
-  <div class="recap" id="overGrow"></div>
-  <div class="card e">
-    <div class="sub">まけた あいて</div>
-    <div class="ec-top"><div id="overMon"></div><div style="flex:1"><div class="ec-name" id="overEName"></div><div class="traits" id="overTraits"></div><div class="label" id="overField"></div><div class="label" id="overParts"></div></div></div>
+  <div class="pcbody cols2">
+    <div class="col">
+      <div class="row"><div class="namebig" id="overName"></div><div id="overMonMe"></div></div>
+      <div class="dendo-note">でんどうに はいった</div>
+      <div class="recap" id="recapOver"></div>
+      <div class="recap" id="overGrow"></div>
+    </div>
+    <div class="col">
+      <div class="card e lost" style="margin-top:0">
+        <div class="sub">まけた あいて</div>
+        <div class="ec-top"><div id="overMon"></div><div style="flex:1;min-width:0"><div class="ec-head"><span class="ec-name" id="overEName"></span><span class="traits" id="overTraits"></span></div><div class="label" id="overField"></div><div class="label" id="overParts"></div></div></div>
+      </div>
+      <div class="sub">たたかった あいてと、つかった パーツ</div><div class="list hist" id="overList"></div>
+    </div>
   </div>
-  <div class="list" id="overList"></div>
   <div class="end-btns"><button class="btn round" id="againBtn2" aria-label="もういちど">↻</button><button class="btn sub" id="titleBtn2">タイトルへ</button></div>
 </div>
 
-<script src="sim.js?v=6"></script>
+<script src="sim.js?v=7"></script>
 <script>
 (function () {
   'use strict';
@@ -708,15 +900,25 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function fmt(x) { return Number.isInteger(x) ? String(x) : (Math.round(x * 10) / 10).toFixed(1); }
 
   // ---------- 保存 ----------
-  var KEY = { zukan: 'dekomon6.zukan', sparks: 'dekomon6.sparks', met: 'dekomon6.met', vol: 'dekomon6.vol', hall: 'dekomon6.hall', run: 'dekomon6.run' };
+  // 版7：途中セーブは 形が変わったので dekomon7.run。図鑑・ひらめき・会った相手・音量・殿堂・持ったことがある は dekomon6.* を使い続ける
+  var KEY = { zukan: 'dekomon6.zukan', sparks: 'dekomon6.sparks', met: 'dekomon6.met', vol: 'dekomon6.vol', hall: 'dekomon6.hall', ownedEver: 'dekomon6.ownedEver', run: 'dekomon7.run' };
   function load(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function remove(k) { try { localStorage.removeItem(k); } catch (e) {} }
   if (OPT.reset) { try { Object.keys(KEY).forEach(function (k) { localStorage.removeItem(KEY[k]); }); } catch (e) {} }
   // 版5（なければ 版4）からの引き継ぎ（版6 のキーが まだ無いときだけ）。途中セーブは 形が変わったので 引き継がない
   ['zukan', 'sparks', 'met', 'vol', 'hall'].forEach(function (k) { try { if (localStorage.getItem(KEY[k]) === null && !OPT.reset) { var old = localStorage.getItem('dekomon5.' + k); if (old === null) old = localStorage.getItem('dekomon4.' + k); if (old !== null) localStorage.setItem(KEY[k], old); } } catch (e) {} });
-  var STORE = { zukan: load(KEY.zukan, []), sparks: load(KEY.sparks, []), met: load(KEY.met, {}), vol: load(KEY.vol, { vol: 40, mute: false }), hall: load(KEY.hall, []) };
+  var STORE = { zukan: load(KEY.zukan, []), sparks: load(KEY.sparks, []), met: load(KEY.met, {}), vol: load(KEY.vol, { vol: 40, mute: false }), hall: load(KEY.hall, []), ownedEver: load(KEY.ownedEver, null) };
   STORE.hall.forEach(function (h) { if (!h.grow) h.grow = S.emptyGrow(); if (!h.growHist) h.growHist = []; if (!h.maxHit) h.maxHit = null; if (h.boss === undefined) h.boss = false; });
+  // 持ったことがある パーツ（図鑑の印）。初回は 殿堂の さいごのパーツ・Lv2 と ひらめき図鑑から作る
+  if (!STORE.ownedEver) {
+    var ev0 = [];
+    STORE.hall.forEach(function (h) { (h.parts || []).concat(h.lv2 || []).forEach(function (id) { if (ev0.indexOf(id) < 0) ev0.push(id); }); });
+    STORE.sparks.forEach(function (id) { if (ev0.indexOf(id) < 0) ev0.push(id); });
+    STORE.ownedEver = ev0; save(KEY.ownedEver, ev0);
+  }
+  function noteOwned(ids) { var ch = false; ids.forEach(function (id) { if (STORE.ownedEver.indexOf(id) < 0) { STORE.ownedEver.push(id); ch = true; } }); if (ch) save(KEY.ownedEver, STORE.ownedEver); }
+  function zukanFound() { return STORE.zukan.filter(function (id) { return !!S.SYN_BY_ID[id]; }).length; }
 
   // ---------- 見た目のデータ ----------
   var LOOK = {
@@ -908,19 +1110,21 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   renderVol();
 
   // ---------- 画面切り替え ----------
-  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
+  var SCREENS = ['title', 'zukan', 'dendo', 'start', 'boss', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
     window.scrollTo(0, 0);
+    Array.prototype.forEach.call(document.querySelectorAll('.pcbody'), function (b) { b.scrollTop = 0; });
     G.screen = id;
-    $('menuPop').classList.remove('on');
-    if (id === 'start' || id === 'fork' || id === 'summit' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
+    document.body.classList.toggle('battle-on', id === 'battle'); // とどめの揺れ（transform）で ページが 数px 伸びないように
+    $('menuPop').classList.remove('on'); $('bossPop').classList.remove('on'); $('partPop').classList.remove('on');
+    if (id === 'start' || id === 'boss' || id === 'fork' || id === 'summit' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
   }
 
   // ---------- ゲームの状態 ----------
   var G = { screen: 'title', firstRun: true, rng: null, run: null, owned: [], attached: [], lastParts: null, battle: 0, wins: 0, lv2: [], pity: 0, sparked: [], history: [], lastSummary: null, picked: null,
     nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, rewards: [], forkFor: -1, pendingGrow: null, backTo: 'title',
-    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, saveChecks: 0, saveFails: 0 }, brightChanges: 0 };
+    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, picked: 0, nareR: 0, pageScroll: {}, innerScroll: {}, screens: {}, doubleFlash: 0 }, brightChanges: 0 };
   var seed = OPT.seed ? parseInt(OPT.seed, 10) : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
   G.rng = S.makeRng(seed);
 
@@ -928,6 +1132,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     G.run = S.newRun(G.rng); G.run.choices = [];
     G.owned = S.startItems(G.rng).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
     G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.rewards = []; G.forkFor = -1; G.pendingGrow = null;
+    noteOwned(G.owned);
     showStart();
   }
   // いまの戦いの道（分かれ道で選んだ側。10戦目は ぬし）
@@ -940,18 +1145,18 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   function myDef() { return S.playerDef(G.grow, G.run.name); }
 
   // ---------- 途中セーブ ----------
-  // 画面が変わるたびに保存。phase: start（周回の始め）/ fork（わかれみち）/ summit（ちょうじょう）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
+  // 画面が変わるたびに保存。phase: start（周回の始め）/ boss（やまの ぬしの画面）/ fork（わかれみち）/ summit（ちょうじょう）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
   function sumSave(sum) { return { dealt: sum.dealt, synergies: sum.synergies, spark: sum.spark, maxHit: sum.maxHit || null }; }
   function saveRun(phase) {
     if (OPT.auto || !G.run) return;
-    var data = { v: 6, phase: phase, seed: seed, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
+    var data = { v: 7, phase: phase, seed: seed, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
       owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, rewards: G.rewards, forkFor: G.forkFor, picked: G.picked, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
       history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: sumSave(h.summary) }; }),
       lastSummary: G.lastSummary ? { sum: sumSave(G.lastSummary.sum), enemy: G.lastSummary.enemy.id, spark: G.lastSummary.spark } : null };
     save(KEY.run, data);
   }
   function clearSave() { remove(KEY.run); }
-  function loadSave() { var d = load(KEY.run, null); return d && d.v === 6 && d.run && d.run.steps ? d : null; }
+  function loadSave() { var d = load(KEY.run, null); return d && d.v === 7 && d.run && d.run.steps ? d : null; }
   function resumeRun(d) {
     G.rng = S.makeRng(0, d.rngState);
     G.run = { steps: d.run.steps, boss: d.run.boss, name: d.run.name, choices: d.run.choices || [] };
@@ -959,7 +1164,9 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.rewards = d.rewards || []; G.forkFor = (d.forkFor === undefined) ? -1 : d.forkFor; G.picked = d.picked || []; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
     G.history = (d.history || []).map(function (h) { return { enemy: S.ENEMY_BY_ID[h.enemy], field: S.FIELD_BY_ID[h.field], hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark, maxHit: h.summary.maxHit || null, activations: {} } }; });
     G.lastSummary = d.lastSummary ? { sum: d.lastSummary.sum, enemy: S.ENEMY_BY_ID[d.lastSummary.enemy], spark: d.lastSummary.spark } : null;
+    noteOwned(G.owned);
     if (d.phase === 'start') showStart();
+    else if (d.phase === 'boss') showBossIntro();
     else if (d.phase === 'fork') showFork();
     else if (d.phase === 'summit') showSummit();
     else if (d.phase === 'win') showWin(true);
@@ -981,22 +1188,37 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   }
 
   // ---------- 図鑑・殿堂 ----------
+  // 版7：ずかんは 2章。「パーツ」16枚（絵・名前・場所・おもさ・Lv1 の文・Lv2 は ひらめいたことがあれば）と「かみあい」10
   function renderZukan() {
-    $('zukanSub').textContent = STORE.zukan.length + '／' + S.SYNERGIES.length + ' みつけた';
+    var foundSyn = zukanFound();
+    $('zukanSub').textContent = foundSyn + '／' + S.SYNERGIES.length;
     var list = $('zukanList'); list.innerHTML = '';
     S.SYNERGIES.forEach(function (sy) {
       var found = STORE.zukan.indexOf(sy.id) >= 0;
-      list.appendChild(el('div', 'zk ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(sy.name) : '？？？') + '</div><div class="d">' + (found ? esc(sy.desc) : 'まだ みつけていない') + '</div>'));
+      var lvTag = sy.lv2.length ? '<span class="tag lv">Lv2 入り</span>' : '';
+      list.appendChild(el('div', 'zk ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(sy.name) : '？？？') + lvTag + '</div><div class="d">' + (found ? esc(sy.desc) : 'まだ みつけていない' + (sy.lv2.length ? '（Lv2 の パーツで おきる）' : '')) + '</div>'));
     });
-    $('sparkSub').textContent = STORE.sparks.length + '／' + S.PARTS.length + ' ひらめいた';
+    $('sparkSub').textContent = 'ひらめいた ' + STORE.sparks.length + '／' + S.PARTS.length;
+    $('zkHead').textContent = 'もったことが ある ' + STORE.ownedEver.length + '／' + S.PARTS.length + '　ひらめいた ' + STORE.sparks.length + '／' + S.PARTS.length + '（Lv2 の文は ひらめいた パーツだけ）';
     var sl = $('sparkList'); sl.innerHTML = '';
     S.PARTS.forEach(function (p) {
-      var found = STORE.sparks.indexOf(p.id) >= 0;
-      sl.appendChild(el('div', 'zk lv2 ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(p.name) + ' Lv2「' + esc(p.lv2name) + '」' : '？？？') + '</div><div class="d">' + (found ? esc(p.lv2text) : 'まだ ひらめいていない') + '</div>'));
+      var had = STORE.ownedEver.indexOf(p.id) >= 0, sp = STORE.sparks.indexOf(p.id) >= 0;
+      var w = p.weight !== 'none' ? '<span class="tag ' + p.weight + '">' + WEIGHT[p.weight] + '</span>' : '';
+      sl.appendChild(el('div', 'zp' + (had ? ' had' : '') + (sp ? ' sp' : ''),
+        '<div class="zp-top"><div class="zp-mon">' + monsterSVG('player', [p.id], 'r', [], sp ? [p.id] : [], null) + '</div><div style="flex:1;min-width:0"><div class="n">' + esc(p.name) + '</div><div class="zp-tags"><span class="tag loc">' + esc(p.locName) + '</span>' + w + '</div>' +
+        '<div class="zp-marks"><span class="zmark' + (had ? ' on' : '') + '">' + (had ? 'もったことが ある' : 'まだ もっていない') + '</span><span class="zmark' + (sp ? ' on sp' : '') + '">' + (sp ? 'ひらめいた' : 'まだ ひらめいていない') + '</span></div></div></div>' +
+        '<div class="d">' + esc(p.effect) + '</div><div class="zp-lv2' + (sp ? '' : ' unknown') + '">' + (sp ? 'Lv2「' + esc(p.lv2name) + '」：' + esc(p.lv2text) : 'Lv2 ？？？　まだ ひらめいていない') + '</div>'));
     });
-    $('zukanCount').textContent = STORE.zukan.length + '／' + S.SYNERGIES.length + '・' + STORE.sparks.length + '／' + S.PARTS.length;
+    $('zukanCount').textContent = foundSyn + '／' + S.SYNERGIES.length + '・' + STORE.sparks.length + '／' + S.PARTS.length;
     $('dendoCount').textContent = STORE.hall.length ? STORE.hall.length + 'ひき' : '';
   }
+  function zukanTab(ch) {
+    $('tabParts').classList.toggle('on', ch === 'parts'); $('tabSyn').classList.toggle('on', ch === 'syn');
+    $('sparkList').style.display = ch === 'parts' ? '' : 'none'; $('zukanList').style.display = ch === 'syn' ? '' : 'none'; $('zkHead').style.display = ch === 'parts' ? '' : 'none';
+    var b = document.querySelector('#zukan .pcbody'); if (b) b.scrollTop = 0;
+  }
+  $('tabParts').addEventListener('click', function () { zukanTab('parts'); });
+  $('tabSyn').addEventListener('click', function () { zukanTab('syn'); });
   function recordSynergy(id) { if (STORE.zukan.indexOf(id) >= 0) return false; STORE.zukan.push(id); save(KEY.zukan, STORE.zukan); return true; }
   function recordSpark(pid) { if (STORE.sparks.indexOf(pid) >= 0) return false; STORE.sparks.push(pid); save(KEY.sparks, STORE.sparks); return true; }
   function enterHall() {
@@ -1021,10 +1243,11 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     var best = STORE.hall.reduce(function (b, h) { return (!b || h.wins > b.wins) ? h : b; }, null);
     var bossN = STORE.hall.filter(function (h) { return h.boss; }).length;
     var hallHit = STORE.hall.reduce(function (b, h) { return (h.maxHit && h.maxHit.dmg > 0 && (!b || h.maxHit.dmg > b.dmg)) ? h.maxHit : b; }, null);
-    $('dendoSub').innerHTML = '<div class="hallsum">' + STORE.hall.length + 'たい ／ さいこう ' + best.wins + 'れんしょう ／ ぬしを たおした ' + bossN + 'かい ／ さいだいの いちげき ' + esc(maxHitText(hallHit)) + '</div><div class="hallsum">かみあい ' + STORE.zukan.length + '/' + S.SYNERGIES.length + ' ／ ひらめき ' + STORE.sparks.length + '/' + S.PARTS.length + '</div><div class="sub">あたらしい じゅん</div>';
+    $('dendoSub').innerHTML = '<div class="hallsum">' + STORE.hall.length + 'たい ／ さいこう ' + best.wins + 'れんしょう ／ ぬしを たおした ' + bossN + 'かい ／ さいだいの いちげき ' + esc(maxHitText(hallHit)) + '</div><div class="hallsum">かみあい ' + zukanFound() + '/' + S.SYNERGIES.length + ' ／ ひらめき ' + STORE.sparks.length + '/' + S.PARTS.length + '</div><div class="sub">あたらしい じゅん</div>';
     STORE.hall.forEach(function (h) {
       var names = function (ids) { return ids.length ? ids.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし'; };
-      var syn = h.synergies.length ? h.synergies.map(function (id) { return esc(S.SYN_BY_ID[id].name); }).join('、') : 'なし';
+      var synIds = h.synergies.filter(function (id) { return !!S.SYN_BY_ID[id]; });
+      var syn = synIds.length ? synIds.map(function (id) { return esc(S.SYN_BY_ID[id].name); }).join('、') : 'なし';
       var isBest = h === best;
       list.appendChild(el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '</div>' +
         '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
@@ -1039,7 +1262,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   $('dendoBtn').addEventListener('click', function () { initAudio(); openDendo(); });
   $('dendoBack').addEventListener('click', goBack);
   // ≡メニュー：タイトルへ・ずかん・でんどう。周回の途中でも保存があるので消えない
-  function inRun() { return !!G.run && ['start', 'fork', 'summit', 'pre', 'battle', 'win', 'grow'].indexOf(G.screen) >= 0; }
+  function inRun() { return !!G.run && ['start', 'boss', 'fork', 'summit', 'pre', 'battle', 'win', 'grow'].indexOf(G.screen) >= 0; }
   $('menuBtn').addEventListener('click', function (ev) {
     ev.stopPropagation(); initAudio();
     var pop = $('menuPop');
@@ -1059,11 +1282,44 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = fmt(d.spd);
     $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], G.grow) + '</div>';
     var list = $('startList'); list.innerHTML = '';
-    renderGrouped(list, G.owned, function (id) { return partCard(id, false, null); });
+    G.owned.forEach(function (id) { list.appendChild(partCard(id, false, null)); });
     show('start');
     if (OPT.auto) setTimeout(function () { $('startGo').click(); }, 300 / OPT.speed);
   }
-  $('startGo').addEventListener('click', function () { initAudio(); nextStep(); });
+  $('startGo').addEventListener('click', function () { initAudio(); showBossIntro(); });
+
+  // ---------- 版7：やまの ぬし の画面（周回の始め）と、山の道の 10だんめから出る 重ね箱 ----------
+  function bossCardHTML() {
+    var def = S.BOSS, ef = S.makeFighter('e', def, def.parts, S.CFG.runBattles, []);
+    return '<div class="ec-head"><span class="ec-name">' + esc(def.name) + '</span><span class="bossmark">10ごうめ</span></div>' +
+      '<div class="stats"><div class="stat"><span class="k">たいりょく</span><span class="v">' + ef.maxHp + '</span></div><div class="stat"><span class="k">こうげき</span><span class="v">' + Math.round(S.effAtk(ef)) + '</span></div><div class="stat"><span class="k">はやさ</span><span class="v">' + S.effSpd(ef, S.SUMMIT.id) + '</span></div></div>' +
+      '<div class="traits">' + def.traits.map(function (t) { return traitRow(t, true).outerHTML; }).join('') + '</div>' +
+      '<div class="label">つけている パーツ</div><div class="minis">' + def.parts.map(function (p) { return miniCard(p).outerHTML; }).join('') + '</div>';
+  }
+  function showBossIntro() {
+    $('bossArena').innerHTML = '<div class="gmon">' + monsterSVG('boss', S.BOSS.parts, 'l', S.BOSS.traits, [], null, false) + '</div>';
+    $('bossCard').innerHTML = bossCardHTML();
+    show('boss'); sfx('horn');
+    if (OPT.auto) setTimeout(function () { $('bossGo').click(); }, 300 / OPT.speed);
+  }
+  $('bossGo').addEventListener('click', function () { if (G.screen !== 'boss') return; initAudio(); nextStep(); });
+  function openBossPop() {
+    $('bpMon').innerHTML = monsterSVG('boss', S.BOSS.parts, 'l', S.BOSS.traits, [], null, false);
+    $('bpCard').innerHTML = bossCardHTML();
+    $('bossPop').classList.add('on');
+  }
+  $('bossPop').addEventListener('click', function (ev) { ev.stopPropagation(); $('bossPop').classList.remove('on'); });
+  // 山の道の 10だんめ（.tboss）を タップ → ぬしの中身。先に拾って、下の画面（わかれみち・ちょうじょう）の タップには 渡さない
+  document.addEventListener('click', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('.tboss') : null; if (t) { ev.stopPropagation(); ev.preventDefault(); openBossPop(); } }, true);
+  // 小札を タップ → その札の文（バトル前と同じ札）
+  function openPartPop(id) {
+    var b = $('partPopBox'); b.innerHTML = '';
+    b.appendChild(partCard(id, false, null));
+    if ((G.lastParts || []).indexOf(id) >= 0) b.appendChild(el('div', 'sub', 'まえの たたかいで つけていた'));
+    b.appendChild(el('div', 'sub center', 'タップで とじる'));
+    $('partPop').classList.add('on');
+  }
+  $('partPop').addEventListener('click', function (ev) { ev.stopPropagation(); $('partPop').classList.remove('on'); });
 
   // ---------- パーツ札 ----------
   function partCard(id, on, hints) {
@@ -1137,9 +1393,11 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       var col = '#3e4558';
       if (passed) { var path = S.pathOf(G.run, i, G.run.choices[i] || 0); col = S.FIELD_BY_ID[path.field].color; }
       if (boss) {
-        svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (cur ? 13 : 11) + '" fill="#6b3fa0" stroke="' + (cur ? '#fff' : '#9a7ad0') + '" stroke-width="' + (cur ? 3 : 2) + '"/>' +
-          '<polygon points="' + (p.x - 4) + ',' + (p.y - 4) + ' ' + (p.x + 2) + ',' + (p.y - 15) + ' ' + (p.x + 5) + ',' + (p.y - 3) + '" fill="#f5d76e" stroke="#7a5c00" stroke-width="1.5"/>' +
-          '<circle cx="' + (p.x + 3) + '" cy="' + (p.y + 1) + '" r="2.6" fill="#ff5a5a"/>';
+        var R = cur ? 16 : 14;
+        svg += '<g class="tboss"><circle cx="' + p.x + '" cy="' + p.y + '" r="24" fill="transparent"/>' +
+          '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + R + '" fill="#6b3fa0" stroke="' + (cur ? '#fff' : '#9a7ad0') + '" stroke-width="' + (cur ? 3 : 2) + '"/>' +
+          '<polygon points="' + (p.x - 5) + ',' + (p.y - 6) + ' ' + (p.x + 2) + ',' + (p.y - 19) + ' ' + (p.x + 6) + ',' + (p.y - 4) + '" fill="#f5d76e" stroke="#7a5c00" stroke-width="1.5"/>' +
+          '<circle cx="' + (p.x + 4) + '" cy="' + (p.y + 1) + '" r="3.6" fill="#ff5a5a" stroke="#fff" stroke-width="1"/><circle cx="' + (p.x - 5) + '" cy="' + (p.y + 2) + '" r="2.6" fill="#ff5a5a"/></g>';
       } else {
         svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (cur ? 10 : 7) + '" fill="' + (cur ? (G.history[i] ? col : '#ffcc4d') : col) + '" stroke="' + (cur ? '#fff' : (passed ? '#f4f1ea' : '#2c3142')) + '" stroke-width="' + (cur ? 3 : 1.5) + '"/>';
       }
@@ -1147,7 +1405,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     });
     svg += '</svg>';
     var place = isBossBattle() ? 'ちょうじょう' : (G.battle + 1) + 'ごうめ';
-    return '<div class="trail' + (compact ? ' compact' : '') + '">' + svg + '<div class="tl"><b>' + place + '</b><span>／ ' + n + 'ごうめが ちょうじょう：ぬし</span></div></div>';
+    var bp = pts[n - 1];
+    return '<div class="trail' + (compact ? ' compact' : '') + '">' + svg + '<span class="tl-boss tboss" style="left:' + (bp.x / W * 100) + '%;top:' + (bp.y + 18) + 'px">ぬし</span><div class="tl"><b>' + place + '</b><span>／ ' + n + 'ごうめが ちょうじょう：ぬし（タップで 中身）</span></div></div>';
   }
 
   // ---------- わかれみち（1〜9戦目）。2つの道：相手・場所・かてば もらえる。片方は てごわい ----------
@@ -1161,20 +1420,50 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     h += '<div class="label">つけている パーツ</div><div class="minis">' + def.parts.map(function (p) { return miniCard(p).outerHTML; }).join('') + '</div>';
     return h;
   }
-  function rewardText(rewards) { return rewards && rewards.length ? 'かてば もらえる：' + rewards.map(function (r) { return '<b>' + esc(S.PART_BY_ID[r].name) + '</b>'; }).join('、') : 'もう ぜんぶ もっている'; }
+  function rewardHTML(r) {
+    var p = S.PART_BY_ID[r.part];
+    if (r.kind === 'nare') {
+      var cur = G.nare[r.part] || 0, full = S.CFG.nare.full;
+      return '<span class="rw rw-nare"><b>' + esc(p.name) + '</b><span class="naretag">なれ +' + r.amt + '</span><small>' + cur + '→' + (cur + r.amt) + '／' + full + '</small><span class="nare' + (cur + r.amt >= full ? ' full' : '') + '"><i style="width:' + Math.round(Math.min(1, cur / full) * 100) + '%"></i></span></span>';
+    }
+    return '<span class="rw part"><b>' + esc(p.name) + '</b></span>';
+  }
+  function rewardText(rewards) { return rewards && rewards.length ? 'かてば もらえる：' + rewards.map(rewardHTML).join('') : 'もらえるものは なし（ぜんぶ もっていて ぜんぶ Lv2）'; }
+  // わかれみちの もちもの：全部の小札（Lv2 は 金リボン、なれゲージ。前の戦いの3つは 青白い枠）と たいりょく／こうげき／はやさ、そだち
+  function growMarks() { return S.GROW_IDS.map(function (id) { var n = G.grow[id] || 0; return S.GROWS[id].name + ' ' + (n ? new Array(n + 1).join('○') : '−'); }).join('・'); }
+  function scard(id) {
+    var p = S.PART_BY_ID[id], isLv2 = G.lv2.indexOf(id) >= 0, last = (G.lastParts || []).indexOf(id) >= 0;
+    var nare = G.nare[id] || 0, full = S.CFG.nare.full, ratio = Math.min(1, nare / full), soon = !isLv2 && nare >= full;
+    var c = el('div', 'scard' + (isLv2 ? ' lv2' : '') + (last ? ' last' : ''));
+    c.dataset.id = id;
+    c.innerHTML = '<div class="sc-head"><span class="tag loc">' + esc(p.locName) + '</span><span class="sc-name">' + esc(p.name) + '</span></div>' +
+      (isLv2 ? '' : '<div class="nare' + (soon ? ' full' : (ratio >= 0.75 ? ' near' : '')) + '"><i style="width:' + Math.round(ratio * 100) + '%"></i></div>');
+    c.addEventListener('click', function (ev) { ev.stopPropagation(); openPartPop(id); });
+    return c;
+  }
+  function itemsPanel() {
+    var d = myDef();
+    var box = el('div', 'items'); box.id = 'forkItems';
+    box.innerHTML = '<div class="it-head"><b>もちもの（' + G.owned.length + 'こ）</b><span class="sub">たいりょく ' + fmt(d.hp) + ' ／ こうげき ' + fmt(d.atk) + ' ／ はやさ ' + fmt(d.spd) + '</span><span class="sub">そだち：' + esc(growMarks()) + '</span></div>';
+    var grid = el('div', 'it-grid');
+    S.LOCS.forEach(function (loc) { G.owned.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; }).forEach(function (id) { grid.appendChild(scard(id)); }); });
+    box.appendChild(grid);
+    box.appendChild(el('div', 'it-legend', '<i></i>まえの たたかいで つけていた　／　小札を タップで 札の文'));
+    return box;
+  }
   function showFork() {
     if (isBossBattle()) { showSummit(); return; }
     // 両方の道の「かてば もらえる」を、この分かれ道に初めて来たときに決める（乱数は ここで使う）
-    if (G.forkFor !== G.battle) { S.forkRewards(G.run, G.battle, G.owned, G.rng); G.forkFor = G.battle; }
+    if (G.forkFor !== G.battle) { S.forkRewards(G.run, G.battle, G.owned, G.lv2, G.rng); G.forkFor = G.battle; }
     var paths = G.run.steps[G.battle], stage = curStage();
     $('forkNo').textContent = (G.battle + 1) + 'せんめ ／ ' + S.CFG.runBattles;
     $('forkWins').textContent = G.wins ? G.wins + 'れんしょうちゅう' : '';
-    $('forkTrail').innerHTML = trailHTML(false);
+    $('forkTrail').innerHTML = trailHTML(window.innerWidth >= 900);
     var box = $('forkPaths'); box.innerHTML = '';
     paths.forEach(function (path, k) {
       var def = S.enemyDefOf(path.enemy), fld = S.FIELD_BY_ID[path.field];
       var d = el('div', 'fork-path' + (path.hard ? ' hard' : ''));
-      d.innerHTML = '<div class="fk-top"><span class="fk-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="hardmark">てごわい</span>' : '') + '</div>' +
+      d.innerHTML = '<div class="fk-top"><span class="fk-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="hardmark">てごわい</span>' : '') + '<button class="btn small fk-go' + (path.hard ? ' hardbtn' : '') + '">' + (k === 0 ? 'ひだりへ' : 'みぎへ') + '</button></div>' +
         '<div class="card e' + (path.hard ? ' hard' : '') + '">' + enemyCardHTML(def, stage, path.hard, fld.id) + '</div>' +
         '<div class="card f" style="border-color:' + fld.color + '"><div class="f-name"><span class="fsw" style="background:' + fld.color + '"></span>ばしょ：' + esc(fld.name) + '</div><div class="f-desc">' + esc(fld.desc) + '</div></div>' +
         '<div class="reward' + (path.hard ? ' two' : '') + '">' + rewardText(path.rewards) + '</div>' +
@@ -1182,6 +1471,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       d.addEventListener('click', function () { chooseFork(k); });
       box.appendChild(d);
     });
+    box.appendChild(itemsPanel());
     show('fork');
     if (OPT.auto) setTimeout(function () {
       var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard).score;
@@ -1196,23 +1486,20 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     G.rewards = (G.run.steps[G.battle][k].rewards || []).slice();
     showPre();
   }
-  // ちょうじょう（10戦目の前）：ぬしの名前・性質・パーツを 1.5秒 見せてから バトル前へ
-  var summitTimer = null;
+  // ちょうじょう（10戦目の前）：ぬしの名前・性質・パーツ。自動では進まない（版7）。タップ／ボタンで バトル前へ
   function showSummit() {
     var def = S.BOSS;
     G.rewards = [];
-    $('summitTrail').innerHTML = trailHTML(false);
+    $('summitTrail').innerHTML = trailHTML(window.innerWidth >= 900);
     $('summitMon').innerHTML = monsterSVG('boss', def.parts, 'l', def.traits, [], null, false);
     $('summitName').textContent = def.name;
-    var tr = $('summitTraits'); tr.innerHTML = ''; def.traits.forEach(function (t) { tr.appendChild(traitRow(t, true)); });
-    var pp = $('summitParts'); pp.innerHTML = ''; def.parts.forEach(function (p) { pp.appendChild(miniCard(p)); });
-    $('summitTap').classList.remove('on');
+    $('summitCard').innerHTML = bossCardHTML();
     show('summit'); sfx('horn');
-    clearTimeout(summitTimer);
-    summitTimer = setTimeout(function () { $('summitTap').classList.add('on'); if (OPT.auto) summitNext(); }, 1500 / OPT.speed);
+    if (OPT.auto) setTimeout(summitNext, 300 / OPT.speed);
   }
   function summitNext() { if (G.screen !== 'summit') return; showPre(); }
-  $('summit').addEventListener('click', function () { if ($('summitTap').classList.contains('on')) summitNext(); });
+  $('summit').addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('.tboss')) return; summitNext(); });
+  $('summitGo').addEventListener('click', function (ev) { ev.stopPropagation(); initAudio(); summitNext(); });
   // つぎの戦いへ：1〜9戦目は わかれみち、10戦目は ちょうじょう
   function nextStep() { if (isBossBattle()) showSummit(); else showFork(); }
 
@@ -1561,7 +1848,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   var flashThisHand = 0;
   function finishFlash() {
     flashThisHand++; G.brightChanges++;
-    if (flashThisHand > 1) console.error('[でこもん] 1手に2回 画面の明るさが変わった');
+    if (flashThisHand > 1) { G.auto.doubleFlash++; console.error('[でこもん] 1手に2回 画面の明るさが変わった'); }
     var f = $('flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
     setTimeout(function () { f.classList.remove('on'); }, 450 / OPT.speed);
   }
@@ -1785,7 +2072,26 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     });
     if (bad.length) { G.auto.seeThrough++; console.error('[でこもん 検査] 透け：' + when + '：' + bad.join(',')); (window.__seeThrough = window.__seeThrough || []).push({ when: when, screens: bad }); }
   }
-  if (OPT.auto) setInterval(function () { try { checkOverlap(); } catch (e) { console.error('[でこもん 検査] ' + e.message); } }, 100);
+  // 版7：ページが スクロールしないか（PC の目標）。長い一覧の 中のスクロールは 別に数える
+  function checkScroll() {
+    var sc = G.screen, A = G.auto;
+    A.screens[sc] = (A.screens[sc] || 0) + 1;
+    var de = document.documentElement;
+    var sh = Math.max(de.scrollHeight, document.body.scrollHeight), sw = Math.max(de.scrollWidth, document.body.scrollWidth);
+    if (sh > window.innerHeight + 1 || sw > window.innerWidth + 1) {
+      if (!A.pageScroll[sc]) console.error('[でこもん 検査] ページがスクロール：' + sc + '：' + sw + 'x' + sh + ' ／ 窓 ' + window.innerWidth + 'x' + window.innerHeight);
+      A.pageScroll[sc] = (A.pageScroll[sc] || 0) + 1;
+    }
+    var boxes = document.querySelectorAll('.screen.on .pcbody, #pre.on .col-l, #pre.on .col-r .plist, #pre.on .pre-grid, #fork.on .fork-path, #fork.on .items, #clear.on .col, #over.on .col, #clear.on .list.hist, #over.on .list.hist');
+    for (var i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      if (b.clientHeight > 0 && b.scrollHeight > b.clientHeight + 1) {
+        if (!A.innerScroll[sc]) console.warn('[でこもん 検査] 中でスクロール：' + sc + '：' + (b.id || b.className) + ' ' + b.clientHeight + '/' + b.scrollHeight);
+        A.innerScroll[sc] = (A.innerScroll[sc] || 0) + 1; break;
+      }
+    }
+  }
+  if (OPT.auto) setInterval(function () { try { checkOverlap(); checkScroll(); } catch (e) { console.error('[でこもん 検査] ' + e.message); } }, 100);
 
   function hitText(ev) {
     var labels = ev.parts.filter(function (p) { return p !== 'weight' || ev.parts.length === 1; }).map(function (p) { return S.PART_BY_ID[p].short; });
@@ -2046,7 +2352,12 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       if (won) {
         G.wins++;
         G.picked = [];
-        G.rewards.forEach(function (r) { if (G.owned.indexOf(r) < 0) { G.owned.push(r); G.picked.push(r); } });
+        G.rewards.forEach(function (r) {
+          var got = S.applyReward(r, G.owned, G.nare, G.lv2);
+          if (!got) return;
+          G.picked.push(got);
+          if (got.kind === 'part') { noteOwned([got.part]); if (OPT.auto) G.auto.picked++; } else if (OPT.auto) G.auto.nareR++;
+        });
         G.rewards = [];
         if (S.growAfterWin(G.wins)) { var gd = S.growDirection(G.acc); G.grow[gd.dir]++; G.growHist.push(gd.dir); G.pendingGrow = gd.dir; G.acc = { received: 0, landed: 0, first: 0 }; if (OPT.auto) G.auto.grows[gd.dir]++; }
         if (G.wins >= S.CFG.runBattles) showClear();
@@ -2068,29 +2379,49 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     return '<div class="t">ふりかえり</div><div>' + line1 + '</div>' + mh + line2 + line3;
   }
   var winTimers = [];
+  function pickedHTML(list) {
+    var parts = list.filter(function (x) { return x.kind === 'part'; }).map(function (x) { return esc(S.PART_BY_ID[x.part].name); });
+    var out = [];
+    if (parts.length) out.push('ひろった：' + parts.join('、'));
+    list.filter(function (x) { return x.kind === 'nare'; }).forEach(function (x) { out.push('なれた：' + esc(S.PART_BY_ID[x.part].name) + ' +' + x.amt + '（' + x.from + '→' + x.to + '）' + (x.full ? '<span class="pk-full">つぎの はつどうで ひらめく！</span>' : '')); });
+    return out.join('<br>');
+  }
   function showWin(resumed) {
     $('winTitle').textContent = 'かち！';
-    $('winMid').textContent = G.wins === 5 ? '5れんしょう！' : (G.wins + 'れんしょうちゅう');
-    var pk = $('picked'), fly = $('winFly');
+    $('winMid').textContent = G.wins + 'れんしょうちゅう' + (G.wins === S.CFG.runBattles - 1 ? '　つぎは ちょうじょう' : '');
+    var pk = $('picked'), fly = $('winFly'), me = $('wfMe');
     var en = G.lastSummary.enemy;
     winTimers.forEach(clearTimeout); winTimers = [];
     var picked = G.picked || [];
+    var full = S.CFG.nare.full;
     if (picked.length && !resumed) {
       pk.style.display = 'none';
       fly.style.display = 'block'; fly.className = 'winfly';
       $('wfE').innerHTML = monsterSVG(en.id, en.parts, 'r', en.traits);
-      $('wfBag').classList.remove('lit');
-      // 1つずつ 飛ぶ（相手の体から そのパーツが はずれる。相手のパーツなら体から消す）
-      picked.forEach(function (pid, i) {
-        var base = i * 1100;
-        winTimers.push(setTimeout(function () { fly.className = 'winfly'; $('wfCard').textContent = S.PART_BY_ID[pid].name; }, base / OPT.speed));
+      $('wfBag').classList.remove('lit'); me.className = 'wf-me';
+      // 1つずつ 飛ぶ。拾う札は 袋へ（相手のパーツなら 相手の体から消す）。なれ +10 の札は 自分の そのパーツへ 飛んで なれゲージが のびる
+      picked.forEach(function (it, i) {
+        var base = i * 1300, pid = it.part, isNare = it.kind === 'nare';
         winTimers.push(setTimeout(function () {
-          if (en.parts.indexOf(pid) >= 0) { var g = $('wfE').querySelector('.part.' + pid); if (g) g.classList.remove('on'); }
+          fly.className = 'winfly' + (isNare ? ' nare' : ''); $('wfCard').textContent = S.PART_BY_ID[pid].name + (isNare ? '　なれ +' + it.amt : '');
+          $('wfBag').classList.remove('lit'); me.className = 'wf-me' + (isNare ? ' on' : '');
+          if (isNare) { $('wfMeMon').innerHTML = monsterSVG('player', [pid], 'r', [], [], G.grow); var g = $('wfNare'); g.className = 'nare wf-nare' + (it.from >= full ? ' full' : ''); g.querySelector('i').style.width = Math.round(Math.min(1, it.from / full) * 100) + '%'; }
+        }, base / OPT.speed));
+        winTimers.push(setTimeout(function () {
+          if (!isNare && en.parts.indexOf(pid) >= 0) { var g = $('wfE').querySelector('.part.' + pid); if (g) g.classList.remove('on'); }
           fly.classList.add('go'); sfx('pick');
         }, (base + 350) / OPT.speed));
-        winTimers.push(setTimeout(function () { $('wfBag').classList.add('lit'); pk.style.display = 'block'; pk.textContent = 'ひろった：' + picked.slice(0, i + 1).map(function (q) { return S.PART_BY_ID[q].name; }).join('、'); sfx('heal'); }, (base + 1050) / OPT.speed));
+        winTimers.push(setTimeout(function () {
+          if (isNare) {
+            me.classList.add('lit');
+            var g2 = $('wfNare'); g2.querySelector('i').style.width = Math.round(Math.min(1, it.to / full) * 100) + '%'; g2.className = 'nare wf-nare' + (it.full ? ' full' : (it.to / full >= 0.75 ? ' near' : ''));
+            var part = $('wfMeMon').querySelector('.part.' + pid); if (part) part.classList.add(it.full ? 'goldglow' : 'glow');
+            sfx(it.full ? 'found' : 'longtail');
+          } else { $('wfBag').classList.add('lit'); sfx('heal'); }
+          pk.style.display = 'block'; pk.innerHTML = pickedHTML(picked.slice(0, i + 1));
+        }, (base + 1050) / OPT.speed));
       });
-    } else if (picked.length) { fly.style.display = 'none'; pk.style.display = 'block'; pk.textContent = 'ひろった：' + picked.map(function (q) { return S.PART_BY_ID[q].name; }).join('、'); }
+    } else if (picked.length) { fly.style.display = 'none'; pk.style.display = 'block'; pk.innerHTML = pickedHTML(picked); }
     else { fly.style.display = 'none'; pk.style.display = 'none'; }
     $('recap').innerHTML = recapHTML(G.lastSummary.sum, G.lastSummary.enemy.name, true, G.lastSummary.spark);
     show('win');
@@ -2136,7 +2467,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
     G.history.forEach(function (h, i) {
       var it = el('div', 'it');
       it.innerHTML = '<div>' + monsterSVG(h.enemy.id, h.enemy.parts, 'l', h.enemy.traits) + '</div><div class="t"><b>' + (i + 1) + 'せんめ ' + esc(h.enemy.name) + '</b>（' + esc(h.field.name) + (h.hard ? '・<span class="hardtxt">てごわい</span>' : '') + '）' + (h.win ? '' : ' <span style="color:var(--bad)">まけ</span>') +
-        '<small>つかった：' + (h.parts.length ? h.parts.map(function (p) { return esc(S.PART_BY_ID[p].name); }).join('、') : 'なし') + (h.spark ? '　ひらめき：' + esc(S.PART_BY_ID[h.spark].name) + '「' + esc(S.PART_BY_ID[h.spark].lv2name) + '」' : '') + '</small></div>';
+        '<small>つかった：' + (h.parts.length ? h.parts.map(function (p) { return esc(S.PART_BY_ID[p].short); }).join('・') : 'なし') + (h.spark ? '　ひらめき：' + esc(S.PART_BY_ID[h.spark].short) + '「' + esc(S.PART_BY_ID[h.spark].lv2name) + '」' : '') + '</small></div>';
       container.appendChild(it);
     });
   }
@@ -2192,7 +2523,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   }
   function logAuto() {
     var a = G.auto;
-    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、てごわい ' + a.hardW + '/' + a.hardB + '、ぬし ' + a.bossW + '/' + a.bossB + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '）、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、図鑑 ' + STORE.zukan.length + '/8・' + STORE.sparks.length + '/16');
+    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、てごわい ' + a.hardW + '/' + a.hardB + '、ぬし ' + a.bossW + '/' + a.bossB + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '）、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、拾った ' + a.picked + '、なれ+10 ' + a.nareR + '、ページスクロール ' + JSON.stringify(a.pageScroll) + '、中スクロール ' + JSON.stringify(a.innerScroll) + '、2回の明るさ ' + a.doubleFlash + '、図鑑 ' + zukanFound() + '/' + S.SYNERGIES.length + '・' + STORE.sparks.length + '/16');
     window.__dekomonAuto = a;
   }
 
@@ -2214,7 +2545,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
   $('titleBtn1').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   $('titleBtn2').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   renderZukan(); renderTitle();
-  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, showFork: showFork, showSummit: showSummit, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun, trailHTML: trailHTML } };
+  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, showFork: showFork, showSummit: showSummit, showBossIntro: showBossIntro, openBossPop: openBossPop, openPartPop: openPartPop, openZukan: openZukan, openDendo: openDendo, zukanTab: zukanTab, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun, trailHTML: trailHTML, startRun: startRun } };
   if (OPT.auto) setTimeout(function () { $('startBtn').click(); }, 300);
 })();
 </script>

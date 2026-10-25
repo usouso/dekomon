@@ -1,4 +1,4 @@
-// でこもん 版4 — ゲームのルール（画面のコードは入れない）
+// でこもん 版5 — ゲームのルール（画面のコードは入れない）
 // ブラウザ（index.html）と Node（bot.js）の両方から同じファイルを読み込む。
 (function (root, factory) {
   var api = factory();
@@ -11,7 +11,6 @@
   var CFG = {
     playerHp: 115, playerAtk: 13, playerSpd: 10,
     runBattles: 10,        // 1周回は10戦
-    growHp: 1, growAtk: 0.2, // 勝つたびに たいりょく +1、こうげき +0.2（調整の結果。REPORT 参照）
     maxHands: 16,
     speedGap: 8,
     // パーツ（Lv1）
@@ -27,11 +26,15 @@
     longtailHeal: 4,
     wingSpd: 10,
     lightSpd: 2, windLightSpd: 5, heavySpd: -3, mudHeavySpd: -8,
-    // Lv2（ひらめき後）
-    lv2: { hornMult: 3.0, eyeMult: 2.0, poisonRatio: 0.6, leechRatio: 0.42, clawExtra: 1, brittleMult: 1.8, springEvery: 2,
-           longlegAtk: 2, spikeRatio: 0.75, weightAtk: 6, shellReduce: 0.40, hardFlat: 5, staggerCharges: 2, longtailHeal: 6, wingSpd: 14, furSpd: 8 },
+    // Lv2（ひらめき後。数字の上乗せではなく「新しく起きること」。数値は調整の対象）
+    lv2: { eyeDodges: 1, maxUpCap: 20, clawSpdDown: 1, brokenHands: 3, stompMult: 1.5, zushinMax: 8,
+           shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 5, storeStep: 1, tailwindMax: 6, tailwindStep: 1 },
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
     spark: { base: 0.015, perStage: 0.002, pity: 0.02 },
+    // なれ：そのパーツの発動回数（周回で累計）が full になると、次の発動で必ずひらめく
+    nare: { full: 12 },
+    // そだち：3勝・6勝・9勝のあと。前の そだち からの「うけた・あてた・せんて」を norm で割って いちばん大きい方向に育つ
+    grow: { every: 3, hp: 12, atk: 2, spd: 3, size: 0.10, norm: { received: 10, landed: 10, first: 7 } },
     // 体の性質
     traitFastSpd: 6, traitHeavySpd: -4, traitHeavyAtk: 3,
     regenHeal: 5, chargeMult: 2, chargeEvery: 3, toughHp: 1.3,
@@ -70,6 +73,14 @@
   };
   var TRAIT_IDS = Object.keys(TRAITS);
 
+  // ---------- そだちの方向 ----------
+  var GROWS = {
+    tough:  { id: 'tough',  name: 'がんじょう', desc: 'たいりょくの 上限 +' + 12, key: 'received' },
+    strong: { id: 'strong', name: 'たくましい', desc: 'こうげき +' + 2, key: 'landed' },
+    quick:  { id: 'quick',  name: 'すばやい',   desc: 'はやさ +' + 3, key: 'first' }
+  };
+  var GROW_IDS = ['tough', 'strong', 'quick'];
+
   // ---------- 噛み合い ----------
   var SYNERGIES = [
     { id: 1, name: 'おもし＋ツメ',       parts: ['weight', 'claw'],  desc: 'おもしの +4 が、ツメの 2〜3かい ぜんぶに のる' },
@@ -87,75 +98,75 @@
   var hasTrait = function (c, t) { return c.eT[t] === true; };
   var PARTS = [
     { id: 'horn', name: 'おおきなツノ', short: 'ツノ', loc: 'head', cat: 'atk', weight: 'heavy',
-      effect: '3手ごとに、さいしょの 1げきが ×2.5', lv2text: '×3.0 になり、あてた あいてを よろけに',
+      effect: '3手ごとに、さいしょの 1げきが ×2.5', lv2name: 'ふきとばし', lv2text: 'おおわざで ふきとばす。あいての つぎの手が とぶ',
       goods: [{ text: 'かたい あいて', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } },
               { text: 'コウラを もつ あいて', when: function (c) { return !!c.eA.shell; } }],
       bads: [{ text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } },
              { text: 'よろけに してくる あいて', when: function (c) { return !!c.eA.tail; } }] },
     { id: 'eye', name: 'ひかるめ', short: 'ひかるめ', loc: 'head', cat: 'atk', weight: 'light',
-      effect: 'どく・よろけ・もろい の あいてに ×1.5', lv2text: '×2.0 に',
+      effect: 'どく・よろけ・もろい の あいてに ×1.5', lv2name: 'みきり', lv2text: 'あいての おおわざを 1戦に1回 よける',
       goods: [{ text: 'じょうたいを かけられる とき', when: function (c) { return !!(c.pA.fang || c.pA.crush || c.pA.tail) && !c.eA.fur; } }],
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'あめ（じょうたいが すぐ きえる）', when: function (c) { return c.f === 'rain'; } }] },
     { id: 'fang', name: 'どくのキバ', short: 'キバ', loc: 'mouth', cat: 'atk', weight: 'none',
-      effect: 'あてた あいてを どくに する', lv2text: 'どくが ×0.6 に',
+      effect: 'あてた あいてを どくに する', lv2name: 'もうどく', lv2text: 'どくの あいては かいふく できない',
       goods: [{ text: 'かたい・コウラの あいて（どくは へらない）', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale || !!c.eA.shell; } }],
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'あめ（どくが 1手で きえる）', when: function (c) { return c.f === 'rain'; } }] },
     { id: 'leech', name: 'すいつくくち', short: 'すいつく', loc: 'mouth', cat: 'def', weight: 'none',
-      effect: 'あたえた ダメージの 1/3 かいふく', lv2text: 'かいふくが 0.42 に',
+      effect: 'あたえた ダメージの 1/3 かいふく', lv2name: 'おおぐい', lv2text: 'あふれた かいふくぶん 上限が ふえる（+20まで）',
       goods: [{ text: 'しぶとい・かいふくの あいて（ながい たたかい）', when: function (c) { return hasTrait(c, 'tough') || hasTrait(c, 'regen'); } }],
       bads: [{ text: 'かたい あいて（ダメージが へる）', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } }] },
     { id: 'claw', name: 'するどいツメ', short: 'ツメ', loc: 'fore', cat: 'atk', weight: 'light',
-      effect: '1手で 2かい こうげき（×0.6）。はやさで かてば 3かい', lv2text: 'かいすう +1',
+      effect: '1手で 2かい こうげき（×0.6）。はやさで かてば 3かい', lv2name: 'つめあと', lv2text: 'あてるたび あいての はやさ −1',
       goods: [{ text: 'おそい あいて（3かい）', when: function (c) { return c.pSpd > c.eSpd; } }],
       bads: [{ text: 'かたい あいて', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } },
              { text: 'トゲを もつ あいて', when: function (c) { return !!c.eA.spike && !c.pRanged; } }] },
     { id: 'crush', name: 'くだくツメ', short: 'くだく', loc: 'fore', cat: 'atk', weight: 'heavy',
-      effect: 'あてた あいてを もろくする（うける ダメージ ×1.6）', lv2text: 'もろい ×1.8 に',
+      effect: 'あてた あいてを もろくする（うける ダメージ ×1.6）', lv2name: 'かいたい', lv2text: 'もろい あいての パーツを 3手 こわす',
       goods: [{ text: 'コウラ・しぶといの あいて', when: function (c) { return !!c.eA.shell || hasTrait(c, 'tough'); } }],
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } }] },
     { id: 'spring', name: 'ばねあし', short: 'ばねあし', loc: 'hind', cat: 'mov', weight: 'light',
-      effect: '3手ごとに、1手で 2かい うごく', lv2text: '2手ごとに 2かい うごく',
+      effect: '3手ごとに、1手で 2かい うごく', lv2name: 'おおジャンプ', lv2text: '2かい うごく手は はんげきを うけない',
       goods: [{ text: 'つよいかぜ（かるい）', when: function (c) { return c.f === 'wind'; } }],
       bads: [{ text: 'ぬかるみ（とべない）', when: function (c) { return c.f === 'mud'; } },
              { text: 'トゲを もつ あいて', when: function (c) { return !!c.eA.spike && !c.pRanged; } }] },
     { id: 'longleg', name: 'ながいあし', short: 'ながいあし', loc: 'hind', cat: 'mov', weight: 'none',
-      effect: 'こうげきが とおくからに なる（はんげき されない）', lv2text: 'さらに こうげき +2',
+      effect: 'こうげきが とおくからに なる（はんげき されない）', lv2name: 'ふみつけ', lv2text: 'じぶんより おそい あいてに ×1.5',
       goods: [{ text: 'トゲを もつ あいて', when: function (c) { return !!c.eA.spike && c.f !== 'wind'; } }],
       bads: [{ text: 'つよいかぜ（とおくからが むこう）', when: function (c) { return c.f === 'wind'; } }] },
     { id: 'spike', name: 'トゲ', short: 'トゲ', loc: 'back', cat: 'def', weight: 'none',
-      effect: 'ちかくから こうげき されるたび はんげき（じぶんの こうげき ×0.6）', lv2text: 'はんげき ×0.75 に',
+      effect: 'ちかくから こうげき されるたび はんげき（じぶんの こうげき ×0.6）', lv2name: 'ばらまき', lv2text: 'とおくからの あいてにも はんげきが とどく',
       goods: [{ text: 'なんかいも なぐる あいて', when: function (c) { return c.eMany && !c.eRanged; } }],
       bads: [{ text: 'とおくから こうげきする あいて', when: function (c) { return c.eRanged; } }] },
     { id: 'weight', name: 'おもし', short: 'おもし', loc: 'back', cat: 'atk', weight: 'heavy',
-      effect: 'こうげきの 1げきごとに +4', lv2text: '1げきごとに +6 に',
+      effect: 'こうげきの 1げきごとに +4', lv2name: 'ずしん', lv2text: 'おそいほど つよい（はやさの差ぶん こうげき＋、+8まで）',
       goods: [{ text: 'かたい あいて', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } }],
       bads: [{ text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } }] },
     { id: 'shell', name: 'かたいコウラ', short: 'コウラ', loc: 'belly', cat: 'def', weight: 'heavy',
-      effect: 'うける ダメージ −33%', lv2text: '−40% に',
+      effect: 'うける ダメージ −33%', lv2name: 'こうらごもり', lv2text: 'たいりょくが 3わりを きった さいしょの手、うける ダメージ 0',
       goods: [{ text: 'いちげきが つよい あいて', when: function (c) { return c.eBigHit; } }],
       bads: [{ text: 'どくもち あいて（どくは ふせげない）', when: function (c) { return hasTrait(c, 'poisoner') || !!c.eA.fang; } },
              { text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } }] },
     { id: 'scale', name: 'いしのうろこ', short: 'うろこ', loc: 'belly', cat: 'def', weight: 'heavy',
-      effect: 'かたく なる（うける 1げき −4）', lv2text: 'うける 1げき −5 に',
+      effect: 'かたく なる（うける 1げき −4）', lv2name: 'はじく', lv2text: '10いかの いちげきを 0 に はじく',
       goods: [{ text: 'なんかいも なぐる あいて', when: function (c) { return c.eMany; } }],
       bads: [{ text: 'いちげきが つよい あいて', when: function (c) { return c.eBigHit; } },
              { text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } }] },
     { id: 'tail', name: 'ふといしっぽ', short: 'しっぽ', loc: 'tail', cat: 'mov', weight: 'heavy',
-      effect: 'あてた あいてを よろけに する（つぎの こうげき ×0.5）', lv2text: 'よろけが つぎの 2かいに',
+      effect: 'あてた あいてを よろけに する（つぎの こうげき ×0.5）', lv2name: 'ふりまわし', lv2text: 'じぶんの手の はじめに あいての じょうたいが 1手 のびる',
       goods: [{ text: 'ためる あいて', when: function (c) { return hasTrait(c, 'charge'); } },
               { text: 'いちげきが つよい あいて', when: function (c) { return c.eBigHit; } }],
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'あめ', when: function (c) { return c.f === 'rain'; } },
              { text: 'ぬかるみ（おもい）', when: function (c) { return c.f === 'mud'; } }] },
     { id: 'longtail', name: 'ながいしっぽ', short: 'ながしっぽ', loc: 'tail', cat: 'def', weight: 'none',
-      effect: 'じぶんの手の おわりに たいりょく +4', lv2text: '+6 に',
+      effect: 'じぶんの手の おわりに たいりょく +4', lv2name: 'たくわえ', lv2text: 'まんたんの ときの かいふくは こうげき +1 に（+5まで）',
       goods: [{ text: 'どくもち あいて', when: function (c) { return hasTrait(c, 'poisoner') || !!c.eA.fang; } }],
       bads: [{ text: 'いちげきが つよい あいて', when: function (c) { return c.eBigHit; } }] },
     { id: 'wing', name: 'はね', short: 'はね', loc: 'shoulder', cat: 'mov', weight: 'light',
-      effect: 'はやさ +10', lv2text: 'はやさ +14 に',
+      effect: 'はやさ +10', lv2name: 'おいかぜ', lv2text: 'せんこうなら 手ごとに こうげき +1 ずつ（+6まで）',
       goods: [{ text: 'はやい あいて', when: function (c) {
                  if (c.f === 'rain') return false;
                  var firstW = c.pSpd >= c.eSpd, firstNo = c.pSpdNoWing >= c.eSpd;
@@ -168,7 +179,7 @@
               { text: 'つよいかぜ', when: function (c) { return c.f === 'wind'; } }],
       bads: [{ text: 'あめ（ぬれて きかない）', when: function (c) { return c.f === 'rain'; } }] },
     { id: 'fur', name: 'ふさふさのけ', short: 'ふさふさ', loc: 'shoulder', cat: 'def', weight: 'light',
-      effect: 'どく・よろけ・もろい を うけない', lv2text: 'さらに はやさ +8',
+      effect: 'どく・よろけ・もろい を うけない', lv2name: 'もふもふ', lv2text: 'うけた じょうたいを あいてに はねかえす',
       goods: [{ text: 'じょうたいを かけてくる あいて', when: function (c) { return c.eStatus; } }],
       bads: [{ text: 'じょうたいを つかわない あいて', when: function (c) { return !c.eStatus; } }] }
   ];
@@ -207,23 +218,40 @@
   var FIELD_BY_ID = {};
   FIELDS.forEach(function (f, i) { f.index = i; FIELD_BY_ID[f.id] = f; });
 
-  // 自分：勝った数だけ育つ
-  function playerDef(wins, name) {
-    var w = wins || 0;
-    return { id: 'player', name: name || 'あなた', hp: CFG.playerHp + CFG.growHp * w, atk: CFG.playerAtk + CFG.growAtk * w, spd: CFG.playerSpd, traits: [], parts: [], wins: w };
+  // ---------- そだち ----------
+  // grow = { tough: n, strong: n, quick: n }（それぞれの方向に育った回数）
+  function emptyGrow() { return { tough: 0, strong: 0, quick: 0 }; }
+  function growCount(grow) { return grow ? (grow.tough || 0) + (grow.strong || 0) + (grow.quick || 0) : 0; }
+  function playerDef(grow, name) {
+    var g = grow || emptyGrow();
+    return { id: 'player', name: name || 'あなた',
+      hp: CFG.playerHp + CFG.grow.hp * (g.tough || 0), atk: CFG.playerAtk + CFG.grow.atk * (g.strong || 0), spd: CFG.playerSpd + CFG.grow.spd * (g.quick || 0),
+      traits: [], parts: [], grow: g };
   }
-  var PLAYER_DEF = playerDef(0);
+  var PLAYER_DEF = playerDef(null);
+  // 前の そだち からの「うけた・あてた・せんて」の数で方向を決める。acc = { received, landed, first }
+  function growDirection(acc) {
+    var n = CFG.grow.norm;
+    var sc = { tough: (acc.received || 0) / n.received, strong: (acc.landed || 0) / n.landed, quick: (acc.first || 0) / n.first };
+    var best = 'tough';
+    GROW_IDS.forEach(function (id) { if (sc[id] > sc[best] + 1e-9) best = id; });
+    return { dir: best, scores: sc };
+  }
+  function growAfterWin(wins) { return wins > 0 && wins % CFG.grow.every === 0 && wins < CFG.runBattles; }
 
-  // ---------- 乱数（種つき） ----------
-  function makeRng(seed) {
-    var s = (seed >>> 0) || 0x9e3779b9;
-    return function () {
+  // ---------- 乱数（種つき。状態を取り出して 保存・復元できる） ----------
+  function makeRng(seed, state) {
+    var s = state !== undefined ? (state >>> 0) : ((seed >>> 0) || 0x9e3779b9);
+    var f = function () {
       s = (s + 0x6D2B79F5) >>> 0;
       var t = s;
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+    f.getState = function () { return s; };
+    f.setState = function (v) { s = v >>> 0; };
+    return f;
   }
   function randInt(rng, n) { return Math.floor(rng() * n); }
   function shuffle(arr, rng) {
@@ -261,48 +289,65 @@
       baseAtk: def.atk * atkMul, baseSpd: def.spd,
       traits: traits, T: T, parts: parts.slice(), active: toSet(parts), lv2: toSet(lv2 || []),
       status: { poison: null, stagger: 0, staggerBy: null, brittle: null },
-      ownHands: 0
+      ownHands: 0,
+      // 版5：Lv2 の効果で戦いの中で変わるもの
+      spdMod: 0, atkMod: 0, maxUp: 0, dodgeLeft: CFG.lv2.eyeDodges, shellHideHand: 0, skipNext: false, broken: {}, stored: 0, tailwind: 0
     };
   }
   function isHard(f) { return !!(f.T.hard || f.active.scale); }
-  function hardFlat(f) { return Math.max(f.T.hard ? CFG.hardFlat : 0, f.active.scale ? (f.lv2.scale ? CFG.lv2.hardFlat : CFG.hardFlat) : 0); }
+  function hardFlat(f) { return (f.T.hard || f.active.scale) ? CFG.hardFlat : 0; }
   function isRanged(f, fieldId) { return (!!f.T.ranged || !!f.active.longleg) && fieldId !== 'wind'; }
-  function effAtk(f) { return f.baseAtk + (f.T.heavy ? CFG.traitHeavyAtk : 0) + (f.active.longleg && f.lv2.longleg ? CFG.lv2.longlegAtk : 0); }
+  function effAtk(f) { return f.baseAtk + (f.T.heavy ? CFG.traitHeavyAtk : 0) + (f.atkMod || 0); }
   function effSpd(f, fieldId, noWing) {
-    var spd = f.baseSpd + (f.T.fast ? CFG.traitFastSpd : 0) + (f.T.heavy ? CFG.traitHeavySpd : 0);
+    var spd = f.baseSpd + (f.T.fast ? CFG.traitFastSpd : 0) + (f.T.heavy ? CFG.traitHeavySpd : 0) + (f.spdMod || 0);
     PART_IDS.forEach(function (p) {
       if (!f.active[p]) return;
       var w = PART_BY_ID[p].weight;
       if (w === 'heavy') spd += fieldId === 'mud' ? CFG.mudHeavySpd : CFG.heavySpd;
       if (w === 'light') spd += fieldId === 'wind' ? CFG.windLightSpd : CFG.lightSpd;
-      if (p === 'wing' && !noWing && fieldId !== 'rain') spd += f.lv2.wing ? CFG.lv2.wingSpd : CFG.wingSpd;
-      if (p === 'fur' && f.lv2.fur) spd += CFG.lv2.furSpd;
+      if (p === 'wing' && !noWing && fieldId !== 'rain') spd += CFG.wingSpd;
     });
     return spd;
   }
   function hasStatus(f) { return !!(f.status.poison || f.status.stagger > 0 || f.status.brittle); }
 
   // ---------- バトル ----------
-  // opts: { variance, rng, spark: { stage, pity } }  ひらめきは 自分の側だけ、乱れがあるときだけ、1戦に1回。
-  // events の種類（版3から追加）: spark {side, part}  ひらめき（その場で Lv2 の効果が出る）
-  //                             blocked {side, status, part:'fur'}  ふさふさが状態を防いだ
-  //                             statusTick {side, status, hands}   状態の残り手数が減った
+  // opts: { variance, rng, spark: { stage, pity, nare: {part: 回数} } }
+  // ひらめきは 自分の側だけ、乱れがあるときだけ、1戦に1回。なれ が full なら その発動で必ず。
+  // events の種類（版5で追加）:
+  //   act {side:'p', part, n}        自分のパーツが発動した（n は この周回の なれ の累計。Lv2 のパーツは出さない）
+  //   spark {side, part, by}         ひらめき（by: 'nare' か 'chance'）
+  //   skip {side}                    ふきとばされて その手が とぶ      blown {side}            ふきとばされた
+  //   dodge {side, part:'eye'}       おおわざを よけた                 healBlocked {side, amt} もうどくで 回復できない
+  //   maxUp {side, amt, maxHp, hp}   上限が ふえた                     spdDown {side, spd}     はやさが さがった
+  //   broken {side, part, hands}     パーツが こわれた                 repaired {side, part}   なおった
+  //   shellHide {side}               こうらごもり                      statusExtend {side, statuses:[...]} 状態が のびた
+  //   store {side, atk}              たくわえ（こうげき +1）           tailwind {side, n, atk} おいかぜ
+  //   reflect {side, status}         状態を はねかえした（side は はねかえした側）
+  //   hit に追加: stomp, zushin, deflect（0 に はじいた）, jump（はんげきを うけない）, dodged
+  //   counter に追加: thrown（ばらまき：とおくからの相手に 届いた）
   function simulateBattle(p, e, fieldId, opts) {
     opts = opts || {};
     var variance = (opts.variance === undefined) ? CFG.variance : opts.variance;
     var rng = opts.rng || function () { return 0.5; };
     function vary(x) { return variance > 0 ? x * (1 + variance * (2 * rng() - 1)) : x; }
     var sparkOpt = opts.spark || null;
-    var sparkDone = false, sparkPart = null;
+    var nareBase = (sparkOpt && sparkOpt.nare) || {};
+    var sparkDone = false, sparkPart = null, sparkBy = null;
     var activations = {};
     function trySpark(f, part, events) {
       if (f.side !== 'p' || !f.active[part]) return false;
       activations[part] = (activations[part] || 0) + 1;
-      if (!sparkOpt || sparkDone || variance <= 0 || f.lv2[part]) return false;
+      if (f.lv2[part]) return false;
+      var nare = (nareBase[part] || 0) + activations[part];
+      events.push({ t: 'act', side: f.side, part: part, n: nare });
+      if (!sparkOpt || sparkDone || variance <= 0) return false;
       var chance = CFG.spark.base + CFG.spark.perStage * ((sparkOpt.stage || 1) - 1) + CFG.spark.pity * (sparkOpt.pity || 0);
-      if (rng() < chance) {
-        sparkDone = true; sparkPart = part; f.lv2[part] = true;
-        events.push({ t: 'spark', side: f.side, part: part });
+      var byNare = nare > CFG.nare.full; // full に なった あと（full を超えた）の発動で必ず
+      var roll = rng();
+      if (byNare || roll < chance) {
+        sparkDone = true; sparkPart = part; sparkBy = byNare ? 'nare' : 'chance'; f.lv2[part] = true;
+        events.push({ t: 'spark', side: f.side, part: part, by: sparkBy });
         return true;
       }
       return false;
@@ -311,6 +356,7 @@
     var F = { p: p, e: e };
     var spd = { p: effSpd(p, fieldId), e: effSpd(e, fieldId) };
     var spdNoWing = { p: effSpd(p, fieldId, true), e: effSpd(e, fieldId, true) };
+    function refreshSpd(side) { spd[side] = effSpd(F[side], fieldId); spdNoWing[side] = effSpd(F[side], fieldId, true); }
     function order() {
       var first = spd.p >= spd.e ? 'p' : 'e';
       var second = first === 'p' ? 'e' : 'p';
@@ -326,9 +372,6 @@
     }
     var startEvents = [];
     var O = order();
-    if (O.wingHelped && O.first === 'p' && trySpark(p, 'wing', startEvents)) {
-      spd.p = effSpd(p, fieldId); O = order();
-    }
     var first = O.first, second = O.second, gap = O.gap;
     var start = { pSpd: spd.p, eSpd: spd.e, first: first, double: gap, wingHelped: O.wingHelped, events: startEvents };
 
@@ -339,6 +382,9 @@
     var synFired = {};
     var synergies = [];
     var statusHands = fieldId === 'rain' ? CFG.rainStatusHands : null;
+    var received = 0, landed = 0, firstHands = 0; // そだち用：自分が受けた回数・当てた回数・先手の手
+    var lv2Used = {}; // この戦いで Lv2 の効果が出たパーツ（確認用）
+    function usedLv2(part) { lv2Used[part] = (lv2Used[part] || 0) + 1; }
 
     function addDealt(side, label, dmg) { dealt[side][label] = (dealt[side][label] || 0) + dmg; }
     function fireSyn(side, id, events) {
@@ -348,94 +394,175 @@
       synergies.push({ id: id, side: side });
       events.push({ t: 'synergy', side: side, id: id, name: SYN_BY_ID[id].name });
     }
-    function applyStatus(a, d, st, events) {
+    function healBlocked(f, events, amt) {
+      // もうどく：どくを かけた側が Lv2 のキバを 付けていると、どくの相手は 回復できない
+      var ps = f.status.poison;
+      if (ps && F[ps.by].lv2.fang && F[ps.by].active.fang && ps.by !== f.side) {
+        usedLv2('fang');
+        events.push({ t: 'healBlocked', side: f.side, amt: amt });
+        return true;
+      }
+      return false;
+    }
+    function heal(f, amt, src, part, events) {
+      if (amt <= 0 || f.hp <= 0) return 0;
+      if (healBlocked(f, events, amt)) return 0;
+      var before = f.hp;
+      var room = f.maxHp - f.hp;
+      if (amt > room && part === 'leech' && f.lv2.leech && f.active.leech && f.maxUp < CFG.lv2.maxUpCap) {
+        // おおぐい：あふれた分だけ 上限が ふえる
+        var up = Math.min(amt - room, CFG.lv2.maxUpCap - f.maxUp);
+        f.maxUp += up; f.maxHp += up; usedLv2('leech');
+        f.hp = Math.min(f.maxHp, f.hp + amt);
+        events.push({ t: 'maxUp', side: f.side, amt: up, maxHp: f.maxHp, hp: f.hp });
+        return f.hp - before;
+      }
+      f.hp = Math.min(f.maxHp, f.hp + amt);
+      if (f.hp > before) events.push({ t: 'heal', side: f.side, src: src, part: part, amt: f.hp - before, hp: f.hp });
+      return f.hp - before;
+    }
+    function applyStatus(a, d, st, events, noReflect) {
       if (d.hp <= 0) return;
       if (d.active.fur) {
-        trySpark(d, 'fur', events); if (d.lv2.fur) spd[d.side] = effSpd(d, fieldId);
+        trySpark(d, 'fur', events);
+        if (d.lv2.fur && !noReflect) {
+          // もふもふ：はねかえす
+          usedLv2('fur');
+          events.push({ t: 'reflect', side: d.side, status: st });
+          applyStatus(d, a, st, events, true);
+          return;
+        }
         events.push({ t: 'blocked', side: d.side, status: st, part: 'fur' });
         return;
       }
       if (st === 'poison') {
-        var ratio = a.lv2.fang && a.active.fang ? CFG.lv2.poisonRatio : CFG.poisonRatio;
-        var dmg = Math.max(1, Math.round(effAtk(a) * ratio));
+        var dmg = Math.max(1, Math.round(effAtk(a) * CFG.poisonRatio));
         d.status.poison = { left: statusHands || CFG.poisonHands, dmg: dmg, by: a.side };
         events.push({ t: 'status', side: d.side, status: 'poison', by: a.side, hands: d.status.poison.left });
       } else if (st === 'brittle') {
-        var mult = a.lv2.crush ? CFG.lv2.brittleMult : CFG.brittleMult;
-        d.status.brittle = { left: statusHands || CFG.brittleHands, mult: mult };
-        events.push({ t: 'status', side: d.side, status: 'brittle', by: a.side, hands: d.status.brittle.left, mult: mult });
+        d.status.brittle = { left: statusHands || CFG.brittleHands, mult: CFG.brittleMult };
+        events.push({ t: 'status', side: d.side, status: 'brittle', by: a.side, hands: d.status.brittle.left, mult: CFG.brittleMult });
       } else if (st === 'stagger') {
-        var charges = (a.lv2.tail && a.active.tail) ? CFG.lv2.staggerCharges : 1;
-        d.status.stagger = Math.max(d.status.stagger, charges); d.status.staggerBy = a.side;
-        events.push({ t: 'status', side: d.side, status: 'stagger', by: a.side, hands: charges });
+        d.status.stagger = Math.max(d.status.stagger, 1); d.status.staggerBy = a.side;
+        events.push({ t: 'status', side: d.side, status: 'stagger', by: a.side, hands: 1 });
       }
     }
+    function breakPart(a, d, events) {
+      // かいたい：相手の 付いている パーツを1つ、3手だけ こわす
+      var cands = Object.keys(d.active).filter(function (pid) { return d.active[pid]; });
+      if (!cands.length) return;
+      var pid = cands[randInt(rng, cands.length)];
+      d.active[pid] = false; d.broken[pid] = CFG.lv2.brokenHands;
+      refreshSpd(d.side); usedLv2('crush');
+      events.push({ t: 'broken', side: d.side, part: pid, hands: CFG.lv2.brokenHands, by: a.side });
+    }
 
-    function attack(a, d, events, isDouble, ctx) {
+    function attack(a, d, events, isDouble, ctx, handNo) {
       var ranged = isRanged(a, fieldId);
       if (a.active.longleg && ranged) trySpark(a, 'longleg', events);
       var claws = !!a.active.claw;
       if (claws) trySpark(a, 'claw', events);
-      var nHits = claws ? (spd[a.side] > spd[d.side] ? CFG.clawHitsFast : CFG.clawHitsSlow) + (a.lv2.claw ? CFG.lv2.clawExtra : 0) : 1;
+      var nHits = claws ? (spd[a.side] > spd[d.side] ? CFG.clawHitsFast : CFG.clawHitsSlow) : 1;
       var wingMadeThree = claws && (spd[a.side] > spd[d.side]) && a.active.wing && fieldId !== 'rain' && !(spdNoWing[a.side] > spd[d.side]);
       var hornNow = !!a.active.horn && (a.ownHands % CFG.hornEvery === 0);
       var chargeNow = !!a.T.charge && (a.ownHands % CFG.chargeEvery === 0);
       var staggered = a.status.stagger > 0;
-      var hornHit = false, eyeHit = false, landed = 0, halvedAny = false;
+      var jump = isDouble && a.active.spring && a.lv2.spring; // おおジャンプ：2回うごく手は はんげきを うけない
+      var hornHit = false, eyeHit = false, landedHere = 0, halvedAny = false;
       if (a.active.leech) trySpark(a, 'leech', events);
       for (var h = 0; h < nHits; h++) {
         var parts = [];
         var mult = 1;
         if (claws) { mult *= CFG.clawMult; parts.push('claw'); }
         var thisHorn = (h === 0 && hornNow);
-        if (thisHorn) { trySpark(a, 'horn', events); mult *= (a.lv2.horn ? CFG.lv2.hornMult : CFG.hornMult); parts.push('horn'); hornHit = true; }
+        if (thisHorn) { trySpark(a, 'horn', events); mult *= CFG.hornMult; parts.push('horn'); hornHit = true; }
         if (chargeNow) mult *= CFG.chargeMult;
+        var bigMove = thisHorn || chargeNow;
+        // みきり：相手の おおわざを 1戦に1回 よける
+        if (bigMove && d.active.eye && d.lv2.eye && d.dodgeLeft > 0) {
+          trySpark(d, 'eye', events);
+          d.dodgeLeft--; usedLv2('eye');
+          events.push({ t: 'dodge', side: d.side, part: 'eye', by: a.side });
+          events.push({ t: 'hit', side: a.side, parts: parts, dmg: 0, hit: h + 1, hits: nHits, hp: d.hp, shell: 0, hard: false, hardFlat: 0, ranged: ranged,
+            big: bigMove, horn: thisHorn, bigmove: chargeNow, eye: false, halved: false, brittle: 0, label: thisHorn ? 'ツノ' : 'おおわざ', dodged: true });
+          continue;
+        }
         var eyeNow = !!a.active.eye && hasStatus(d);
-        if (eyeNow) { trySpark(a, 'eye', events); mult *= (a.lv2.eye ? CFG.lv2.eyeMult : CFG.eyeMult); parts.push('eye'); eyeHit = true; }
+        if (eyeNow) { trySpark(a, 'eye', events); mult *= CFG.eyeMult; parts.push('eye'); eyeHit = true; }
         if (staggered) { mult *= CFG.staggerMult; halvedAny = true; }
-        var flat = 0;
-        if (a.active.weight) { if (h === 0) trySpark(a, 'weight', events); flat = a.lv2.weight ? CFG.lv2.weightAtk : CFG.weightAtk; parts.push('weight'); }
+        // ふみつけ：じぶんより おそい あいてに ×1.5
+        var stomp = false;
+        if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) { mult *= CFG.lv2.stompMult; stomp = true; usedLv2('longleg'); }
+        var flat = 0, zushin = 0;
+        if (a.active.weight) {
+          if (h === 0) trySpark(a, 'weight', events);
+          flat = CFG.weightAtk; parts.push('weight');
+          // ずしん：おそいほど つよい
+          if (a.lv2.weight && spd[d.side] > spd[a.side]) { zushin = Math.min(CFG.lv2.zushinMax, spd[d.side] - spd[a.side]); flat += zushin; usedLv2('weight'); }
+        }
         var brittleNow = !!d.status.brittle;
         var dmg = vary(effAtk(a) * mult) + flat;
         if (brittleNow) dmg *= d.status.brittle.mult;
         var blocked = 0;
         if (d.active.shell) {
           trySpark(d, 'shell', events);
-          blocked = dmg * (d.lv2.shell ? CFG.lv2.shellReduce : CFG.shellReduce); dmg -= blocked; shellBlocks[d.side]++;
+          blocked = dmg * CFG.shellReduce; dmg -= blocked; shellBlocks[d.side]++;
         }
         if (isHard(d)) { if (d.active.scale) trySpark(d, 'scale', events); dmg -= hardFlat(d); }
         dmg = Math.max(1, Math.round(dmg));
+        var deflect = false, shellHide = false;
+        // はじく：10以下の いちげきは 0
+        if (d.active.scale && d.lv2.scale && dmg <= CFG.lv2.deflectMax) { dmg = 0; deflect = true; usedLv2('scale'); }
+        // こうらごもり：たいりょくが 3割を切った さいしょの手は うける ダメージ 0
+        if (dmg > 0 && d.active.shell && d.lv2.shell && d.hp / d.maxHp < CFG.lv2.shellHideBelow && (d.shellHideHand === 0 || d.shellHideHand === handNo)) {
+          if (d.shellHideHand === 0) d.shellHideHand = handNo;
+          dmg = 0; shellHide = true; usedLv2('shell');
+        }
         d.hp = Math.max(0, d.hp - dmg);
-        landed++;
+        if (dmg > 0) { landedHere++; if (a.side === 'p') landed++; else received++; }
         var label = thisHorn ? 'ツノ' : (chargeNow ? 'おおわざ' : (claws ? 'ツメ' : (eyeNow ? 'ひかるめ' : 'こうげき')));
-        addDealt(a.side, label, dmg);
+        if (dmg > 0) addDealt(a.side, label, dmg);
         events.push({ t: 'hit', side: a.side, parts: parts, dmg: dmg, hit: h + 1, hits: nHits, hp: d.hp,
           shell: blocked > 0 ? Math.round(blocked) : 0, hard: isHard(d), hardFlat: isHard(d) ? hardFlat(d) : 0, ranged: ranged,
-          big: thisHorn || chargeNow, horn: thisHorn, bigmove: chargeNow, eye: eyeNow, halved: staggered,
-          brittle: brittleNow ? d.status.brittle.mult : 0, label: label });
-        if (thisHorn && brittleNow) fireSyn(a.side, 7, events);
-        if (a.active.leech) {
-          var heal = Math.max(1, Math.round(dmg * (a.lv2.leech ? CFG.lv2.leechRatio : CFG.leechRatio)));
-          var before = a.hp;
-          a.hp = Math.min(a.maxHp, a.hp + heal);
-          if (a.hp > before) { events.push({ t: 'heal', side: a.side, src: 'すいつくくち', part: 'leech', amt: a.hp - before, hp: a.hp }); ctx.heals++; }
+          big: bigMove, horn: thisHorn, bigmove: chargeNow, eye: eyeNow, halved: staggered,
+          brittle: brittleNow ? d.status.brittle.mult : 0, label: label, stomp: stomp, zushin: zushin, deflect: deflect, shellHide: shellHide,
+          jump: !!(jump && d.active.spike && !ranged) });
+        if (shellHide) events.push({ t: 'shellHide', side: d.side });
+        if (thisHorn && brittleNow && dmg > 0) fireSyn(a.side, 7, events);
+        // つめあと：あてるたび あいての はやさ −1
+        if (claws && a.lv2.claw && dmg > 0) { d.spdMod -= CFG.lv2.clawSpdDown; refreshSpd(d.side); usedLv2('claw'); events.push({ t: 'spdDown', side: d.side, spd: spd[d.side] }); }
+        if (a.active.leech && dmg > 0) {
+          var hl = Math.max(1, Math.round(dmg * CFG.leechRatio));
+          if (heal(a, hl, 'すいつくくち', 'leech', events) > 0) ctx.heals++;
         }
         if (d.hp <= 0) break;
+        // ふきとばし：ツノの おおわざが あたると 相手の つぎの手が とぶ
+        if (thisHorn && a.lv2.horn && dmg > 0) { d.skipNext = true; usedLv2('horn'); events.push({ t: 'blown', side: d.side, by: a.side }); }
         if (a.active.fang) { trySpark(a, 'fang', events); applyStatus(a, d, 'poison', events); }
         else if (a.T.poisoner) applyStatus(a, d, 'poison', events);
-        if (a.active.crush) { trySpark(a, 'crush', events); applyStatus(a, d, 'brittle', events); }
+        if (a.active.crush) {
+          trySpark(a, 'crush', events);
+          if (brittleNow && a.lv2.crush && dmg > 0) breakPart(a, d, events); // かいたい（もろい相手に当てたとき）
+          applyStatus(a, d, 'brittle', events);
+        }
         if (a.active.tail) { trySpark(a, 'tail', events); applyStatus(a, d, 'stagger', events); }
-        if (thisHorn && a.lv2.horn) applyStatus(a, d, 'stagger', events);
-        if (!ranged && d.active.spike) {
+        // はんげき（トゲ）。ばらまき なら とおくからの相手にも。おおジャンプ なら うけない
+        if (d.active.spike && (!ranged || d.lv2.spike) && !jump) {
           trySpark(d, 'spike', events);
-          var c = vary(effAtk(d) * (d.lv2.spike ? CFG.lv2.spikeRatio : CFG.spikeRatio));
-          if (a.active.shell) { trySpark(a, 'shell', events); c *= (1 - (a.lv2.shell ? CFG.lv2.shellReduce : CFG.shellReduce)); shellBlocks[a.side]++; }
+          var thrown = ranged && d.lv2.spike;
+          if (thrown) usedLv2('spike');
+          var c = vary(effAtk(d) * CFG.spikeRatio);
+          if (a.active.shell) { trySpark(a, 'shell', events); c *= (1 - CFG.shellReduce); shellBlocks[a.side]++; }
           if (isHard(a)) { if (a.active.scale) trySpark(a, 'scale', events); c -= hardFlat(a); }
           c = Math.max(1, Math.round(c));
+          var cDeflect = false;
+          if (a.active.scale && a.lv2.scale && c <= CFG.lv2.deflectMax) { c = 0; cDeflect = true; usedLv2('scale'); }
           a.hp = Math.max(0, a.hp - c);
-          addDealt(d.side, 'はんげき', c);
-          events.push({ t: 'counter', side: d.side, part: 'spike', dmg: c, hp: a.hp });
+          if (c > 0) { addDealt(d.side, 'はんげき', c); if (d.side === 'p') landed++; else received++; }
+          events.push({ t: 'counter', side: d.side, part: 'spike', dmg: c, hp: a.hp, thrown: thrown, deflect: cDeflect });
           if (a.hp <= 0) break;
+        } else if (d.active.spike && !ranged && jump) {
+          usedLv2('spring');
         }
       }
       if (staggered) {
@@ -446,10 +573,10 @@
         if (halvedAny && by && F[by].active.tail && F[by].active.wing && by === first) fireSyn(by, 4, events);
         if (a.status.stagger <= 0) a.status.staggerBy = null;
       }
-      if (a.active.weight && landed >= 2) fireSyn(a.side, 1, events);
+      if (a.active.weight && landedHere >= 2) fireSyn(a.side, 1, events);
       if (isDouble && hornHit) fireSyn(a.side, 2, events);
       if (eyeHit) fireSyn(a.side, 3, events);
-      if (wingMadeThree && landed > 0) fireSyn(a.side, 8, events);
+      if (wingMadeThree && landedHere > 0) fireSyn(a.side, 8, events);
     }
 
     for (var i = 0; i < CFG.maxHands; i++) {
@@ -458,34 +585,63 @@
       else actorSide = (i % 2 === 0) ? first : second;
       var a = F[actorSide], d = F[actorSide === 'p' ? 'e' : 'p'];
       a.ownHands++;
-      var springEvery = a.lv2.spring ? CFG.lv2.springEvery : CFG.springEvery;
       var remH = (CFG.hornEvery - a.ownHands % CFG.hornEvery) % CFG.hornEvery;
-      var remS = (springEvery - a.ownHands % springEvery) % springEvery;
+      var remS = (CFG.springEvery - a.ownHands % CFG.springEvery) % CFG.springEvery;
       var remC = (CFG.chargeEvery - a.ownHands % CFG.chargeEvery) % CFG.chargeEvery;
       var hand = { n: i + 1, actor: actorSide, events: [],
         countdown: { horn: a.active.horn ? remH : null, spring: a.active.spring ? remS : null, charge: a.T.charge ? remC : null } };
       var ev = hand.events;
       if (i === 0 && startEvents.length) { startEvents.forEach(function (x) { ev.push(x); }); }
-      if (a.T.regen && a.hp > 0) {
-        var b0 = a.hp; a.hp = Math.min(a.maxHp, a.hp + CFG.regenHeal);
-        if (a.hp > b0) ev.push({ t: 'heal', side: actorSide, src: 'かいふく', amt: a.hp - b0, hp: a.hp });
-      }
-      if (a.T.charge && remC === 1) ev.push({ t: 'charge', side: actorSide });
-      var actions = 1;
-      if (a.active.spring && fieldId !== 'mud' && remS === 0) {
-        trySpark(a, 'spring', ev);
-        actions = 2; ev.push({ t: 'double', side: actorSide, part: 'spring' });
-      }
-      var ctx = { heals: 0 };
-      for (var k = 0; k < actions; k++) {
-        attack(a, d, ev, actions === 2, ctx);
-        if (d.hp <= 0 || a.hp <= 0) break;
-      }
-      if (ctx.heals >= 2) fireSyn(actorSide, 6, ev);
-      if (d.hp > 0 && a.hp > 0 && a.active.longtail) {
-        trySpark(a, 'longtail', ev);
-        var b1 = a.hp; a.hp = Math.min(a.maxHp, a.hp + (a.lv2.longtail ? CFG.lv2.longtailHeal : CFG.longtailHeal));
-        if (a.hp > b1) ev.push({ t: 'heal', side: actorSide, src: 'ながいしっぽ', part: 'longtail', amt: a.hp - b1, hp: a.hp });
+      // こわれた パーツは 手ごとに なおっていく
+      ['p', 'e'].forEach(function (sd) {
+        var f = F[sd];
+        Object.keys(f.broken).forEach(function (pid) {
+          f.broken[pid]--;
+          if (f.broken[pid] <= 0) { delete f.broken[pid]; f.active[pid] = true; refreshSpd(sd); ev.push({ t: 'repaired', side: sd, part: pid }); }
+        });
+      });
+      var skipped = a.skipNext;
+      if (skipped) {
+        a.skipNext = false;
+        ev.push({ t: 'skip', side: actorSide });
+      } else {
+        if (actorSide === 'p' && first === 'p') firstHands++;
+        // はねの発動：先手を取った手ごと（版4の答え 2-A）
+        if (actorSide === 'p' && first === 'p' && a.active.wing && fieldId !== 'rain') trySpark(a, 'wing', ev);
+        // おいかぜ：先手なら 手ごとに こうげき +1
+        if (a.active.wing && a.lv2.wing && actorSide === first && fieldId !== 'rain' && a.tailwind < CFG.lv2.tailwindMax) {
+          a.tailwind += CFG.lv2.tailwindStep; a.atkMod += CFG.lv2.tailwindStep; usedLv2('wing');
+          ev.push({ t: 'tailwind', side: actorSide, n: a.tailwind, atk: Math.round(effAtk(a)) });
+        }
+        // ふりまわし：じぶんの手の はじめに 相手の 状態が 1手 のびる
+        if (a.active.tail && a.lv2.tail && d.hp > 0) {
+          var ext = [];
+          if (d.status.poison) { d.status.poison.left += CFG.lv2.extendHands; ext.push({ status: 'poison', hands: d.status.poison.left }); }
+          if (d.status.brittle) { d.status.brittle.left += CFG.lv2.extendHands; ext.push({ status: 'brittle', hands: d.status.brittle.left }); }
+          if (d.status.stagger > 0) { d.status.stagger += CFG.lv2.extendHands; ext.push({ status: 'stagger', hands: d.status.stagger }); }
+          if (ext.length) { usedLv2('tail'); ev.push({ t: 'statusExtend', side: d.side, statuses: ext }); }
+        }
+        if (a.T.regen && a.hp > 0) heal(a, CFG.regenHeal, 'かいふく', null, ev);
+        if (a.T.charge && remC === 1) ev.push({ t: 'charge', side: actorSide });
+        var actions = 1;
+        if (a.active.spring && fieldId !== 'mud' && remS === 0) {
+          trySpark(a, 'spring', ev);
+          actions = 2; ev.push({ t: 'double', side: actorSide, part: 'spring' });
+        }
+        var ctx = { heals: 0 };
+        for (var k = 0; k < actions; k++) {
+          attack(a, d, ev, actions === 2, ctx, i + 1);
+          if (d.hp <= 0 || a.hp <= 0) break;
+        }
+        if (ctx.heals >= 2) fireSyn(actorSide, 6, ev);
+        if (d.hp > 0 && a.hp > 0 && a.active.longtail) {
+          trySpark(a, 'longtail', ev);
+          if (a.hp >= a.maxHp && a.lv2.longtail && a.stored < CFG.lv2.storeMax) {
+            // たくわえ：まんたんの ときの 回復は こうげき +1 に
+            a.stored += CFG.lv2.storeStep; a.atkMod += CFG.lv2.storeStep; usedLv2('longtail');
+            ev.push({ t: 'store', side: actorSide, n: a.stored, atk: Math.round(effAtk(a)) });
+          } else heal(a, CFG.longtailHeal, 'ながいしっぽ', 'longtail', ev);
+        }
       }
       if (d.hp > 0 && a.hp > 0) {
         ['p', 'e'].forEach(function (sd) {
@@ -524,14 +680,15 @@
     }
     return { winner: winner, timeout: timeout, nHands: hands.length, hands: hands, start: start,
       p: { hp: p.hp, maxHp: p.maxHp }, e: { hp: e.hp, maxHp: e.maxHp },
-      spark: sparkPart,
-      summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, spark: sparkPart } };
+      spark: sparkPart, sparkBy: sparkBy,
+      summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, spark: sparkPart, sparkBy: sparkBy,
+        received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used } };
   }
 
-  // 便利：1戦をつくって回す。opts.wins（育ち）, opts.lv2（Lv2 のパーツ）, opts.spark, opts.name
+  // 便利：1戦をつくって回す。opts.grow（そだち）, opts.lv2（Lv2 のパーツ）, opts.spark, opts.name
   function runBattle(playerParts, enemyIndex, stage, fieldId, opts) {
     opts = opts || {};
-    var p = makeFighter('p', playerDef(opts.wins || 0, opts.name), playerParts, 1, opts.lv2 || []);
+    var p = makeFighter('p', playerDef(opts.grow || null, opts.name), playerParts, 1, opts.lv2 || []);
     var e = makeFighter('e', ENEMIES[enemyIndex], ENEMIES[enemyIndex].parts, stage);
     return simulateBattle(p, e, fieldId, opts);
   }
@@ -542,8 +699,8 @@
     var loc = PART_BY_ID[partId].loc;
     return attached.filter(function (a) { return PART_BY_ID[a].loc !== loc; }).concat([partId]);
   }
-  function partHints(partId, enemyDef, fieldId, attached, lv2) {
-    var p = makeFighter('p', PLAYER_DEF, withPart(attached || [], partId), 1, lv2 || []);
+  function partHints(partId, enemyDef, fieldId, attached, lv2, grow) {
+    var p = makeFighter('p', playerDef(grow || null), withPart(attached || [], partId), 1, lv2 || []);
     var e = makeFighter('e', enemyDef, enemyDef.parts, 1);
     var ctx = {
       e: enemyDef, f: fieldId, eT: e.T, eA: e.active, pA: p.active,
@@ -576,11 +733,13 @@
     var rest = PART_IDS.filter(function (id) { return picked.indexOf(id) < 0; });
     return picked.concat(shuffle(rest, rng).slice(0, 3));
   }
-  function pickPart(owned, rng) {
+  // かてば もらえる パーツ：相手のパーツのうち 持っていないもの → なければ 16種の持っていないもの → 全部持っていれば null
+  function rewardFor(enemyDef, owned, rng) {
+    var fromEnemy = enemyDef.parts.filter(function (id) { return owned.indexOf(id) < 0; });
+    if (fromEnemy.length) return fromEnemy[randInt(rng, fromEnemy.length)];
     var rest = PART_IDS.filter(function (id) { return owned.indexOf(id) < 0; });
     return rest.length ? rest[randInt(rng, rest.length)] : null;
   }
-  function pickAfterWin(wins) { return wins % 2 === 0 && wins < CFG.runBattles; }
 
   // ---------- ボットの判断 ----------
   function loadouts(owned) {
@@ -601,17 +760,18 @@
     return out;
   }
   function ownedMask(owned) { var m = 0; owned.forEach(function (p) { m |= 1 << PART_BY_ID[p].index; }); return m; }
+  function growKey(grow) { var g = grow || emptyGrow(); return (g.tough || 0) + ',' + (g.strong || 0) + ',' + (g.quick || 0); }
   function score(res) {
     return (res.winner === 'p' ? 1 : 0) + 0.5 * (res.p.hp / res.p.maxHp - res.e.hp / res.e.maxHp);
   }
   var memo = {};
   function clearMemo() { memo = {}; }
-  function bestLoadout(owned, enemyIndex, stage, fieldId, wins, lv2) {
-    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + (wins || 0) + '|' + ownedMask(lv2 || []);
+  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2) {
+    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []);
     if (memo[key]) return memo[key];
     var best = null;
     loadouts(owned).forEach(function (combo) {
-      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, wins: wins || 0, lv2: lv2 || [] });
+      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [] });
       var s = score(res);
       if (!best || s > best.score + 1e-9) best = { parts: combo, score: s, win: res.winner === 'p', nHands: res.nHands };
     });
@@ -632,6 +792,7 @@
 
   return {
     CFG: CFG, LOCS: LOCS, LOC_BY_ID: LOC_BY_ID, STATUSES: STATUSES, TRAITS: TRAITS, TRAIT_IDS: TRAIT_IDS,
+    GROWS: GROWS, GROW_IDS: GROW_IDS, emptyGrow: emptyGrow, growCount: growCount, growDirection: growDirection, growAfterWin: growAfterWin,
     SYNERGIES: SYNERGIES, SYN_BY_ID: SYN_BY_ID,
     PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS, CATS: CATS,
     ENEMIES: ENEMIES, FIELDS: FIELDS, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName,
@@ -639,7 +800,7 @@
     makeFighter: makeFighter, effSpd: effSpd, effAtk: effAtk, isHard: isHard, isRanged: isRanged,
     simulateBattle: simulateBattle, runBattle: runBattle,
     partHints: partHints, withPart: withPart,
-    newRun: newRun, startItems: startItems, pickPart: pickPart, pickAfterWin: pickAfterWin,
+    newRun: newRun, startItems: startItems, rewardFor: rewardFor,
     loadouts: loadouts, bestLoadout: bestLoadout, randomLoadout: randomLoadout, clearMemo: clearMemo, score: score
   };
 });

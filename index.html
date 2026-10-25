@@ -187,7 +187,8 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 /* バトル */
 #battle { max-width: 1100px; height: 100vh; height: 100dvh; min-height: 0; flex-direction: column; padding: 8px 10px 10px; overflow: hidden; background: var(--bg); }
 #battle.on { display: flex; }
-#battle.shake { animation: shake calc(.2s * var(--spd)) linear; }
+.b-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+#battle.shake .b-inner { animation: shake calc(.2s * var(--spd)) linear; }
 @keyframes shake { 0%,100% { transform: translate(0,0);} 20% { transform: translate(-8px, 5px);} 40% { transform: translate(7px, -4px);} 60% { transform: translate(-6px, -5px);} 80% { transform: translate(5px, 4px);} }
 .b-top { display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; color: var(--sub); padding-right: 120px; min-height: 52px; }
 .b-top b { color: var(--text); font-size: 1.3rem; }
@@ -792,6 +793,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
 
 <!-- バトル -->
 <div id="battle" class="screen">
+  <div class="b-inner">
   <div class="b-top"><span id="bField"></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
   <div class="hpRow">
     <div class="hpBox p"><div class="hp-name"><span class="nm" id="bPName">あなた</span><span class="num" id="hpNumP"></span></div><div class="hp" id="hpP"><div class="ghost" id="ghostP"></div><div class="fill" id="fillP"></div></div></div>
@@ -813,6 +815,7 @@ h1 { font-size: 2.6rem; margin: 0; letter-spacing: .08em; }
       <svg class="zkicon" id="zkicon" viewBox="0 0 44 44"><rect x="6" y="6" width="32" height="34" rx="4" fill="#5a4a10" stroke="#ffcc4d" stroke-width="3"/><path d="M22 6v34M12 16h6M12 24h6M26 16h6M26 24h6" stroke="#ffcc4d" stroke-width="2.5"/></svg>
       <div class="result" id="bResult"></div>
     </div>
+  </div>
   </div>
   <div class="flash" id="flash"></div>
 </div>

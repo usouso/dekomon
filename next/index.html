@@ -6,26 +6,55 @@
 <meta name="theme-color" content="#1b1f2a">
 <title>でこもん</title>
 <script>
-// 広い窓：1366×650（Windows 100% の PC の内側）で 作った 見た目を、窓に合わせて そのまま 大きくする（文字・絵・ボタンを 比例して）。
-// 倍率 = min(幅/1366, 高さ/650)。1 以下（1366×650・スマホ）と 幅 900 未満は 変えない。
-// zoom の中では vh も 倍になるので --vh で 打ち消す。大きさで 変わる 2つの並び（幅 1700 以上・高さ 760 以下）は
-// 窓の大きさではなく 倍率で割った「中の大きさ」で決める（html の class：ew1700・eshort）。
+// 広い窓：画面ごとに「中が スクロールしない いちばん大きい 倍率」で 見せる（版8 しさく 2026-10-27）。
+// - いちばん大きい倍率 zMax = min(幅/1366, 高さ/650)（1366×650 の 見た目を 窓いっぱいに）。1 以下・幅 900 未満（スマホ）・zoom の ない ブラウザは 1（いままでどおり）。
+// - 画面が 変わるたび（show）に zMax から 0.05 ずつ 下げて、中の箱（一覧・列）と ページが スクロールしない 倍率を 選ぶ。1 より 小さくは しない（文字は 1366×650 より 小さくならない）。
+//   例：1920×910 の タイトル・結果は 1.40、パーツを 選ぶ画面は 1.00（中の大きさ 1920×910 で 全部を 並べる）。
+// - zoom の中では vh も 倍になるので --vh で 打ち消す。大きさで 変わる 並び（幅 1700 以上・高さ 760 以下・広い窓）は
+//   窓の大きさではなく 倍率で割った「中の大きさ」で決める（html の class：ew1700・eshort・ewide）。
 (function () {
   var de = document.documentElement;
   var canZoom = !!(window.CSS && CSS.supports && CSS.supports('zoom', '2')); // zoom の ない ブラウザでは 大きくしない（いままでどおり）
-  function fit() {
+  var BW = 1366, BH = 650;
+  var zb = /[?&]zb=(\d+)x(\d+)/.exec(location.search); if (zb) { BW = +zb[1]; BH = +zb[2]; } // 試し用（tools/screens.js --zb）
+  function apply(z, noWide) {
     var W = window.innerWidth, H = window.innerHeight;
-    var z = (canZoom && W >= 900) ? Math.min(W / 1366, H / 650) : 1;
-    if (!(z > 1.02)) z = 1;
     window.__zoom = z;
     de.style.zoom = z === 1 ? '' : String(z);
     if (z === 1) de.style.removeProperty('--vh'); else de.style.setProperty('--vh', (H / z / 100) + 'px');
     var w = W / z, h = H / z;
     de.classList.toggle('ew1700', w >= 1700);
     de.classList.toggle('eshort', w >= 900 && h <= 760);
+    de.classList.toggle('ewide', !noWide && w >= 1680 && h >= 780); // 広い窓：空いた広さで 全部を 並べる（バトル前・図鑑・殿堂など）
   }
+  // いまの画面で 中が スクロールするか（ページ・一覧・列。パーツの一覧は 横に はみ出した列も）。この一覧は 検査（checkScroll・tools/screens.js）も 使う
+  var BOXES = window.__SCROLL_BOXES = '.screen.on .pcbody, #pre.on .pre-grid, #pre.on .col-l, #pre.on .col-r .plist, #fork.on .fork-path, #fork.on .items, #clear.on .col, #over.on .col, #clear.on .list.hist, #over.on .list.hist';
+  function overflows() {
+    if (de.scrollHeight > de.clientHeight + 1 || de.scrollWidth > de.clientWidth + 1) return 'page ' + de.scrollWidth + 'x' + de.scrollHeight;
+    var bs = document.querySelectorAll(BOXES);
+    for (var i = 0; i < bs.length; i++) {
+      var b = bs[i]; if (b.clientHeight <= 0) continue;
+      if (b.scrollHeight > b.clientHeight + 1) return (b.id || b.className) + ' ' + b.clientHeight + '/' + b.scrollHeight;
+      if (b.classList.contains('plist') && b.scrollWidth > b.clientWidth + 1) return (b.id || b.className) + ' 横 ' + b.clientWidth + '/' + b.scrollWidth;
+    }
+    return '';
+  }
+  // onlyShrink：画面の中で 中身が ふえたとき（下げるだけ。上げると 文字が 急に 大きくなるので しない）
+  function fit(onlyShrink) {
+    var W = window.innerWidth, H = window.innerHeight;
+    var zMax = (canZoom && W >= 900) ? Math.min(W / BW, H / BH) : 1;
+    if (!(zMax > 1.02)) zMax = 1;
+    var z = onlyShrink ? Math.min(window.__zoom || zMax, zMax) : zMax;
+    apply(z);
+    while (z > 1 && document.body && overflows()) { z = Math.max(1, Math.round((z - 0.05) * 100) / 100); apply(z); }
+    // 倍率 1 でも 入らないとき（中身が とても 多い・zoom の ない ブラウザ）は 広い並びを やめて、いままでの 2列（中で スクロールできる）に もどす
+    var why = document.body && de.classList.contains('ewide') && overflows();
+    if (why) { apply(z, true); if (/[?&]auto=1/.test(location.search)) console.warn('[でこもん 検査] 広い並びを やめた：' + why); }
+  }
+  window.__fitZoom = fit;
   fit();
-  window.addEventListener('resize', fit);
+  document.addEventListener('DOMContentLoaded', function () { fit(false); }); // 起動の画面（タイトル）も 中身を 見て 合わせる
+  window.addEventListener('resize', function () { fit(false); });
 })();
 </script>
 <style>
@@ -634,7 +663,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   .list.hist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; align-content: start; }
   .list.hist .it { align-items: flex-start; }
   #grow { padding-top: 60px; }
-  #clear .pcbody, #over .pcbody { overflow: hidden; }
+  #clear .pcbody, #over .pcbody { overflow: hidden; padding-top: 6px; } /* 上の題（ぬしを たおした！）と 名前の 行が 重ならないように */
   #clear .cols2, #over .cols2 { height: 100%; align-items: stretch; }
   #clear .col, #over .col { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
   #clear .list.hist, #over .list.hist { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
@@ -787,6 +816,38 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 :where(html.ew1700) .it-grid { grid-template-columns: 1fr 1fr 1fr; }
 :where(html.ew1700) .zk-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
 :where(html.ew1700) .hall-grid { grid-template-columns: 1fr 1fr 1fr; }
+/* 広い窓（中の大きさ 1680×780 以上）：スクロールせずに 全部が 見えるように 並べる */
+:where(html.ewide) #pre { max-width: none; padding: 4px 20px 0; }
+:where(html.ewide) .pre-grid { grid-template-columns: minmax(0, 43fr) minmax(0, 57fr); gap: 14px; }
+:where(html.ewide) .col-l { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 12px; align-content: start; overflow: auto; padding-right: 0; }
+:where(html.ewide) #preECard { grid-column: 1; grid-row: 1 / span 3; align-self: start; }
+:where(html.ewide) #preTrail { grid-column: 2; grid-row: 1; }
+:where(html.ewide) #preFCard { grid-column: 2; grid-row: 2; }
+:where(html.ewide) #pre .card.me { grid-column: 2; grid-row: 3; align-self: start; }
+:where(html.ewide) #preECard .minis { flex-direction: column; }
+:where(html.ewide) .col-r .plist { display: block; column-count: 4; column-gap: 8px; overflow: auto; padding-right: 0; } /* 場所の札を 上から つめて 4列に */
+:where(html.ewide) .col-r .plist .pgroup { break-inside: avoid; margin-bottom: 4px; }
+:where(html.ewide) .col-r .plist .pcard { padding: 4px 8px; }
+:where(html.ewide) .col-r .plist .pcard .pc-on { display: none; } /* 「つけている」は 1行 ふえるので、かわりに 名前の よこに ✓（色だけに しない） */
+:where(html.ewide) .col-r .plist .pcard.on .pc-name::after { content: ' ✓'; color: #9fd8ff; }
+:where(html.ewide) .col-r .plist .pgroup { padding: 4px 6px 6px; }
+:where(html.ewide) .col-r .plist .ploc { margin-bottom: 2px; }
+:where(html.ewide) .col-r .plist .pc-eff { margin-top: 1px; }
+:where(html.ewide) .col-r .plist .pc-hint:empty { display: none; }
+:where(html.ewide) #pre .fight-bar { padding: 4px 0 6px; }
+:where(html.ewide) .col-r .plist .pcard .tag.loc { display: none; }
+:where(html.ewide) .pcards { gap: 4px; }
+/* 広い窓の 図鑑（パーツ）：名前と 場所・おもさを 1行に、絵を 小さめに */
+:where(html.ewide) .zp { padding: 6px 12px; }
+:where(html.ewide) .zp-top > div:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
+:where(html.ewide) .zp-tags { margin-top: 0; }
+:where(html.ewide) .zp-marks { flex: 0 0 100%; margin-top: 2px; }
+:where(html.ewide) .zp-mon { width: 56px; height: 56px; flex-basis: 56px; }
+:where(html.ewide) .zp .d { margin-top: 4px; }
+:where(html.ewide) .zp-lv2 { margin-top: 2px; }
+/* 広い窓の 殿堂：3列に 上から つめる（系譜の 家族は 列を またいでよい。1体の 札は 切らない） */
+:where(html.ewide) #dendoList.hall-grid { display: block; column-count: 3; column-gap: 16px; }
+:where(html.ewide) #dendoList .hall { break-inside: avoid; margin-top: 0; }
 </style>
 </head>
 <body>
@@ -1298,6 +1359,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     document.body.classList.toggle('battle-on', id === 'battle'); // とどめの揺れ（transform）で ページが 数px 伸びないように
     $('menuPop').classList.remove('on'); $('bossPop').classList.remove('on'); $('partPop').classList.remove('on');
     if (id === 'start' || id === 'boss' || id === 'fork' || id === 'summit' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
+    window.__fitZoom(false); // 広い窓：この画面が スクロールしない 倍率に
   }
 
   // ---------- ゲームの状態 ----------
@@ -1453,6 +1515,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('tabParts').classList.toggle('on', ch === 'parts'); $('tabSyn').classList.toggle('on', ch === 'syn');
     $('sparkList').style.display = ch === 'parts' ? '' : 'none'; $('zukanList').style.display = ch === 'syn' ? '' : 'none'; $('zkHead').style.display = ch === 'parts' ? '' : 'none';
     var b = document.querySelector('#zukan .pcbody'); if (b) b.scrollTop = 0;
+    if (G.screen === 'zukan') window.__fitZoom(true);
   }
   $('tabParts').addEventListener('click', function () { zukanTab('parts'); });
   $('tabSyn').addEventListener('click', function () { zukanTab('syn'); });
@@ -1618,6 +1681,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           var text = (kind === 'g' ? 'とくい：' : 'にがて：') + items.map(function (x) { return x.text; }).join('・');
           if (hb.textContent === text) { hb.textContent = ''; hb.className = 'pc-hint'; }
           else { hb.textContent = text; hb.className = 'pc-hint ' + kind; }
+          window.__fitZoom(true);
         });
       });
     }
@@ -1869,6 +1933,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     swapFlash = null;
     var hw = $('hintWrap'); hw.innerHTML = '';
     if (G.firstRun && G.battle === 0 && G.attached.length === 0) hw.appendChild(el('span', 'hint', 'つける ↓'));
+    if (G.screen === 'pre') window.__fitZoom(true);
   }
   function togglePart(id) {
     var note = '';
@@ -1887,6 +1952,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     }
     $('note').textContent = note;
     renderMe(); renderPlist();
+    window.__fitZoom(true); // 広い窓：文が ふえて はみ出したら 倍率を 下げる
   }
   $('fightBtn').addEventListener('click', function () { initAudio(); startBattle(); });
 
@@ -2362,14 +2428,18 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       if (!A.pageScroll[sc]) console.error('[でこもん 検査] ページがスクロール：' + sc + '：' + sw + 'x' + sh + ' ／ 窓 ' + Math.round(iw) + 'x' + Math.round(ih) + (z !== 1 ? '（倍率 ' + z.toFixed(2) + '）' : ''));
       A.pageScroll[sc] = (A.pageScroll[sc] || 0) + 1;
     }
-    var boxes = document.querySelectorAll('.screen.on .pcbody, #pre.on .col-l, #pre.on .col-r .plist, #pre.on .pre-grid, #fork.on .fork-path, #fork.on .items, #clear.on .col, #over.on .col, #clear.on .list.hist, #over.on .list.hist');
+    var boxes = document.querySelectorAll(window.__SCROLL_BOXES);
     for (var i = 0; i < boxes.length; i++) {
       var b = boxes[i];
-      if (b.clientHeight > 0 && b.scrollHeight > b.clientHeight + 1) {
-        if (!A.innerScroll[sc]) console.warn('[でこもん 検査] 中でスクロール：' + sc + '：' + (b.id || b.className) + ' ' + b.clientHeight + '/' + b.scrollHeight);
-        A.innerScroll[sc] = (A.innerScroll[sc] || 0) + 1; break;
+      // パーツの一覧（広い窓は 4列の段組み）は 横に はみ出した列も スクロールと 数える
+      var hx = b.classList.contains('plist') && b.scrollWidth > b.clientWidth + 1;
+      if (b.clientHeight > 0 && (b.scrollHeight > b.clientHeight + 1 || hx)) {
+        var ex = (b.id || b.className) + ' ' + (hx ? '横 ' + b.clientWidth + '/' + b.scrollWidth : b.clientHeight + '/' + b.scrollHeight);
+        if (!A.innerScroll[sc]) console.warn('[でこもん 検査] 中でスクロール：' + sc + '：' + ex + ((window.__zoom || 1) !== 1 ? '（倍率 ' + window.__zoom.toFixed(2) + '）' : ''));
+        A.innerScroll[sc] = (A.innerScroll[sc] || 0) + 1; A.innerEx = A.innerEx || {}; A.innerEx[sc] = ex; break;
       }
     }
+    A.zooms = A.zooms || {}; A.zooms[sc] = A.zooms[sc] || {}; var zk = (window.__zoom || 1).toFixed(2); A.zooms[sc][zk] = (A.zooms[sc][zk] || 0) + 1; // 画面ごとの 倍率（広い窓）
   }
   if (OPT.auto) setInterval(function () { try { checkOverlap(); checkScroll(); } catch (e) { console.error('[でこもん 検査] ' + e.message); } }, 100);
 

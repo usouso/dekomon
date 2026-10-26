@@ -1,5 +1,5 @@
 // でこもん 版8 — 画面ごとの大きさの検査と スクリーンショット（ヘッドレス Chrome / Playwright）
-// 使い方: node tools/screens.js [--sizes 1366x650,1920x950,375x812] [--port 8787] [--shots] [--shotsize 1366x650]
+// 使い方: node tools/screens.js [--sizes 1366x650,1920x950,375x812] [--port 8787] [--shots] [--shotsize 1366x650,1920x910]（--shotsize は カンマで いくつでも。スマホは いつも 撮る）
 // やること: 自動周回では開かない画面（タイトル・たまごの 2択・親を選ぶ・始め（たまごから）・ぬし・わかれみち・バトル前・勝ち・そだち・ちょうじょう・クリア・負け・図鑑・殿堂（系譜））を
 //   window.__dekomon.dbg で開いて、ページの scrollWidth×scrollHeight と 窓の大きさ、中でスクロールする箱（clientHeight／scrollHeight）を表にする。
 //   --shots で screenshots/ に 画像を保存（egg_pick.png・egg_start.png・egg_spark.png・dendo_lineage.png・fork_650.png・result_650.png・over_650.png など）。
@@ -132,6 +132,9 @@ async function openScreens(browser, size, shots) {
   // バトル前（1戦目）
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await snap('バトル前（1戦目）', 'pre' + sfx + '.png');
+  await page.evaluate(function () { var c = document.querySelector('#plist .kv-card[data-id="claw"]') || document.querySelector('#plist .kv-card'); if (c) c.click(); });
+  await snap('バトル前（パーツの文を 開いた）', 'pre_info' + sfx + '.png');
+  await page.evaluate(function () { document.getElementById('partPop').classList.remove('on'); });
   // メニュー（≡）を開いた ところ
   await page.evaluate(function () { document.getElementById('menuBtn').click(); });
   await snap('メニュー', 'menu' + sfx + '.png');
@@ -148,11 +151,17 @@ async function openScreens(browser, size, shots) {
   await page.evaluate(function () { window.__h.advance(2, true); window.__dekomon.dbg.showFork(); });
   var owned9 = await page.evaluate(function () { return window.__dekomon.G.owned.length + 'こ・Lv2 ' + window.__dekomon.G.lv2.length; });
   await snap('わかれみち（9戦目。' + owned9 + '）', 'fork9' + sfx + '.png');
+  var stay = await page.evaluate(function () { var r = document.querySelector('#forkPaths .kv-rwb'); if (r) r.click(); return { screen: window.__dekomon.G.screen, info: !!(document.querySelector('#forkInfo .info:not(.empty)') || document.querySelector('#partPop.on .info')) }; });
+  await snap('わかれみち（もらえるものの 文を 開いた：画面 ' + stay.screen + '・文 ' + (stay.info ? 'あり' : 'なし') + '）', 'fork9_info' + sfx + '.png');
+  await page.evaluate(function () { document.getElementById('partPop').classList.remove('on'); });
   await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; G.run.choices[G.battle] = 0; S.forkRewards(G.run, G.battle, G.owned, G.lv2, G.rng); G.forkFor = G.battle; G.rewards = (S.pathOf(G.run, G.battle, 0).rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await snap('バトル前（9戦目。' + owned9 + '）', 'pre9' + sfx + '.png');
   // いちばん 多いとき：16こ 全部・Lv2 8つ・3つ つけた（札の文が いちばん 長い）。見たあと もとに もどす
-  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; window.__keep = { owned: G.owned.slice(), lv2: G.lv2.slice() }; G.owned = S.PART_IDS.slice(); G.lv2 = ['horn', 'fang', 'claw', 'shell', 'tail', 'wing', 'spike', 'crush']; window.__dekomon.dbg.showPre(); ['claw', 'tail', 'fang'].forEach(function (id) { var c = document.querySelector('#plist .pcard[data-id="' + id + '"]'); if (c) c.click(); }); });
+  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; window.__keep = { owned: G.owned.slice(), lv2: G.lv2.slice() }; G.owned = S.PART_IDS.slice(); G.lv2 = ['horn', 'fang', 'claw', 'shell', 'tail', 'wing', 'spike', 'crush']; window.__dekomon.dbg.showPre(); ['claw', 'tail', 'fang'].forEach(function (id) { for (var t = 0; t < 2; t++) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); } }); });
   await snap('バトル前（16こ・Lv2 8・3つ つけた）', 'pre16' + sfx + '.png');
+  // いちばん 舞台が 高く なるとき：てごわい（もらえるもの 2つ）・同じ場所の つけかえ（注意の 1行）
+  await page.evaluate(function () { var G = window.__dekomon.G; G.rewards = [{ kind: 'nare', part: 'longleg', amt: 10 }, { kind: 'nare', part: 'longtail', amt: 10 }]; window.__dekomon.dbg.showPre(); ['claw', 'claw', 'crush', 'crush', 'tail', 'tail', 'longtail', 'longtail'].forEach(function (id) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); }); });
+  await snap('バトル前（もらえる 2つ・つけかえの 注意）', null);
   await page.evaluate(function () { var G = window.__dekomon.G; G.owned = window.__keep.owned; G.lv2 = window.__keep.lv2; });
   // ちょうじょう
   await page.evaluate(function () { window.__h.advance(1, true); window.__dekomon.dbg.showSummit(); });
@@ -182,7 +191,7 @@ async function shotSpark(browser, size) {
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; window.DekoSim.forkRewards(G.run, 0, G.owned, G.lv2, G.rng); G.forkFor = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await page.waitForTimeout(200);
   // 継いだ キバを つけて たたかう
-  await page.evaluate(function () { var c = document.querySelector('#plist .pcard[data-id="claw"]'); if (c) c.click(); });
+  await page.evaluate(function () { for (var t = 0; t < 2; t++) { var c = document.querySelector('#plist .kv-card[data-id="claw"]'); if (c) c.click(); } });
   await page.waitForTimeout(100);
   await page.click('#fightBtn');
   var got = false, t0 = Date.now(), text = '';
@@ -203,11 +212,11 @@ async function shotSpark(browser, size) {
   try {
     for (var i = 0; i < SIZES.length; i++) {
       var sz = SIZES[i];
-      var shots = SHOTS && (sz.w + 'x' + sz.h === SHOTSIZE || sz.w < 900);
+      var shots = SHOTS && (SHOTSIZE.split(',').indexOf(sz.w + 'x' + sz.h) >= 0 || sz.w < 900);
       out.push(await openScreens(browser, sz, shots));
       console.error('done ' + sz.w + 'x' + sz.h);
     }
-    if (SHOTS) { var ss = SHOTSIZE.split('x'); spark = await shotSpark(browser, { w: parseInt(ss[0], 10), h: parseInt(ss[1], 10) }); }
+    if (SHOTS) { var ss = SHOTSIZE.split(',')[0].split('x'); spark = await shotSpark(browser, { w: parseInt(ss[0], 10), h: parseInt(ss[1], 10) }); }
   } finally {
     await browser.close(); sv.kill();
   }

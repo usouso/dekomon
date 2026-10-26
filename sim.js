@@ -1,4 +1,4 @@
-// でこもん 版7 — ゲームのルール（画面のコードは入れない）
+// でこもん 版8 — ゲームのルール（画面のコードは入れない）
 // ブラウザ（index.html）と Node（bot.js）の両方から同じファイルを読み込む。
 (function (root, factory) {
   var api = factory();
@@ -35,7 +35,7 @@
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
     spark: { base: 0.010, perStage: 0.002, pity: 0.015 },
     // なれ：そのパーツの発動回数（周回で累計）が full になると、次の発動で必ずひらめく
-    nare: { full: 20, dup: 10, newFirst: false },   // dup：もう持っているパーツを もらったときの「なれ +10」（版7）。0 なら その報酬は なし。newFirst は A/B 用（true なら 3 を 2 より先に）
+    nare: { full: 20, dup: 10 },   // dup：もう持っているパーツを もらったときの「なれ +10」（版7）。0 なら その報酬は なし。順は「新しいパーツを先」で固定（版8。rewardFor）
     // そだち：3勝・6勝・9勝のあと。前の そだち からの「うけた・あてた・せんて」を norm で割って いちばん大きい方向に育つ
     grow: { every: 3, hp: 12, atk: 2, spd: 3, size: 0.10, norm: { received: 18.5, landed: 20.3, first: 6.7 } },
     // 体の性質
@@ -95,8 +95,10 @@
     { id: 8, name: 'はね＋ツメ',         parts: ['wing', 'claw'],    desc: 'はねで はやさを こえて、ツメが 3げきに' },
     // 版7：Lv2 入りの噛み合い（lv2 に その Lv2 が いるパーツ）。3「じょうたい＋ひかるめ」は 札の文そのものなので 消した
     { id: 9,  name: 'はじく＋トゲ',       parts: ['scale', 'spike'],  lv2: ['scale'],           desc: '0 に はじいた 1げきにも、トゲが はんげきする' },
-    { id: 10, name: 'つめあと＋ふみつけ', parts: ['claw', 'longleg'], lv2: ['claw', 'longleg'], desc: 'つめあとで あいてを おそくして、ふみつけの ×1.5 を きかせる' },
-    { id: 11, name: 'かいたい＋キバ',     parts: ['crush', 'fang'],   lv2: ['crush'],           desc: 'かいたいで ふさふさを こわした あいだに、どくを 入れる' }
+    // 版8：10・11 を差し替え（id は ずらさない。保存に 10・11 が残っていても 新しい定義で数える）
+    { id: 10, name: 'ふきとばし＋ばねあし', parts: ['horn', 'spring'],  lv2: ['horn'],            desc: '3手めに 2かい こうげきして、あいての手も とばす。3かい つづけて うごく' },
+    // 昼の作業：11 を「かいたい＋ばねあし」から「かいたい＋ツノ」に（版8 質問1-A。ばねあしの 3手ごと との重なりが 要らない）
+    { id: 11, name: 'かいたい＋ツノ',       parts: ['crush', 'horn'],   lv2: ['crush'],           desc: 'もろくして パーツを こわした あいてに、ツノの ×2.5 が はいる' }
   ];
   SYNERGIES.forEach(function (s) { if (!s.lv2) s.lv2 = []; });
   var SYN_BY_ID = {}; SYNERGIES.forEach(function (s) { SYN_BY_ID[s.id] = s; });
@@ -276,9 +278,9 @@
     return a;
   }
 
-  // ---------- 名前（ひらがな 2〜4文字） ----------
+  // ---------- 名前（ひらがな 2〜4文字）。版8：head（親の頭の文字）を渡すと その文字から始まる ----------
   var SYL = ['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ','だ','で','ど','ば','び','ぶ','べ','ぼ','ぱ','ぴ','ぷ','ぺ','ぽ'];
-  function makeName(rng) {
+  function makeName(rng, head) {
     var n = 2 + (rng() < 0.4 ? 1 : 0);
     var s = '';
     for (var i = 0; i < n; i++) s += SYL[randInt(rng, SYL.length)];
@@ -286,8 +288,16 @@
     if (s.length <= 3 && r < 0.18) s = s.charAt(0) + 'っ' + s.slice(1);
     else if (s.length <= 3 && r < 0.36) s = s.charAt(0) + 'ー' + s.slice(1);
     else if (s.length <= 3 && r < 0.55) s += 'ん';
-    return s.slice(0, 4);
+    s = s.slice(0, 4);
+    if (head) { // 親の頭の文字を継ぐ（1〜2文字）。残りは 作った名前の 後ろから。2文字より短くならないように
+      var rest = s.slice(head.length);
+      if (rest.length < 1) rest = s.slice(-1);
+      s = (head + rest).slice(0, 4);
+    }
+    return s;
   }
+  // 名前の頭の文字（1文字。2文字めが「っ」「ー」なら 2文字）
+  function nameHead(name) { var h = (name || '').charAt(0); var c2 = (name || '').charAt(1); if (c2 === 'っ' || c2 === 'ー') h += c2; return h; }
 
   // ---------- 戦う者 ----------
   function toSet(arr) { var s = {}; (arr || []).forEach(function (x) { s[x] = true; }); return s; }
@@ -329,11 +339,12 @@
   function hasStatus(f) { return !!(f.status.poison || f.status.stagger > 0 || f.status.brittle); }
 
   // ---------- バトル ----------
-  // opts: { variance, rng, spark: { stage, pity, nare: {part: 回数} } }
+  // opts: { variance, rng, spark: { stage, pity, nare: {part: 回数}, parent: 継いだパーツ } }
   // ひらめきは 自分の側だけ、乱れがあるときだけ、1戦に1回。なれ が full なら その発動で必ず。
+  // 版8：卵で継いだパーツ（spark.parent）は なれ full+1 で始まるので 最初の発動で必ず ひらめく。その spark は by:'parent'（「おやの ○○を おもいだした！」）
   // events の種類（版5で追加）:
   //   act {side:'p', part, n}        自分のパーツが発動した（n は この周回の なれ の累計。Lv2 のパーツは出さない）
-  //   spark {side, part, by}         ひらめき（by: 'nare' か 'chance'）
+  //   spark {side, part, by}         ひらめき（by: 'nare'・'chance'・'parent'（版8：卵で継いだパーツ））
   //   skip {side}                    ふきとばされて その手が とぶ      blown {side}            ふきとばされた
   //   dodge {side, part:'eye'}       ツノ・おおわざを よけた           poison に追加: grow（もうどく：つぎの手から +grow）
   //   maxUp {side, amt, maxHp, hp, healed} 上限が ふえた（おおぐい）  spdDown {side, spd}     はやさが さがった
@@ -364,7 +375,7 @@
       var byNare = nare > CFG.nare.full; // full に なった あと（full を超えた）の発動で必ず
       var roll = rng();
       if (byNare || roll < chance) {
-        sparkDone = true; sparkPart = part; sparkBy = byNare ? 'nare' : 'chance'; f.lv2[part] = true;
+        sparkDone = true; sparkPart = part; sparkBy = byNare ? ((sparkOpt.parent === part) ? 'parent' : 'nare') : 'chance'; f.lv2[part] = true;
         events.push({ t: 'spark', side: f.side, part: part, by: sparkBy });
         return true;
       }
@@ -401,7 +412,6 @@
     var synergies = [];
     var statusHands = fieldId === 'rain' ? CFG.rainStatusHands : null;
     var received = 0, landed = 0, firstHands = 0; // そだち用：自分が受けた回数・当てた回数・先手の手
-    var startSpd = { p: spd.p, e: spd.e }; // 噛み合い10（つめあと＋ふみつけ）：戦いの始めの はやさ
     var maxHit = { dmg: 0, label: '' }; // さいだいの いちげき（自分の 1げき・はんげき）
     function noteHit(side, label, dmg) { if (side === 'p' && dmg > maxHit.dmg) maxHit = { dmg: dmg, label: label }; }
     var lv2Used = {}; // この戦いで Lv2 の効果が出たパーツ（確認用）
@@ -453,8 +463,6 @@
         if (cur && cur.by === a.side) { dmg = Math.max(dmg, cur.dmg); grow = Math.max(grow, cur.grow || 0); }
         d.status.poison = { left: statusHands || CFG.poisonHands, dmg: dmg, by: a.side, grow: grow };
         events.push({ t: 'status', side: d.side, status: 'poison', by: a.side, hands: d.status.poison.left, grow: grow });
-        // 噛み合い11：かいたいで ふさふさのけ が こわれているあいだに どくが かかった
-        if (d.broken.fur && a.lv2.crush) fireSyn(a.side, 11, events);
       } else if (st === 'brittle') {
         d.status.brittle = { left: statusHands || CFG.brittleHands, mult: CFG.brittleMult };
         events.push({ t: 'status', side: d.side, status: 'brittle', by: a.side, hands: d.status.brittle.left, mult: CFG.brittleMult });
@@ -485,7 +493,8 @@
       var staggered = a.status.stagger > 0;
       var jump2 = !!(second && a.active.spring && a.lv2.spring); // おおジャンプ：2かいめの こうげきが ×1.3
       if (jump2) usedLv2('spring');
-      var hornHit = false, eyeHit = false, landedHere = 0, halvedAny = false;
+      var hornHit = false, eyeHit = false, landedHere = 0, halvedAny = false, countered = false;
+      var partBroken = Object.keys(d.broken).length > 0; // 噛み合い11：かいたいで 相手の パーツが こわれている あいだ（この こうげきの はじめ）
       if (a.active.leech) trySpark(a, 'leech', events);
       for (var h = 0; h < nHits; h++) {
         var parts = [];
@@ -512,8 +521,6 @@
         var stomp = false;
         if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) {
           mult *= CFG.lv2.stompMult; stomp = true; usedLv2('longleg');
-          // 噛み合い10：戦いの始めは おそくなかった相手を、つめあと（はやさ −1）で おそくして ふみつけが 出た
-          if (a.active.claw && a.lv2.claw && d.spdMod < 0 && startSpd[a.side] <= startSpd[d.side]) fireSyn(a.side, 10, events);
         }
         var flat = 0, zushin = 0;
         if (a.active.weight) {
@@ -552,6 +559,8 @@
         noteHit(a.side, label, dmg);
         if (shellHide) events.push({ t: 'shellHide', side: d.side });
         if (thisHorn && brittleNow && dmg > 0) fireSyn(a.side, 7, events);
+        // 噛み合い11：かいたいで パーツが こわれている あいてに、ツノの 1げきが あたった
+        if (thisHorn && dmg > 0 && partBroken && a.lv2.crush && a.active.crush) fireSyn(a.side, 11, events);
         // つめあと：あてるたび あいての はやさ −1
         if (claws && a.lv2.claw && dmg > 0) { d.spdMod -= CFG.lv2.clawSpdDown; refreshSpd(d.side); usedLv2('claw'); events.push({ t: 'spdDown', side: d.side, spd: spd[d.side] }); }
         if (a.active.leech && dmg > 0) {
@@ -560,7 +569,11 @@
         }
         if (d.hp <= 0) break;
         // ふきとばし：ツノの 1げきが あたると 相手の つぎの手が とぶ
-        if (thisHorn && a.lv2.horn && dmg > 0) { d.skipNext = true; usedLv2('horn'); events.push({ t: 'blown', side: d.side, by: a.side }); }
+        if (thisHorn && a.lv2.horn && dmg > 0) {
+          d.skipNext = true; usedLv2('horn'); events.push({ t: 'blown', side: d.side, by: a.side });
+          // 噛み合い10：ばねあしで 2かい こうげきする手に、ツノの 1げきが あたって ふきとばした（3かい つづけて うごく）
+          if (isDouble && a.active.spring) fireSyn(a.side, 10, events);
+        }
         // どく・もろい・よろけは「あてた」ときだけ（0 に はじかれた／こもられた 1げきでは かからない）
         if (dmg > 0) {
           if (a.active.fang) { trySpark(a, 'fang', events); applyStatus(a, d, 'poison', events); }
@@ -585,6 +598,7 @@
           if (a.active.scale && a.lv2.scale && c <= CFG.lv2.deflectMax) { c = 0; cDeflect = true; usedLv2('scale'); }
           a.hp = Math.max(0, a.hp - c);
           if (c > 0) { addDealt(d.side, 'はんげき', c); if (d.side === 'p') landed++; else received++; }
+          countered = true;
           events.push({ t: 'counter', side: d.side, part: 'spike', dmg: c, hp: a.hp, thrown: thrown, deflect: cDeflect });
           noteHit(d.side, 'はんげき', c);
           if (deflect) fireSyn(d.side, 9, events); // 噛み合い9：0 に はじいた 1げきにも はんげき
@@ -761,8 +775,21 @@
   }
   // その戦いの道（選んだ側）。battle 0..8 は steps[battle][choice]、9 は ぬし
   function pathOf(run, battle, choice) { return battle >= CFG.runBattles - 1 ? run.boss : run.steps[battle][choice || 0]; }
-  function startItems(rng) {
+  // 始めの もちもの 6つ：せめ・まもり・うごき から 1つずつ ＋ 残りから 3つ。
+  // 版8：inherit（卵で継ぐパーツ）を渡すと、それが 6つのうちの 1つ（その種類の 1つ目）になり、同じ場所のパーツは ランダムに選ばない
+  function startItems(rng, inherit) {
     var picked = [];
+    if (inherit && PART_BY_ID[inherit]) {
+      var ih = PART_BY_ID[inherit];
+      picked.push(inherit);
+      CATS.forEach(function (c) {
+        if (c.id === ih.cat) return;
+        var cands = PARTS.filter(function (p) { return p.cat === c.id && p.loc !== ih.loc; });
+        picked.push(cands[randInt(rng, cands.length)].id);
+      });
+      var rest2 = PART_IDS.filter(function (id) { return picked.indexOf(id) < 0 && PART_BY_ID[id].loc !== ih.loc; });
+      return picked.concat(shuffle(rest2, rng).slice(0, 6 - picked.length));
+    }
     CATS.forEach(function (c) {
       var cands = PARTS.filter(function (p) { return p.cat === c.id; });
       picked.push(cands[randInt(rng, cands.length)].id);
@@ -770,8 +797,8 @@
     var rest = PART_IDS.filter(function (id) { return picked.indexOf(id) < 0; });
     return picked.concat(shuffle(rest, rng).slice(0, 3));
   }
-  // かてば もらえる（版7）。報酬は { kind:'part', part }（拾う）か { kind:'nare', part, amt }（そのパーツの なれ +10）。なしは null。
-  // 順：1 相手のパーツで 持っていないもの → 2 相手のパーツで Lv2 でないもの（なれ +10）→ 3 16種で 持っていないもの → 4 持っている Lv2 でないもの（なれ +10）→ 5 なし
+  // かてば もらえる（版7・版8）。報酬は { kind:'part', part }（拾う）か { kind:'nare', part, amt }（そのパーツの なれ +10）。なしは null。
+  // 順（版8で固定。版7 質問1-A「新しいパーツを先」）：1 相手のパーツで 持っていないもの → 2 16種で 持っていないもの → 3 相手のパーツで Lv2 でないもの（なれ +10）→ 4 持っている Lv2 でないもの（なれ +10）→ 5 なし
   function pickOne(cands, rng) { return cands.length ? cands[randInt(rng, cands.length)] : null; }
   function rewardFor(enemyDef, owned, lv2, rng) {
     lv2 = lv2 || [];
@@ -779,10 +806,9 @@
     var ownedNotLv2 = function (id) { return owned.indexOf(id) >= 0 && lv2.indexOf(id) < 0; };
     var r = pickOne(enemyDef.parts.filter(notOwned), rng);
     if (r) return { kind: 'part', part: r };
-    if (CFG.nare.newFirst) { r = pickOne(PART_IDS.filter(notOwned), rng); if (r) return { kind: 'part', part: r }; }
-    if (CFG.nare.dup > 0) { r = pickOne(enemyDef.parts.filter(ownedNotLv2), rng); if (r) return { kind: 'nare', part: r, amt: CFG.nare.dup }; }
     r = pickOne(PART_IDS.filter(notOwned), rng);
     if (r) return { kind: 'part', part: r };
+    if (CFG.nare.dup > 0) { r = pickOne(enemyDef.parts.filter(ownedNotLv2), rng); if (r) return { kind: 'nare', part: r, amt: CFG.nare.dup }; }
     if (CFG.nare.dup > 0) { r = pickOne(PART_IDS.filter(ownedNotLv2), rng); if (r) return { kind: 'nare', part: r, amt: CFG.nare.dup }; }
     return null;
   }
@@ -881,7 +907,7 @@
     GROWS: GROWS, GROW_IDS: GROW_IDS, emptyGrow: emptyGrow, growCount: growCount, growDirection: growDirection, growAfterWin: growAfterWin,
     SYNERGIES: SYNERGIES, SYN_BY_ID: SYN_BY_ID,
     PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS, CATS: CATS,
-    ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDefOf: enemyDefOf, FIELDS: FIELDS, SUMMIT: SUMMIT, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName,
+    ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDefOf: enemyDefOf, FIELDS: FIELDS, SUMMIT: SUMMIT, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName, nameHead: nameHead,
     makeRng: makeRng, randInt: randInt, shuffle: shuffle,
     makeFighter: makeFighter, effSpd: effSpd, effAtk: effAtk, isHard: isHard, isRanged: isRanged,
     simulateBattle: simulateBattle, runBattle: runBattle,

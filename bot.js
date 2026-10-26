@@ -1,4 +1,4 @@
-// でこもん 版7 — ボット検証（Node で実行: node bot.js [周回数] [固定の周回数] [表の回数] [A/B の周回数]）
+// でこもん 版8 — ボット検証（Node で実行: node bot.js [周回数] [固定の周回数] [表の回数] [A/B の周回数] [卵の Lv2 ごとの周回数]）
 'use strict';
 var S = require('./sim.js');
 // 調整用：DEKO_CFG='{"boss":{"hp":1.4}}' のように数値を上書きできる
@@ -7,6 +7,7 @@ var RUNS = parseInt(process.argv[2] || '2000', 10);
 var FIXED_RUNS = parseInt(process.argv[3] || '100', 10);
 var TABLE_TRIALS = parseInt(process.argv[4] || '200', 10);
 var AB_RUNS = parseInt(process.argv[5] || String(RUNS), 10);
+var EGG_RUNS = parseInt(process.argv[6] || String(Math.max(50, Math.round(RUNS / 8))), 10); // 版8：16種それぞれ 継いだときの 周回数
 var SEED = 20261026;
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
@@ -33,17 +34,22 @@ function newStats() {
     growDir: { tough: 0, strong: 0, quick: 0 }, growByStage: [], wins: 0, lv2Used: {},
     forks: 0, hardChosen: 0, hardB: { n: 0, w: 0 }, normB: { n: 0, w: 0 }, boss: { n: 0, w: 0 }, maxHits: [], maxHitLabel: {}, combos: {}, bossLv2: {}, bossLv2N: 0,
     // 版7：報酬の中身
-    rw: { partEnemy: 0, partOther: 0, nare: 0, none: 0, slots: 0 }, pickedHist: [], nareHist: [], noneHist: [], fullAt: [], nareFull: 0 };
+    rw: { partEnemy: 0, partOther: 0, nare: 0, none: 0, slots: 0 }, pickedHist: [], nareHist: [], noneHist: [], fullAt: [], nareFull: 0,
+    // 版8：卵。sparkParent：おやの ひらめき（by: parent）の回数、parentAt：何戦目で おもいだしたか、lv2Lists：周回の終わりの Lv2 の一覧（卵の親に使う）
+    sparkParent: 0, parentAt: [], lv2Lists: [] };
   for (var i = 0; i <= NB; i++) st.winsHist.push(0);
   for (var j = 0; j < NB; j++) { st.stage.push({ n: 0, w: 0 }); st.growByStage.push({ n: 0, tough: 0, strong: 0, quick: 0 }); }
   S.PART_IDS.forEach(function (p) { st.use[p] = 0; st.sparkByPart[p] = 0; st.actByPart[p] = 0; st.lv2Used[p] = 0; });
   S.SYNERGIES.forEach(function (s) { st.syn[s.id] = 0; st.synLv2Runs[s.id] = { n: 0, w: 0 }; });
   return st;
 }
-function playRun(chooser, stats, fixedParts) {
+// inherit：版8の卵。継ぐパーツ（なれ full+1 で始まり、最初の発動で 必ず ひらめく）
+function playRun(chooser, stats, fixedParts, inherit) {
   var run = S.newRun(rng);
-  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng);
+  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng, inherit || null);
   var wins = 0, lv2 = [], pity = 0, nare = {}, grow = S.emptyGrow(), acc = { received: 0, landed: 0, first: 0 }, sparksThisRun = 0;
+  if (inherit) nare[inherit] = S.CFG.nare.full + 1;
+  var parentAt = -1;
   var synSeen = {}, picked = 0, nareR = 0, noneR = 0, fullAt = -1;
   if (owned.length >= S.PART_IDS.length) fullAt = 0;
   for (var b = 0; b < NB; b++) {
@@ -60,7 +66,7 @@ function playRun(chooser, stats, fixedParts) {
     var rewards = fixedParts ? [] : path.rewards;
     if (!fixedParts && !enemy.boss) { var slots = hard ? 2 : 1; stats.rw.slots += slots; stats.rw.none += slots - rewards.length; noneR += slots - rewards.length; }
     var parts = fixedParts ? fixedParts : chooser.loadout(owned, eIdx, stage, fId, grow, lv2, hard);
-    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, spark: { stage: stage, pity: pity, nare: nare } });
+    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
     stats.battles++;
     stats.hands.push(res.nHands);
     stats.count[parts.length]++;
@@ -77,7 +83,7 @@ function playRun(chooser, stats, fixedParts) {
     // そだちの材料
     stats.growByStage[b].n++;
     acc.received += res.summary.received; acc.landed += res.summary.landed; acc.first += res.summary.firstHands;
-    if (res.spark) { stats.sparks++; stats.sparkByPart[res.spark]++; sparksThisRun++; pity = 0; if (res.sparkBy === 'nare') stats.sparkNare++; else stats.sparkChance++; if (lv2.indexOf(res.spark) < 0) lv2.push(res.spark); }
+    if (res.spark) { stats.sparks++; stats.sparkByPart[res.spark]++; sparksThisRun++; pity = 0; if (res.sparkBy === 'nare') stats.sparkNare++; else if (res.sparkBy === 'parent') { stats.sparkParent++; parentAt = stage; } else stats.sparkChance++; if (lv2.indexOf(res.spark) < 0) lv2.push(res.spark); }
     else pity++;
     stats.stage[b].n++;
     var won = res.winner === 'p';
@@ -109,6 +115,7 @@ function playRun(chooser, stats, fixedParts) {
   stats.sparkHist.push(sparksThisRun);
   if (sparksThisRun === 0) stats.sparkZero++;
   stats.pickedHist.push(picked); stats.nareHist.push(nareR); stats.noneHist.push(noneR); stats.fullAt.push(fullAt);
+  stats.parentAt.push(parentAt); stats.lv2Lists.push(lv2.slice());
 }
 function handsSummary(h) {
   var sorted = h.slice().sort(function (a, b) { return a - b; });
@@ -190,7 +197,7 @@ var fixedBot = {
   fork: function (paths, owned, stage, grow, lv2, fixedParts) { return scoreOf(fixedParts, paths[1], stage, grow, lv2) > scoreOf(fixedParts, paths[0], stage, grow, lv2) ? 1 : 0; }
 };
 
-console.log('# でこもん 版7 ボット結果');
+console.log('# でこもん 版8 ボット結果');
 console.log('');
 console.log('ぬし：たいりょく ×' + S.CFG.boss.hp + '、こうげき ×' + S.CFG.boss.atk + '（ふつうの相手の平均 ' + S.BOSS.hp + '・' + S.BOSS.atk + ' が基礎）。てごわい：たいりょく ×' + S.CFG.hard.hp + '、こうげき ×' + S.CFG.hard.atk + '。なれ +' + S.CFG.nare.dup + '（満タン ' + S.CFG.nare.full + '）。乱数の種 ' + SEED);
 console.log('');
@@ -240,29 +247,84 @@ comboRows.sort(function (a, b) { return b.win - a.win || b.n - a.n; });
 comboRows.slice(0, 10).forEach(function (r, i) { console.log('| ' + (i + 1) + ' | ' + comboName(r.key) + ' | ' + r.n + ' | ' + pct(r.win) + ' | ' + f1(r.hit) + ' |'); });
 console.log('');
 
-// ---------- A/B：なれ +10 あり／なし（同じ種。合わせボット） ----------
-console.log('### A/B：なれ +10 あり／なし（同じ乱数の種で 合わせボット ' + AB_RUNS + ' 周回ずつ。なしのときは その報酬は「なし」。3行目は 参考：順を 1→3→2→4 にして 新しいパーツを なれ より先に）');
+// ---------- A/B：なれ +10 あり／なし（同じ種。合わせボット）。版8：順は「新しいパーツを先」で固定（newFirst は 消えた） ----------
+console.log('### A/B：なれ +10 あり／なし（同じ乱数の種で 合わせボット ' + AB_RUNS + ' 周回ずつ。なしのときは その報酬は「なし」。順は 版8で固定：相手のパーツ → 16種で 持っていないもの → なれ +10）');
 console.log('');
 var abRows = [];
-[{ dup: S.CFG.nare.dup, nf: false }, { dup: 0, nf: false }, { dup: S.CFG.nare.dup, nf: true }].forEach(function (v) {
-  var dup = v.dup; var keep = S.CFG.nare.dup, keepNf = S.CFG.nare.newFirst; S.CFG.nare.dup = dup; S.CFG.nare.newFirst = v.nf; S.clearMemo();
+[S.CFG.nare.dup, 0].forEach(function (dup) {
+  var keep = S.CFG.nare.dup; S.CFG.nare.dup = dup; S.clearMemo();
   rng = S.makeRng(SEED + 7);
   var st = newStats();
   for (var k = 0; k < AB_RUNS; k++) playRun(matchedBot, st);
-  abRows.push({ dup: dup, nf: v.nf, st: st });
-  S.CFG.nare.dup = keep; S.CFG.nare.newFirst = keepNf;
+  abRows.push({ dup: dup, st: st });
+  S.CFG.nare.dup = keep;
 });
 S.clearMemo();
-rng = S.makeRng(SEED + 99);
 console.log('| なれ +10 | 10連勝率 | ぬし勝率 | ひらめき/周回 | うち なれ満タン | 0回の周回 | 拾った/周回 | なれ +10/周回 | なし/周回 | 16種そろう |');
 console.log('|---|---|---|---|---|---|---|---|---|---|');
 abRows.forEach(function (r) {
   var st = r.st;
-  console.log('| ' + (r.dup ? (r.nf ? '参考：あり・新しいパーツを先に' : 'あり（+' + r.dup + '）') : 'なし') + ' | ' + pct(st.clears / st.runs) + ' | ' + pct(rate(st.boss)) + ' | ' + f2(st.sparks / st.runs) + ' | ' + f2(st.sparkNare / st.runs) + ' | ' + pct(st.sparkZero / st.runs) + ' | ' + f2(mean(st.pickedHist)) + ' | ' + f2(mean(st.nareHist)) + ' | ' + f2(mean(st.noneHist)) + ' | ' + pct(st.fullAt.filter(function (x) { return x >= 0; }).length / st.runs) + ' |');
+  console.log('| ' + (r.dup ? 'あり（+' + r.dup + '）' : 'なし') + ' | ' + pct(st.clears / st.runs) + ' | ' + pct(rate(st.boss)) + ' | ' + f2(st.sparks / st.runs) + ' | ' + f2(st.sparkNare / st.runs) + ' | ' + pct(st.sparkZero / st.runs) + ' | ' + f2(mean(st.pickedHist)) + ' | ' + f2(mean(st.nareHist)) + ' | ' + f2(mean(st.noneHist)) + ' | ' + pct(st.fullAt.filter(function (x) { return x >= 0; }).length / st.runs) + ' |');
 });
 var abA = abRows[0].st, abB = abRows[1].st;
 console.log('');
 console.log('差（あり − なし）：10連勝 ' + ((abA.clears / abA.runs - abB.clears / abB.runs) * 100).toFixed(1) + ' ポイント、ぬし勝率 ' + ((rate(abA.boss) - rate(abB.boss)) * 100).toFixed(1) + ' ポイント、ひらめき ' + (abA.sparks / abA.runs - abB.sparks / abB.runs).toFixed(2) + ' 回/周回');
+console.log('');
+
+// ---------- 版8：卵。継いだ子 vs 継がない子（同じ種。合わせボット）。親の Lv2 は 合わせボットの周回の終わりの Lv2 から 1つ（実際の殿堂に 近い配り方） ----------
+console.log('### 卵：継いだ子 vs 継がない子（同じ乱数の種で 合わせボット ' + AB_RUNS + ' 周回ずつ。継ぐ Lv2 は「上の 合わせボットの 周回の終わりに 持っていた Lv2」から 1つ ランダム＝親が 殿堂の子のとき）');
+console.log('');
+var parentPool = stM.lv2Lists.filter(function (l) { return l.length > 0; });
+var eggRows = [];
+[false, true].forEach(function (egg) {
+  S.clearMemo();
+  rng = S.makeRng(SEED + 11);
+  var prng = S.makeRng(SEED + 13);
+  var st = newStats();
+  for (var k = 0; k < AB_RUNS; k++) {
+    var inh = null;
+    if (egg && parentPool.length) { var l = parentPool[S.randInt(prng, parentPool.length)]; inh = l[S.randInt(prng, l.length)]; }
+    playRun(matchedBot, st, null, inh);
+  }
+  eggRows.push({ egg: egg, st: st });
+});
+S.clearMemo();
+rng = S.makeRng(SEED + 99);
+console.log('| 子 | 10連勝率 | ぬし勝率 | ひらめき/周回 | うち おやの（by parent） | うち なれ満タン | 1戦目で おもいだした | 5勝到達 | 拾った/周回 |');
+console.log('|---|---|---|---|---|---|---|---|---|');
+eggRows.forEach(function (r) {
+  var st = r.st;
+  var at1 = st.parentAt.filter(function (x) { return x === 1; }).length, atAny = st.parentAt.filter(function (x) { return x > 0; }).length;
+  console.log('| ' + (r.egg ? '継いだ子（卵）' : '継がない子') + ' | ' + pct(st.clears / st.runs) + ' | ' + pct(rate(st.boss)) + ' | ' + f2(st.sparks / st.runs) + ' | ' + f2(st.sparkParent / st.runs) + ' | ' + f2(st.sparkNare / st.runs) + ' | ' + (r.egg ? pct(at1 / st.runs) + '（周回のどこかで ' + pct(atAny / st.runs) + '）' : '-') + ' | ' + pct(st.reach5 / st.runs) + ' | ' + f2(mean(st.pickedHist)) + ' |');
+});
+var eggNo = eggRows[0].st, eggYes = eggRows[1].st;
+var eggRatio = (eggNo.clears / eggNo.runs) ? (eggYes.clears / eggYes.runs) / (eggNo.clears / eggNo.runs) : 0;
+console.log('');
+console.log('継いだ子 ÷ 継がない子：10連勝率 ' + eggRatio.toFixed(2) + ' 倍、ぬし勝率 ' + (rate(eggNo.boss) ? (rate(eggYes.boss) / rate(eggNo.boss)).toFixed(2) : '-') + ' 倍');
+console.log('');
+
+// ---------- 版8：どの Lv2 を継ぐと 一番強いか（16種 それぞれ 継いで 合わせボット） ----------
+console.log('### 卵：どの Lv2 を継ぐと 一番強いか（16種 それぞれ 継いで 合わせボット ' + EGG_RUNS + ' 周回ずつ。同じ乱数の種）');
+console.log('');
+console.log('| パーツ（Lv2） | 10連勝率 | ぬし勝率 | 1戦目で おもいだした | 継いだパーツの使用率 | ひらめき/周回 |');
+console.log('|---|---|---|---|---|---|');
+var eggByPart = [];
+S.PART_IDS.forEach(function (pid) {
+  S.clearMemo();
+  rng = S.makeRng(SEED + 17);
+  var st = newStats();
+  for (var k = 0; k < EGG_RUNS; k++) playRun(matchedBot, st, null, pid);
+  var at1 = st.parentAt.filter(function (x) { return x === 1; }).length;
+  eggByPart.push({ pid: pid, clear: st.clears / st.runs, boss: rate(st.boss), at1: at1 / st.runs, use: st.use[pid] / st.battles, sparks: st.sparks / st.runs });
+  console.log('| ' + S.PART_BY_ID[pid].name + '（' + S.PART_BY_ID[pid].lv2name + '） | ' + pct(st.clears / st.runs) + ' | ' + pct(rate(st.boss)) + ' | ' + pct(at1 / st.runs) + ' | ' + pct(st.use[pid] / st.battles) + ' | ' + f2(st.sparks / st.runs) + ' |');
+});
+S.clearMemo();
+rng = S.makeRng(SEED + 99);
+var eggSorted = eggByPart.slice().sort(function (a, b) { return b.clear - a.clear; });
+var eggBest = eggSorted[0], eggMid = eggSorted[Math.floor(eggSorted.length / 2)], eggWorst = eggSorted[eggSorted.length - 1];
+var eggSpread = eggMid.clear ? eggBest.clear / eggMid.clear : 0;
+console.log('');
+console.log('最強 ' + S.PART_BY_ID[eggBest.pid].lv2name + ' ' + pct(eggBest.clear) + '、真ん中 ' + S.PART_BY_ID[eggMid.pid].lv2name + ' ' + pct(eggMid.clear) + '、最弱 ' + S.PART_BY_ID[eggWorst.pid].lv2name + ' ' + pct(eggWorst.clear) + '。最強 ÷ 真ん中 ' + eggSpread.toFixed(2) + ' 倍');
 console.log('');
 
 // ---------- Lv2 の効き：同じ相手に Lv1 と Lv2 で戦ったときの勝率の差 ----------
@@ -399,6 +461,9 @@ console.log('| Lv2 の効き 16種 +3 以上（上限なし） | 固定 84通り
 console.log('| そだちの方向：ランダムで3方向 20〜50% | ランダム | がんじょう ' + pct(gR.tough) + '・たくましい ' + pct(gR.strong) + '・すばやい ' + pct(gR.quick) + ' | ' + ok(gRmin >= 0.2 && gRmax <= 0.5) + ' |');
 console.log('| そだちの方向：合わせで 10% 以上 | 合わせ | がんじょう ' + (gM.tough * 100).toFixed(2) + '%・たくましい ' + pct(gM.strong) + '・すばやい ' + pct(gM.quick) + ' | ' + ok(gMmin >= 0.1) + ' |');
 console.log('| 報酬「なし」は てごわいボットでも 1周回 0.5回 以下 | 合わせ・てごわい | 合わせ ' + f2(noneM) + ' 回 ／ てごわい ' + f2(noneH) + ' 回 | ' + ok(noneM <= 0.5 && noneH <= 0.5) + ' |');
+console.log('| 卵：継いだ子の 10連勝率が 継がない子の 1.0〜1.3 倍 | 合わせ（同じ種。親の Lv2 は 殿堂ふうに ランダム） | 継いだ ' + pct(eggYes.clears / eggYes.runs) + ' ／ 継がない ' + pct(eggNo.clears / eggNo.runs) + ' → ' + eggRatio.toFixed(2) + ' 倍 | ' + ok(eggRatio >= 1.0 && eggRatio <= 1.3) + ' |');
+console.log('| 卵：継いだ子の ぬし勝率 60〜90% | 合わせ（継いだ子） | ' + pct(rate(eggYes.boss)) + ' | ' + ok(rate(eggYes.boss) >= 0.6 && rate(eggYes.boss) <= 0.9) + ' |');
+console.log('| 卵：継ぐ Lv2 ごとの 10連勝率、最強 ÷ 真ん中 が 1.5 倍 以下 | 合わせ、16種 × ' + EGG_RUNS + ' | 最強 ' + S.PART_BY_ID[eggBest.pid].lv2name + ' ' + pct(eggBest.clear) + '、真ん中 ' + S.PART_BY_ID[eggMid.pid].lv2name + ' ' + pct(eggMid.clear) + '、最弱 ' + S.PART_BY_ID[eggWorst.pid].lv2name + ' ' + pct(eggWorst.clear) + ' → ' + eggSpread.toFixed(2) + ' 倍 | ' + ok(eggSpread <= 1.5) + ' |');
 console.log('| （新しく：目標なし）1周回の 拾ったパーツ・なれ +10・16種そろう戦目 | 合わせ・てごわい | 合わせ：拾った ' + f2(mean(stM.pickedHist)) + '、なれ +10 ' + f2(mean(stM.nareHist)) + '、そろった ' + pct(stM.fullAt.filter(function (x) { return x >= 0; }).length / stM.runs) + ' ／ てごわい：拾った ' + f2(mean(stH.pickedHist)) + '、なれ +10 ' + f2(mean(stH.nareHist)) + '、そろった ' + pct(stH.fullAt.filter(function (x) { return x >= 0; }).length / stH.runs) + ' | - |');
 console.log('| （参考）合わせの5勝到達 85% 以上、手数 8〜14 が中心 | 合わせ・ランダム | 5勝 ' + pct(stM.reach5 / stM.runs) + '。手数 合わせ：平均 ' + f1(hsM.mean) + '・中央 ' + hsM.p50 + '・範囲内 ' + pct(hsM.within) + ' ／ ランダム：平均 ' + f1(hsR.mean) + '・中央 ' + hsR.p50 + '・範囲内 ' + pct(hsR.within) + ' | ' + ok(stM.reach5 / stM.runs >= 0.85 && handsOk(hsM) && handsOk(hsR)) + ' |');
 console.log('（参考）16種それぞれの ひらめきの割合：最低 ' + pct(minShare) + '（' + minShareName + '）、最高 ' + pct(maxShare) + '（' + maxShareName + '）');

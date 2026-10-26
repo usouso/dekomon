@@ -220,15 +220,37 @@ var P = CFG.playerAtk; // 13
   row('Lv2 もうどく', S.PART_BY_ID.fang.lv2text, [6, 7, 8, 9, 10], pz);
 })();
 (function () {
-  // おおぐい：すいついた ぶんの はんぶんが 上限に（+40まで）
-  var r = fight({ parts: ['leech'], lv2: ['leech'] }, dummy({ spd: 20 }));
-  var ups = evs(r, function (ev) { return ev.t === 'maxUp'; }).slice(0, 2).map(function (x) { return [x.amt, x.maxHp, x.healed]; });
-  row('Lv2 おおぐい', S.PART_BY_ID.leech.lv2text + '（11 うけて 104 → かいふく 4＋2、上限 117）', [[2, 117, 6], [2, 119, 6]], ups);
-  var saved = CFG.maxHands; CFG.maxHands = 80;
-  var r2 = fight({ parts: ['leech', 'claw'], lv2: ['leech'] }, dummy({ hp: 100000, spd: 1 }));
-  CFG.maxHands = saved;
-  var total = evs(r2, function (ev) { return ev.t === 'maxUp'; }).reduce(function (a, x) { return a + x.amt; }, 0);
-  row('Lv2 おおぐい', '+40 まで（長い戦いでも 上限は 115+40=155 で とまる）', { total: 40, maxHp: 155 }, { total: total, maxHp: r2.p.maxHp });
+  // おおぐい：あいてを たおすたび たいりょくの 上限 +ooguiStep（周回のあいだ残る。+ooguiCap まで）
+  var st = CFG.lv2.ooguiStep, cap = CFG.lv2.ooguiCap, base = CFG.playerHp;
+  var r = fight({ parts: ['leech'], lv2: ['leech'] }, dummy({ hp: 20, spd: 1 }));
+  var up = evs(r, function (ev) { return ev.t === 'maxUp'; });
+  var koAt = evs(r, function (ev) { return ev.t === 'ko'; })[0];
+  var lastT = r.hands[r.hands.length - 1].events.map(function (ev) { return ev.t; });
+  row('Lv2 おおぐい', S.PART_BY_ID.leech.lv2text + '（たおした 手の ko の あとに 1回）', { n: 1, amt: st, maxHp: base + st, total: st, afterKo: true, sum: st },
+    { n: up.length, amt: up[0] && up[0].amt, maxHp: up[0] && up[0].maxHp, total: up[0] && up[0].total, afterKo: !!(up[0] && koAt && up[0].handNo === koAt.handNo && lastT.indexOf('maxUp') > lastT.indexOf('ko')), sum: r.summary.oogui });
+  // 周回のあいだ残る：grow.oogui に足して 次の戦いへ。たおすたびに増え、上限で とまる
+  var grow = S.emptyGrow(), starts = [], gains = [];
+  for (var b = 0; b < 10; b++) {
+    var rb = fight({ parts: ['leech'], lv2: ['leech'], grow: grow }, dummy({ hp: 20, spd: 1 }));
+    starts.push(rb.pf.maxHp - (rb.summary.oogui || 0)); gains.push(rb.summary.oogui);
+    grow.oogui = (grow.oogui || 0) + rb.summary.oogui;
+  }
+  var expStarts = [], expGains = [], acc = 0;
+  for (var b2 = 0; b2 < 10; b2++) { expStarts.push(base + acc); var g = Math.min(st, cap - acc); expGains.push(g); acc += g; }
+  row('Lv2 おおぐい', '周回のあいだ残る：つぎの戦いは ふえた 上限で 始まる（10戦の 始めの 上限）', expStarts, starts);
+  row('Lv2 おおぐい', '+' + cap + ' で とまる（10戦の ふえた量）', expGains, gains);
+  row('Lv2 おおぐい', '合計は +' + cap + '（上限 ' + (base + cap) + '）', { total: cap, maxHp: base + cap }, { total: grow.oogui, maxHp: S.playerDef(grow).hp });
+  // 途中セーブ：grow ごと JSON で保存して 読み込んでも 残る
+  var loaded = JSON.parse(JSON.stringify({ grow: grow })).grow;
+  row('Lv2 おおぐい', '途中セーブ（grow を 保存して 読み込む）でも ふえた 上限は 残る', base + cap, S.makeFighter('p', S.playerDef(loaded, 'テスト'), ['leech'], 1, ['leech']).maxHp);
+  // 付けていない・まけた・16手の判定勝ち では ふえない
+  var rn = fight({ parts: ['claw'], lv2: ['leech'] }, dummy({ hp: 20, spd: 1 }));
+  var rl = fight({ parts: ['leech'], lv2: ['leech'] }, dummy({ hp: 10000, atk: 60, spd: 1 }));
+  var rt = fight({ parts: ['leech'], lv2: ['leech'] }, dummy({ hp: 10000, atk: 1, spd: 1 }));
+  row('Lv2 おおぐい', 'すいつくくちを 付けていない／まけた／16手の 判定勝ち では ふえない', { notOn: 0, lose: 0, timeout: 0, tWin: 'p' }, { notOn: rn.summary.oogui, lose: rl.summary.oogui, timeout: rt.summary.oogui, tWin: rt.timeout ? rt.winner : 'not-timeout' });
+  // Lv1 では ふえない
+  var r1 = fight({ parts: ['leech'] }, dummy({ hp: 20, spd: 1 }));
+  row('Lv2 おおぐい', 'Lv1 の すいつくくちでは ふえない', 0, r1.summary.oogui);
 })();
 (function () {
   // つめあと：あてるたび はやさ −1

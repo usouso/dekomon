@@ -67,11 +67,13 @@ var PAGE_HELPERS = function () {
     },
     measure: function () {
       var de = document.documentElement;
-      var sw = Math.max(de.scrollWidth, document.body.scrollWidth), sh = Math.max(de.scrollHeight, document.body.scrollHeight);
+      var zz = window.__zoom || 1; // 広い窓：body と 窓の 大きさは 単位が そろわないので、html の scroll* を html の client* と比べる
+      var sw = zz === 1 ? Math.max(de.scrollWidth, document.body.scrollWidth) : de.scrollWidth, sh = zz === 1 ? Math.max(de.scrollHeight, document.body.scrollHeight) : de.scrollHeight;
       var boxes = document.querySelectorAll('.screen.on .pcbody, #pre.on .col-l, #pre.on .col-r .plist, #pre.on .pre-grid, #fork.on .fork-path, #fork.on .items, #clear.on .col, #over.on .col, #clear.on .list.hist, #over.on .list.hist');
       var inner = [];
       for (var i = 0; i < boxes.length; i++) { var b = boxes[i]; if (b.clientHeight > 0) inner.push((b.id || b.className.split(' ').slice(0, 2).join('.')) + ' ' + b.clientHeight + '／' + b.scrollHeight + (b.scrollHeight > b.clientHeight + 1 ? '（中スクロール）' : '')); }
-      return { screen: G.screen, page: sw + '×' + sh, win: window.innerWidth + '×' + window.innerHeight, pageScroll: sh > window.innerHeight + 1 || sw > window.innerWidth + 1, inner: inner };
+      var z = window.__zoom || 1, iw = z === 1 ? window.innerWidth : de.clientWidth, ih = z === 1 ? window.innerHeight : de.clientHeight;
+      return { screen: G.screen, page: sw + '×' + sh, win: window.innerWidth + '×' + window.innerHeight + (z !== 1 ? '（倍率 ' + z.toFixed(2) + '）' : ''), pageScroll: sh > ih + 1 || sw > iw + 1, inner: inner };
     }
   };
 };

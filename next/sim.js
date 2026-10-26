@@ -27,7 +27,7 @@
     wingSpd: 10,
     lightSpd: 2, windLightSpd: 5, heavySpd: -3, mudHeavySpd: -8,
     // Lv2（ひらめき後。数字の上乗せではなく「新しく起きること」。数値は調整の対象）
-    lv2: { eyeDodges: 1, poisonGrow: 1, maxUpRatio: 0.5, maxUpCap: 40, clawSpdDown: 1, brokenHands: 3, jump2Mult: 1.3, stompMult: 1.5, zushinMax: 8,
+    lv2: { eyeDodges: 1, poisonGrow: 1, ooguiStep: 4, ooguiCap: 24, clawSpdDown: 1, brokenHands: 3, jump2Mult: 1.3, stompMult: 1.5, zushinMax: 8,
            shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 8, storeStep: 2, tailwindMax: 6, tailwindStep: 1 },
     // 分かれ道の「てごわい」相手と、頂上の ぬし
     hard: { hp: 1.15, atk: 1.15 },
@@ -123,7 +123,7 @@
       bads: [{ text: 'ふさふさの あいて', when: function (c) { return !!c.eA.fur; } },
              { text: 'あめ（どくが 1手で きえる）', when: function (c) { return c.f === 'rain'; } }] },
     { id: 'leech', name: 'すいつくくち', short: 'すいつく', loc: 'mouth', cat: 'def', weight: 'none',
-      effect: 'あたえた ダメージの 1/3 を 1げきごとに かいふく', lv2name: 'おおぐい', lv2text: 'すいついた ぶんの はんぶんが 上限と たいりょくに たされる（+40まで）',
+      effect: 'あたえた ダメージの 1/3 を 1げきごとに かいふく', lv2name: 'おおぐい', lv2text: 'あいてを たおすたび たいりょくの 上限 +' + CFG.lv2.ooguiStep + '（しゅうかいの あいだ のこる。+' + CFG.lv2.ooguiCap + ' まで）',
       goods: [{ text: 'しぶとい・かいふくの あいて（ながい たたかい）', when: function (c) { return hasTrait(c, 'tough') || hasTrait(c, 'regen'); } }],
       bads: [{ text: 'かたい あいて（ダメージが へる）', when: function (c) { return hasTrait(c, 'hard') || !!c.eA.scale; } }] },
     { id: 'claw', name: 'するどいツメ', short: 'ツメ', loc: 'fore', cat: 'atk', weight: 'light',
@@ -238,12 +238,13 @@
 
   // ---------- そだち ----------
   // grow = { tough: n, strong: n, quick: n }（それぞれの方向に育った回数）
+  // grow.oogui：おおぐい（すいつくくち Lv2）で ふえた たいりょくの 上限（この周回の合計。周回のあいだ残る。途中セーブも grow ごと）
   function emptyGrow() { return { tough: 0, strong: 0, quick: 0 }; }
   function growCount(grow) { return grow ? (grow.tough || 0) + (grow.strong || 0) + (grow.quick || 0) : 0; }
   function playerDef(grow, name) {
     var g = grow || emptyGrow();
     return { id: 'player', name: name || 'あなた',
-      hp: CFG.playerHp + CFG.grow.hp * (g.tough || 0), atk: CFG.playerAtk + CFG.grow.atk * (g.strong || 0), spd: CFG.playerSpd + CFG.grow.spd * (g.quick || 0),
+      hp: CFG.playerHp + CFG.grow.hp * (g.tough || 0) + (g.oogui || 0), atk: CFG.playerAtk + CFG.grow.atk * (g.strong || 0), spd: CFG.playerSpd + CFG.grow.spd * (g.quick || 0),
       traits: [], parts: [], grow: g };
   }
   var PLAYER_DEF = playerDef(null);
@@ -318,7 +319,8 @@
       status: { poison: null, stagger: 0, staggerBy: null, brittle: null },
       ownHands: 0, hard: hard, boss: !!def.boss,
       // 版5：Lv2 の効果で戦いの中で変わるもの
-      spdMod: 0, atkMod: 0, maxUp: 0, dodgeLeft: CFG.lv2.eyeDodges, shellHideHand: 0, skipNext: false, broken: {}, stored: 0, tailwind: 0
+      oogui: (def.grow && def.grow.oogui) || 0, // おおぐいで この周回に ふえた 上限（playerDef の grow から）
+      spdMod: 0, atkMod: 0, dodgeLeft: CFG.lv2.eyeDodges, shellHideHand: 0, skipNext: false, broken: {}, stored: 0, tailwind: 0
     };
   }
   function isHard(f) { return !!(f.T.hard || f.active.scale); }
@@ -347,7 +349,7 @@
   //   spark {side, part, by}         ひらめき（by: 'nare'・'chance'・'parent'（版8：卵で継いだパーツ））
   //   skip {side}                    ふきとばされて その手が とぶ      blown {side}            ふきとばされた
   //   dodge {side, part:'eye'}       ツノ・おおわざを よけた           poison に追加: grow（もうどく：つぎの手から +grow）
-  //   maxUp {side, amt, maxHp, hp, healed} 上限が ふえた（おおぐい）  spdDown {side, spd}     はやさが さがった
+  //   maxUp {side, amt, total, cap, maxHp, hp} 上限が ふえた（おおぐい。あいてを たおした 手の ko の あと）  spdDown {side, spd}     はやさが さがった
   //   broken {side, part, hands}     パーツが こわれた                 repaired {side, part}   なおった
   //   shellHide {side}               こうらごもり                      statusExtend {side, statuses:[...]} 状態が のびた
   //   store {side, atk}              たくわえ（こうげき +1）           tailwind {side, n, atk} おいかぜ
@@ -428,16 +430,6 @@
     function heal(f, amt, src, part, events) {
       if (amt <= 0 || f.hp <= 0) return 0;
       var before = f.hp;
-      if (part === 'leech' && f.lv2.leech && f.active.leech && f.maxUp < CFG.lv2.maxUpCap) {
-        // おおぐい：すいついた ぶんの はんぶんが 上限と たいりょくに たされる（+40まで）
-        var up = Math.min(Math.floor(amt * CFG.lv2.maxUpRatio), CFG.lv2.maxUpCap - f.maxUp);
-        if (up > 0) {
-          f.maxUp += up; f.maxHp += up; usedLv2('leech');
-          f.hp = Math.min(f.maxHp, f.hp + amt + up);
-          events.push({ t: 'maxUp', side: f.side, amt: up, maxHp: f.maxHp, hp: f.hp, healed: f.hp - before });
-          return f.hp - before;
-        }
-      }
       f.hp = Math.min(f.maxHp, f.hp + amt);
       if (f.hp > before) events.push({ t: 'heal', side: f.side, src: src, part: part, amt: f.hp - before, hp: f.hp });
       return f.hp - before;
@@ -714,6 +706,16 @@
       hands[hands.length - 1].events.push({ t: 'timeout', winner: winner });
     }
     var lastEv = hands[hands.length - 1].events;
+    // おおぐい：あいてを たおすたび たいりょくの 上限 +ooguiStep（この周回のあいだ残る。合計 ooguiCap まで）。16手の判定勝ちは「たおした」ではない
+    var ooguiUp = 0;
+    if (!timeout && winner === 'p' && e.hp <= 0 && p.lv2.leech && p.active.leech) {
+      var had = p.oogui;
+      ooguiUp = Math.max(0, Math.min(CFG.lv2.ooguiStep, CFG.lv2.ooguiCap - had));
+      if (ooguiUp > 0) {
+        p.maxHp += ooguiUp; p.hp += ooguiUp; usedLv2('leech');
+        lastEv.push({ t: 'maxUp', side: 'p', amt: ooguiUp, total: had + ooguiUp, cap: CFG.lv2.ooguiCap, maxHp: p.maxHp, hp: p.hp });
+      }
+    }
     if (!timeout && poisonKO) {
       var wf = F[winner];
       if (wf.active.fang && wf.active.shell && shellBlocks[winner] >= 3) fireSyn(winner, 5, lastEv);
@@ -722,7 +724,7 @@
       p: { hp: p.hp, maxHp: p.maxHp }, e: { hp: e.hp, maxHp: e.maxHp },
       spark: sparkPart, sparkBy: sparkBy,
       summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, spark: sparkPart, sparkBy: sparkBy,
-        received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used, maxHit: maxHit } };
+        received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used, maxHit: maxHit, oogui: ooguiUp } };
   }
 
   // 便利：1戦をつくって回す。opts.grow（そだち）, opts.lv2（Lv2 のパーツ）, opts.spark, opts.name
@@ -868,7 +870,7 @@
     return out;
   }
   function ownedMask(owned) { var m = 0; owned.forEach(function (p) { m |= 1 << PART_BY_ID[p].index; }); return m; }
-  function growKey(grow) { var g = grow || emptyGrow(); return (g.tough || 0) + ',' + (g.strong || 0) + ',' + (g.quick || 0); }
+  function growKey(grow) { var g = grow || emptyGrow(); return (g.tough || 0) + ',' + (g.strong || 0) + ',' + (g.quick || 0) + ',' + (g.oogui || 0); }
   function score(res) {
     return (res.winner === 'p' ? 1 : 0) + 0.5 * (res.p.hp / res.p.maxHp - res.e.hp / res.e.maxHp);
   }

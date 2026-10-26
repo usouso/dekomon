@@ -36,7 +36,8 @@ function newStats() {
     // 版7：報酬の中身
     rw: { partEnemy: 0, partOther: 0, nare: 0, none: 0, slots: 0 }, pickedHist: [], nareHist: [], noneHist: [], fullAt: [], nareFull: 0,
     // 版8：卵。sparkParent：おやの ひらめき（by: parent）の回数、parentAt：何戦目で おもいだしたか、lv2Lists：周回の終わりの Lv2 の一覧（卵の親に使う）
-    sparkParent: 0, parentAt: [], lv2Lists: [] };
+    sparkParent: 0, parentAt: [], lv2Lists: [],
+    ooguiBoss: { n: 0, sum: 0 } }; // おおぐい：Lv2 を持って ぬしに 挑んだ周回の 数と、そのときの ふえた上限の 合計
   for (var i = 0; i <= NB; i++) st.winsHist.push(0);
   for (var j = 0; j < NB; j++) { st.stage.push({ n: 0, w: 0 }); st.growByStage.push({ n: 0, tough: 0, strong: 0, quick: 0 }); }
   S.PART_IDS.forEach(function (p) { st.use[p] = 0; st.sparkByPart[p] = 0; st.actByPart[p] = 0; st.lv2Used[p] = 0; });
@@ -83,12 +84,14 @@ function playRun(chooser, stats, fixedParts, inherit) {
     // そだちの材料
     stats.growByStage[b].n++;
     acc.received += res.summary.received; acc.landed += res.summary.landed; acc.first += res.summary.firstHands;
+    grow.oogui = (grow.oogui || 0) + (res.summary.oogui || 0); // おおぐい：周回のあいだ残る
     if (res.spark) { stats.sparks++; stats.sparkByPart[res.spark]++; sparksThisRun++; pity = 0; if (res.sparkBy === 'nare') stats.sparkNare++; else if (res.sparkBy === 'parent') { stats.sparkParent++; parentAt = stage; } else stats.sparkChance++; if (lv2.indexOf(res.spark) < 0) lv2.push(res.spark); }
     else pity++;
     stats.stage[b].n++;
     var won = res.winner === 'p';
     var bucket = enemy.boss ? stats.boss : (hard ? stats.hardB : stats.normB);
     bucket.n++; if (won) bucket.w++;
+    if (enemy.boss && lv2.indexOf('leech') >= 0) { stats.ooguiBoss.n++; stats.ooguiBoss.sum += grow.oogui || 0; }
     if (enemy.boss) { stats.bossLv2N += lv2.length; lv2.forEach(function (p) { stats.bossLv2[p] = (stats.bossLv2[p] || 0) + 1; }); }
     if (won) { stats.stage[b].w++; wins++; stats.wins++; stats.combos[ck].w++; } else break;
     rewards.forEach(function (rw) {
@@ -328,7 +331,8 @@ console.log('最強 ' + S.PART_BY_ID[eggBest.pid].lv2name + ' ' + pct(eggBest.cl
 console.log('');
 
 // ---------- Lv2 の効き：同じ相手に Lv1 と Lv2 で戦ったときの勝率の差 ----------
-console.log('### Lv2 の効き（そのパーツを含む固定3つ 84通り × 相手10 × 場所4、段階5、育ちなし、乱れあり各 4 回。Lv1 と Lv2 の勝率の差）');
+var OOGUI5 = Math.min(S.CFG.lv2.ooguiCap, S.CFG.lv2.ooguiStep * 4);
+console.log('### Lv2 の効き（そのパーツを含む固定3つ 84通り × 相手10 × 場所4、段階5、育ちなし、乱れあり各 4 回。Lv1 と Lv2 の勝率の差。おおぐいは 戦いの あとに 効くので、Lv2 の側は 段階5 までに 4体 たおした ぶん「上限 +' + OOGUI5 + '」を 持って戦う）');
 console.log('');
 console.log('| パーツ | Lv2 の名前 | Lv1 勝率 | Lv2 勝率 | 差 | Lv2 の効果が出た割合 |');
 console.log('|---|---|---|---|---|---|');
@@ -341,7 +345,7 @@ S.PART_IDS.forEach(function (p) {
       S.FIELDS.forEach(function (f) {
         for (var t = 0; t < 4; t++) {
           if (S.runBattle(combo, e.index, 5, f.id, { rng: rng }).winner === 'p') w1++;
-          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, lv2: [p] });
+          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, lv2: [p], grow: p === 'leech' ? { tough: 0, strong: 0, quick: 0, oogui: OOGUI5 } : null });
           if (r2.winner === 'p') w2++;
           if (r2.summary.lv2Used[p]) used++;
           n++;
@@ -440,6 +444,8 @@ var gR = growShare(stR), gM = growShare(stM);
 var gRmin = Math.min(gR.tough, gR.strong, gR.quick), gRmax = Math.max(gR.tough, gR.strong, gR.quick), gMmin = Math.min(gM.tough, gM.strong, gM.quick);
 var hardRel = rate(stM.normB) ? rate(stM.hardB) / rate(stM.normB) : 0;
 var mBoss = rate(stM.boss);
+console.log('おおぐい：Lv2 を持って ぬしに 挑んだ周回 ' + stM.ooguiBoss.n + '、そのときの ふえた 上限の 平均 +' + (stM.ooguiBoss.n ? f1(stM.ooguiBoss.sum / stM.ooguiBoss.n) : '-') + '（1体 +' + S.CFG.lv2.ooguiStep + '、+' + S.CFG.lv2.ooguiCap + ' まで）');
+console.log('');
 var noneM = mean(stM.noneHist), noneH = mean(stH.noneHist);
 console.log('### 目標との比較');
 console.log('');

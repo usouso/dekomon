@@ -107,6 +107,7 @@
     'battles[].waza': 'モンスターの 技の 発動（決定 13 の あとで 入る。いまは なし）',
     'battles[].got': 'もらったもの [{ kind:part, part }｜{ kind:nare, part, amt }]（まけたら 空）',
     'battles[].sec': 'その戦いで 画面に いた 秒 { start＝周回の 始め・boss＝ぬしの 紹介（1戦目に つく）, fork＝わかれみち, summit＝ちょうじょう, pre＝バトル前（着せかえ）, battle＝戦い, win＝勝ち, grow＝そだち, zukan / dendo＝とちゅうで 見た }。画面を 開いたまま 離れた 時間も 入る（別の タブ・閉じている あいだ・タイトルに 出ている あいだは 入らない）。戦いの とちゅうで 出て やりなおすと battle は 2回分',
+    'runs[].secMada': 'まだ 終わっていない 戦いの 秒 [{ no＝何戦目, sec }]（その 戦いの 前で やめた・とちゅうで 書き出した。どこで 迷ったか 見る）',
     'runs[].end': '周回の おわり { at, wins＝勝ち数, maxHit＝さいだいの いちげき {dmg,label}, lostTo＝負けた 相手, boss＝ぬしを 倒した, abandoned＝とちゅうで やめた }。null は まだ 続いている'
   };
   // 書き出す 形：先頭に 説明・辞書。sec は 戦いの 中へ 入れる
@@ -121,7 +122,11 @@
     }
     var runs = store.runs.map(function (r) {
       var o = JSON.parse(JSON.stringify(r));
-      o.battles.forEach(function (b) { b.sec = r.sec[b.no - 1] || {}; });
+      var done = {};
+      o.battles.forEach(function (b) { b.sec = r.sec[b.no - 1] || {}; done[b.no] = true; });
+      // まだ 終わっていない 戦い（その前で やめた・とちゅう）の 秒も 残す（Codex PR #7）
+      o.secMada = [];
+      r.sec.forEach(function (t, i) { if (!done[i + 1] && t && Object.keys(t).length) o.secMada.push({ no: i + 1, sec: t }); });
       delete o.sec;
       return o;
     });

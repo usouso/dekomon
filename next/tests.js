@@ -604,8 +604,10 @@ var P = CFG.playerAtk; // 13
   row('記録', '周回は 最大 ' + KR.MAX_RUNS + '（古いものから 消える）', { n: KR.MAX_RUNS, first: 'n5' }, { n: big.runs.length, first: big.runs[0].name });
   var ex = KR.exportData(st, S, t0);
   row('記録', '書き出しは 先頭に 説明と 辞書。秒は 戦いの 中に 入る（しまってある 形は 変えない）',
-    { setsumei: true, horn: S.PART_BY_ID.horn.name, boss: S.BOSS.name, sec: { pre: 13.3 }, kept: true, file: 'dekomon-kiroku-20261027-2105.json', at: '2026-10-27 21:05' },
-    { setsumei: !!ex._setsumei && Object.keys(ex)[0] === '_setsumei', horn: ex.jisho.parts.horn, boss: ex.jisho.enemies.boss, sec: ex.runs[1].battles[0].sec, kept: Array.isArray(st.runs[1].sec) && st.runs[1].battles[0].sec === undefined, file: KR.fileName(t0), at: ex.kakidashita.slice(0, 16) });
+    { setsumei: true, horn: S.PART_BY_ID.horn.name, boss: S.BOSS.name, sec: { pre: 13.3 }, mada: [], kept: true, file: 'dekomon-kiroku-20261027-2105.json', at: '2026-10-27 21:05' },
+    { setsumei: !!ex._setsumei && Object.keys(ex)[0] === '_setsumei', horn: ex.jisho.parts.horn, boss: ex.jisho.enemies.boss, sec: ex.runs[1].battles[0].sec, mada: ex.runs[1].secMada, kept: Array.isArray(st.runs[1].sec) && st.runs[1].battles[0].sec === undefined, file: KR.fileName(t0), at: ex.kakidashita.slice(0, 16) });
+  var st2 = KR.empty(), r3 = KR.newRun(st2, { name: 'x' }, t0); KR.addTime(r3, 0, 'pre', 20); KR.addBattle(r3, Object.assign({}, b, { no: 1 })); KR.addTime(r3, 1, 'fork', 7);
+  row('記録', '終わっていない 戦いの 秒も 書き出す（secMada）', [{ no: 2, sec: { fork: 7 } }], KR.exportData(st2, S, t0).runs[0].secMada);
   var sm = KR.summarize(ex).join('\n');
   row('記録', '要約に 勝ち数・てごわいの 割合・よく つけた パーツ・負けた 相手', { hard: true, part: true, lost: true },
     { hard: sm.indexOf('てごわいを 選んだ 割合：50%（1/2）') >= 0, part: sm.indexOf(S.PART_BY_ID.horn.name + ' 2') >= 0, lost: sm.indexOf('負けた 相手：' + S.ENEMY_BY_ID.frog.name + ' 1') >= 0 });

@@ -1359,7 +1359,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function kFlush() {
     if (!kOn()) return; var now = Date.now();
     if (KREC && KT.screen && KIROKU_SCREENS[KT.screen] && !KT.off && KT.at) kSafe(function () { KR.addTime(KREC, KT.battle, KT.screen, (now - KT.at) / 1000); });
-    KT.at = now;
+    KT.at = document.hidden ? 0 : now; // 見えていない あいだは 時計を 止める（Codex PR #7）
   }
   // タイトルに 出たら、つぎに 周回の 画面に もどるまで（タイトルから 開いた ずかん・でんどう も）数えない
   function kTick(id) { if (!kOn()) return; kFlush(); KT.screen = id; KT.battle = G.battle; if (id === 'title') KT.off = true; else if (KIROKU_SCREENS[id] && id !== 'zukan' && id !== 'dendo') KT.off = false; if (KREC) kSave(); }

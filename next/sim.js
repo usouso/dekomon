@@ -27,7 +27,7 @@
     wingSpd: 10,
     lightSpd: 2, windLightSpd: 5, heavySpd: -3, mudHeavySpd: -8,
     // Lv2（ひらめき後。数字の上乗せではなく「新しく起きること」。数値は調整の対象）
-    lv2: { eyeDodges: 1, poisonGrow: 1, ooguiStep: 4, ooguiCap: 24, clawSpdDown: 1, brokenHands: 3, jump2Mult: 1.3, stompMult: 1.5, zushinMax: 8,
+    lv2: { eyeDodges: 1, poisonGrow: 1, ooguiStep: 6, ooguiCap: 30, clawSpdDown: 1, brokenHands: 3, jump2Mult: 1.3, stompMult: 1.5, zushinMax: 8,
            shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 8, storeStep: 2, tailwindMax: 6, tailwindStep: 1 },
     // 分かれ道の「てごわい」相手と、頂上の ぬし
     hard: { hp: 1.15, atk: 1.15 },

@@ -551,6 +551,36 @@ var P = CFG.playerAtk; // 13
   row('卵：名前', '子の名前は 親の頭の文字から 始まり、2〜4文字（種 1〜300）', true, okName);
 })();
 
+// ======================= 2026-10-27 決定 10-A：てごわいの 戦いでは なれが 2倍 =======================
+(function () {
+  function battle(hard, nare) {
+    var pf = S.makeFighter('p', S.playerDef(null, 'テスト'), ['fang'], 1, []);
+    var ef = S.makeFighter('e', dummy(), [], 1, [], { hard: hard });
+    return S.simulateBattle(pf, ef, 'plain', { rng: S.makeRng(5), variance: 0, spark: { stage: 1, pity: 0, nare: nare || {} } });
+  }
+  var rH = battle(true), rN = battle(false);
+  var aH = evs(rH, function (ev) { return ev.t === 'act' && ev.part === 'fang'; }), aN = evs(rN, function (ev) { return ev.t === 'act' && ev.part === 'fang'; });
+  row('てごわい：なれ ×2', 'てごわいの 相手では 発動1回で なれ +2（1回目 2・2回目 4）。発動の 回数は そのまま', { step: 2, n1: 2, n2: 4, gain: 2 * aH.length, acts: aH.length },
+    { step: aH[0] && aH[0].step, n1: aH[0] && aH[0].n, n2: aH[1] && aH[1].n, gain: rH.summary.nareGain.fang, acts: rH.summary.activations.fang });
+  row('てごわい：なれ ×2', 'ふつうの 相手では 発動1回で なれ +1', { step: 1, n1: 1, gain: aN.length }, { step: aN[0] && aN[0].step, n1: aN[0] && aN[0].n, gain: rN.summary.nareGain.fang });
+  // 満タン 20 を 超えた 発動で 必ず ひらめく（19 → 21）
+  var pf = S.makeFighter('p', S.playerDef(null, 'テスト'), ['fang'], 1, []);
+  var ef = S.makeFighter('e', dummy(), [], 1, [], { hard: true });
+  var rs = S.simulateBattle(pf, ef, 'plain', { rng: S.makeRng(3), spark: { stage: 1, pity: 0, nare: { fang: S.CFG.nare.full - 1 } } });
+  var sp = evs(rs, function (ev) { return ev.t === 'spark'; })[0];
+  var a1 = evs(rs, function (ev) { return ev.t === 'act' && ev.part === 'fang'; })[0];
+  row('てごわい：なれ ×2', 'なれ 19 で てごわい → 最初の発動で 21（満タン 20 を超えた）→ 必ず ひらめく（by: nare）', { n: S.CFG.nare.full + 1, part: 'fang', by: 'nare', hand: 1 }, { n: a1 && a1.n, part: sp && sp.part, by: sp && sp.by, hand: sp && sp.handNo });
+  // キーで 切れる（nareMul 1 なら 前と 同じ）
+  var m0 = S.CFG.hard.nareMul; S.CFG.hard.nareMul = 1; var rOff = battle(true); S.CFG.hard.nareMul = m0;
+  var aOff = evs(rOff, function (ev) { return ev.t === 'act' && ev.part === 'fang'; });
+  row('てごわい：なれ ×2', 'CFG.hard.nareMul = 1 なら てごわいでも +1（前と 同じ）', { step: 1, gain: aOff.length }, { step: aOff[0] && aOff[0].step, gain: rOff.summary.nareGain.fang });
+  // Lv2 の パーツには なれが たまらない
+  var pl = S.makeFighter('p', S.playerDef(null, 'テスト'), ['fang'], 1, ['fang']);
+  var el2 = S.makeFighter('e', dummy(), [], 1, [], { hard: true });
+  var rl = S.simulateBattle(pl, el2, 'plain', { rng: S.makeRng(5), variance: 0, spark: { stage: 1, pity: 0, nare: {} } });
+  row('てごわい：なれ ×2', 'Lv2 の パーツには なれが たまらない', 0, rl.summary.nareGain.fang || 0);
+})();
+
 // ======================= 出力 =======================
 console.log('| 札 | 文 | 期待 | 実測 | 一致 |');
 console.log('|---|---|---|---|---|');

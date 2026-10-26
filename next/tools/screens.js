@@ -16,6 +16,7 @@ var PORT = parseInt(arg('port', '8788'), 10);
 var SHOTS = arg('shots', false) === true;
 var SHOTSIZE = String(arg('shotsize', '1366x650'));
 var SHOT_DIR = path.join(__dirname, '..', 'screenshots');
+var ZB = arg('zb', ''); // 試し用：広い窓の 基準の大きさ（例 1600x760）。index.html の ?zb= に渡す
 
 function startServer() {
   return new Promise(function (resolve) {
@@ -41,15 +42,16 @@ var PAGE_HELPERS = function () {
       D.STORE.hall.push(mk('ぺっごか', 10, ['horn', 'weight', 'scale'], ['horn', 'scale'], 1, null, null, null, '#f0a35e', 'ぺっご', 'p1'));
       D.STORE.hall.push(mk('むむ', 3, ['fang', 'wing'], [], 1, null, null, null, '#9ad36a', null, 'p5'));
     },
-    // n 戦ぶん 進める（勝ち。lastWin=false なら 最後は負け）
+    // n 戦ぶん 進める（いまの G.battle から。勝ち。lastWin=false なら 最後は負け）
     advance: function (n, lastWin) {
-      for (var b = 0; b < n; b++) {
+      for (var k = 0; k < n; k++) {
+        var b = G.battle;
         var p = S.pathOf(G.run, b, 0); G.run.choices[b] = 0;
         if (b < S.CFG.runBattles - 1) S.forkRewards(G.run, b, G.owned, G.lv2, G.rng);
         var e = S.enemyDefOf(p.enemy), f = S.FIELD_BY_ID[p.field];
         var parts = S.bestLoadout(G.owned, p.enemy, b + 1, p.field, G.grow, G.lv2, !!p.hard).parts;
         var res = S.runBattle(parts, p.enemy, b + 1, p.field, { rng: S.makeRng(b + 5), grow: G.grow, lv2: G.lv2, hard: !!p.hard, spark: { stage: b + 1, pity: 0, nare: G.nare } });
-        var win = (b === n - 1) ? lastWin !== false : true;
+        var win = (k === n - 1) ? lastWin !== false : true;
         G.history.push({ enemy: e, field: f, hard: !!p.hard, parts: parts, win: win, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark });
         G.lastSummary = { sum: res.summary, enemy: e, spark: res.spark }; G.lastParts = parts.slice();
         if (res.spark && G.lv2.indexOf(res.spark) < 0) { G.lv2.push(res.spark); G.sparked.push(res.spark); }
@@ -69,9 +71,9 @@ var PAGE_HELPERS = function () {
       var de = document.documentElement;
       var zz = window.__zoom || 1; // 広い窓：body と 窓の 大きさは 単位が そろわないので、html の scroll* を html の client* と比べる
       var sw = zz === 1 ? Math.max(de.scrollWidth, document.body.scrollWidth) : de.scrollWidth, sh = zz === 1 ? Math.max(de.scrollHeight, document.body.scrollHeight) : de.scrollHeight;
-      var boxes = document.querySelectorAll('.screen.on .pcbody, #pre.on .col-l, #pre.on .col-r .plist, #pre.on .pre-grid, #fork.on .fork-path, #fork.on .items, #clear.on .col, #over.on .col, #clear.on .list.hist, #over.on .list.hist');
+      var boxes = document.querySelectorAll(window.__SCROLL_BOXES); // index.html と 同じ 箱の一覧
       var inner = [];
-      for (var i = 0; i < boxes.length; i++) { var b = boxes[i]; if (b.clientHeight > 0) inner.push((b.id || b.className.split(' ').slice(0, 2).join('.')) + ' ' + b.clientHeight + '／' + b.scrollHeight + (b.scrollHeight > b.clientHeight + 1 ? '（中スクロール）' : '')); }
+      for (var i = 0; i < boxes.length; i++) { var b = boxes[i]; if (b.clientHeight <= 0) continue; var hx = b.classList.contains('plist') && b.scrollWidth > b.clientWidth + 1; inner.push((b.id || b.className.split(' ').slice(0, 2).join('.')) + ' ' + b.clientHeight + '／' + b.scrollHeight + (hx ? '（横 ' + b.clientWidth + '／' + b.scrollWidth + '）' : '') + (b.scrollHeight > b.clientHeight + 1 || hx ? '（中スクロール）' : '')); }
       var z = window.__zoom || 1, iw = z === 1 ? window.innerWidth : de.clientWidth, ih = z === 1 ? window.innerHeight : de.clientHeight;
       return { screen: G.screen, page: sw + '×' + sh, win: window.innerWidth + '×' + window.innerHeight + (z !== 1 ? '（倍率 ' + z.toFixed(2) + '）' : ''), pageScroll: sh > ih + 1 || sw > iw + 1, inner: inner };
     }
@@ -84,7 +86,7 @@ async function openScreens(browser, size, shots) {
   var errs = [];
   page.on('pageerror', function (e) { errs.push('pageerror: ' + e.message); });
   page.on('console', function (m) { if (m.type() === 'error') errs.push(m.text()); });
-  var base = 'http://localhost:' + PORT + '/?mute=1&seed=4242&reset=1';
+  var base = 'http://localhost:' + PORT + '/?mute=1&seed=4242&reset=1' + (ZB ? '&zb=' + ZB : '');
   await page.goto(base);
   await page.evaluate(PAGE_HELPERS);
   var rows = [];
@@ -114,7 +116,7 @@ async function openScreens(browser, size, shots) {
   await snap('始め（たまごから）', 'egg_start' + sfx + '.png');
   var startInfo = await page.evaluate(function () { var G = window.__dekomon.G; return { name: G.run.name, gen: G.gen, egg: G.egg, color: G.color, owned: G.owned.slice(), nare: G.nare, saved: !!localStorage.getItem('dekomon8.run') }; });
   // 途中セーブ：開き直して ▶ → 同じ始めの画面
-  await page.goto('http://localhost:' + PORT + '/?mute=1');
+  await page.goto('http://localhost:' + PORT + '/?mute=1' + (ZB ? '&zb=' + ZB : ''));
   await page.evaluate(PAGE_HELPERS);
   var contLbl = await page.evaluate(function () { return document.getElementById('contLbl').textContent; });
   await page.click('#startBtn');
@@ -129,7 +131,11 @@ async function openScreens(browser, size, shots) {
   await snap('わかれみち（6こ）', 'fork' + sfx + '.png');
   // バトル前（1戦目）
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });
-  await snap('バトル前', 'pre' + sfx + '.png');
+  await snap('バトル前（1戦目）', 'pre' + sfx + '.png');
+  // メニュー（≡）を開いた ところ
+  await page.evaluate(function () { document.getElementById('menuBtn').click(); });
+  await snap('メニュー', 'menu' + sfx + '.png');
+  await page.evaluate(function () { document.getElementById('menuBtn').click(); });
   // 6戦 進めて わかれみち（16こ 近く・Lv2 あり）→ 勝ち → そだち
   await page.evaluate(function () { window.__h.advance(6, true); window.__dekomon.dbg.showFork(); });
   var owned6 = await page.evaluate(function () { return window.__dekomon.G.owned.length + 'こ・Lv2 ' + window.__dekomon.G.lv2.length; });
@@ -138,8 +144,18 @@ async function openScreens(browser, size, shots) {
   await snap('勝ち', 'win' + sfx + '.png');
   await page.evaluate(function () { window.__dekomon.dbg.showGrow('strong', true); });
   await snap('そだち', null);
+  // 9戦目：わかれみち → バトル前（もちもの 多め・Lv2・おやの札）
+  await page.evaluate(function () { window.__h.advance(2, true); window.__dekomon.dbg.showFork(); });
+  var owned9 = await page.evaluate(function () { return window.__dekomon.G.owned.length + 'こ・Lv2 ' + window.__dekomon.G.lv2.length; });
+  await snap('わかれみち（9戦目。' + owned9 + '）', 'fork9' + sfx + '.png');
+  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; G.run.choices[G.battle] = 0; S.forkRewards(G.run, G.battle, G.owned, G.lv2, G.rng); G.forkFor = G.battle; G.rewards = (S.pathOf(G.run, G.battle, 0).rewards || []).slice(); window.__dekomon.dbg.showPre(); });
+  await snap('バトル前（9戦目。' + owned9 + '）', 'pre9' + sfx + '.png');
+  // いちばん 多いとき：16こ 全部・Lv2 8つ・3つ つけた（札の文が いちばん 長い）。見たあと もとに もどす
+  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; window.__keep = { owned: G.owned.slice(), lv2: G.lv2.slice() }; G.owned = S.PART_IDS.slice(); G.lv2 = ['horn', 'fang', 'claw', 'shell', 'tail', 'wing', 'spike', 'crush']; window.__dekomon.dbg.showPre(); ['claw', 'tail', 'fang'].forEach(function (id) { var c = document.querySelector('#plist .pcard[data-id="' + id + '"]'); if (c) c.click(); }); });
+  await snap('バトル前（16こ・Lv2 8・3つ つけた）', 'pre16' + sfx + '.png');
+  await page.evaluate(function () { var G = window.__dekomon.G; G.owned = window.__keep.owned; G.lv2 = window.__keep.lv2; });
   // ちょうじょう
-  await page.evaluate(function () { window.__h.advance(3, true); window.__dekomon.dbg.showSummit(); });
+  await page.evaluate(function () { window.__h.advance(1, true); window.__dekomon.dbg.showSummit(); });
   await snap('ちょうじょう', 'summit' + sfx + '.png');
   // クリア（10戦）
   await page.evaluate(function () { var G = window.__dekomon.G; var S = window.DekoSim; var p = G.run.boss; var parts = S.bestLoadout(G.owned, 'boss', 10, 'summit', G.grow, G.lv2, false).parts; var res = S.runBattle(parts, 'boss', 10, 'summit', { rng: S.makeRng(77), grow: G.grow, lv2: G.lv2 }); G.history.push({ enemy: S.BOSS, field: S.SUMMIT, hard: false, parts: parts, win: true, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark }); G.lastSummary = { sum: res.summary, enemy: S.BOSS, spark: res.spark }; G.lastParts = parts; G.wins = 10; G.battle = 9; window.__dekomon.dbg.showClear(); });
@@ -160,7 +176,7 @@ async function openScreens(browser, size, shots) {
 async function shotSpark(browser, size) {
   var ctx = await browser.newContext({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1 });
   var page = await ctx.newPage();
-  await page.goto('http://localhost:' + PORT + '/?mute=1&seed=4242&reset=1&speed=0.5');
+  await page.goto('http://localhost:' + PORT + '/?mute=1&seed=4242&reset=1&speed=0.5' + (ZB ? '&zb=' + ZB : ''));
   await page.evaluate(PAGE_HELPERS);
   await page.evaluate(function () { window.__h.seedHall(); var ps = window.__dekomon.dbg.eggParents(); var i = ps.map(function (h) { return h.name; }).indexOf('えーい'); window.__dekomon.dbg.startRunEgg(i, 'claw'); });
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; window.DekoSim.forkRewards(G.run, 0, G.owned, G.lv2, G.rng); G.forkFor = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });

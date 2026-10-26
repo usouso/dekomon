@@ -1,5 +1,6 @@
 // でこもん 版8 — 画面の検査（ヘッドレス Chrome / Playwright）
-// 使い方: node tools/check.js [--runs 30] [--sizes 1366x650,1920x950,375x812] [--port 8787] [--egg] [--seed 1301]
+// 使い方: node tools/check.js [--runs 30] [--sizes 1366x650,1920x910,375x812] [--port 8787] [--egg] [--seed 1301] [--inner0 1920x910]
+// --inner0：この大きさでは「中のスクロール」0 が 合格の条件（既定 1920x910。カンマで いくつでも）。合格しなければ 終了コード 1。
 // やること: node serve.js を立てて、?auto=1&bg=1&speed=10&mute=1 の自動周回を 大きさごとに回し、
 //   index.html の auto モードが console に出す '[でこもん auto]' の行と '[でこもん 検査]'（重なり・はみ出し・透け・ページのスクロール・2回の明るさ）、
 //   '[でこもん] 画面と計算がずれた' を集めて、表（Markdown）にする。終わったら ブラウザと サーバーを 必ず閉じる。
@@ -11,11 +12,12 @@ var path = require('path');
 
 function arg(name, def) { var i = process.argv.indexOf('--' + name); if (i < 0) return def; var v = process.argv[i + 1]; return (v === undefined || v.indexOf('--') === 0) ? true : v; }
 var RUNS = parseInt(arg('runs', '30'), 10);
-var SIZES = String(arg('sizes', '1366x650,1920x950,375x812')).split(',').map(function (s) { var a = s.split('x'); return { w: parseInt(a[0], 10), h: parseInt(a[1], 10) }; });
+var SIZES = String(arg('sizes', '1366x650,1920x910,375x812')).split(',').map(function (s) { var a = s.split('x'); return { w: parseInt(a[0], 10), h: parseInt(a[1], 10) }; });
 var PORT = parseInt(arg('port', '8787'), 10);
 var EGG = arg('egg', false) === true;
 var SEED0 = parseInt(arg('seed', '1301'), 10);
 var TIMEOUT_MS = parseInt(arg('timeout', String(25 * 60 * 1000)), 10);
+var INNER0 = String(arg('inner0', '1920x910')).split(',');
 
 function startServer() {
   return new Promise(function (resolve, reject) {
@@ -85,5 +87,21 @@ function fmtObj(o) { var ks = Object.keys(o || {}); return ks.length ? ks.map(fu
     if (r.misc.length) { console.log('そのほかの console エラー（' + r.misc.length + '）：'); r.misc.slice(0, 10).forEach(function (m) { console.log('- ' + m); }); }
     console.log('殿堂 ' + r.a.hall + ' 体、親になれる子 ' + r.a.parents + ' 体');
     console.log('');
+    // 画面ごとの 中のスクロール（調べた回数は 0.1秒ごと）と 倍率
+    var A = r.a.auto, sc = Object.keys(A.screens).sort();
+    console.log('| 画面 | 調べた回数 | 中でスクロール | 例 | 倍率（回数） |');
+    console.log('|---|---|---|---|---|');
+    sc.forEach(function (s) { console.log('| ' + s + ' | ' + A.screens[s] + ' | ' + (A.innerScroll[s] || 0) + ' | ' + ((A.innerEx || {})[s] || '-') + ' | ' + fmtObj((A.zooms || {})[s]) + ' |'); });
+    console.log('');
   });
+  // 合格の条件：--inner0 の 大きさは 中のスクロール 0
+  var fail = 0;
+  INNER0.forEach(function (k) { if (!rows.some(function (r) { return r.size.w + 'x' + r.size.h === k; })) { console.log('判定 ' + k + '：調べていない → 不合格（--sizes に 入れる）'); fail++; } });
+  rows.forEach(function (r) {
+    var key = r.size.w + 'x' + r.size.h; if (INNER0.indexOf(key) < 0) return;
+    var n = Object.keys(r.a.auto.innerScroll).reduce(function (a, k) { return a + r.a.auto.innerScroll[k]; }, 0);
+    console.log('判定 ' + key + '：中のスクロール ' + n + ' → ' + (n === 0 ? '合格' : '不合格（' + fmtObj(r.a.auto.innerScroll) + '）'));
+    if (n) fail++;
+  });
+  if (fail) process.exitCode = 1;
 })().catch(function (e) { console.error(e); process.exit(1); });

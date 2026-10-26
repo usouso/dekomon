@@ -951,7 +951,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .kv-nare { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--sub); border-radius: 0 2px 0 0; }
 .kv-nare.full { background: var(--gold); }
 .kv-card.swapped { animation: swapflash calc(.6s * var(--spd)) ease-out; }
-#pre .fight-bar { flex: 0 0 auto; padding: 6px 0 8px; }
+#pre .fight-bar { flex: 0 0 auto; padding: 6px 0 calc(8px + env(safe-area-inset-bottom)); } /* iPhone の 下の 線（ホームインジケーター）に かからない */
 @media (min-width: 900px) {
   .kv-main { display: grid; grid-template-columns: minmax(0, 56fr) minmax(0, 44fr); gap: 12px; overflow: hidden; padding-bottom: 0; }
   .kv-stage { min-height: 0; overflow: hidden; }

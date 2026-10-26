@@ -12,7 +12,12 @@ PLAN.md 4章：①試作版の重なり（ぬし戦の「みつけた！」）�
 1. おおぐい（1個目）：あいてを たおすたび 上限 +4、周回のあいだ残る（+24 まで）。2026-10-26 夜 Claude Code。
 
 ## Codex の指摘
-- PR #2（2026-10-26 夜）：15分 待ったが Codex の レビューは 来なかった（指摘なし）。
+- PR #2（2026-10-26 夜）：15分 待ったが Codex の レビューは 来なかった。
+- **Codex は この repo で まだ 一度も 動いていない（2026-10-26 夜 Claude Code が 調べた）**：PR #1・#2 とも、Codex の レビュー・コメント・👀 の反応が 1つも ない。遅いのではなく、始まっていない と見られる。
+  - 考えられる理由（Claude Code からは 見えないので 未確認）：① GitHub の ChatGPT Codex Connector アプリが usouso/dekomon を 見られる設定に なっていない（Repository access）。② ChatGPT の Codex の設定（Code review）で この repo の 自動レビューが オンに なっていない（repo ごとに オンにする）。
+  - ぼくくんに 確かめてもらう（チャットの Claude から 伝える）：GitHub の Settings → Applications → Installed GitHub Apps → ChatGPT Codex Connector の Repository access に usouso/dekomon が あるか ／ Codex の設定の Code review で usouso/dekomon が オンか。
+  - 試し方：PR に「@codex review」と コメントすると その場で 頼める（GitHub への 書き込みなので、ぼくくんが いいと 言ったときだけ）。
+  - 自動の作業へ：つながったと 分かるまで、自分の PR で Codex を 15分 待っても 来ない見込み。PR を作って 確かめ（tests・check・確認役）が 終わったら、5分 見て 👀 も なければ merge してよい（待たなかった ことは STATE に書く）。つながったら この行を 消す。
 （自動の作業は 始めに 最近の PR の Codex の指摘を読んで ここに書く）
 
 ## 次
@@ -34,4 +39,5 @@ PLAN.md 4章：①試作版の重なり（ぬし戦の「みつけた！」）�
 - 公開ページ（usouso.github.io）には クラウドから通信が届かない。公開の確認は GitHub の処理の成功まで。
 
 ## ぼくくんの判断待ち
+0. Codex の自動レビューが 動いていない。上の「Codex の指摘」の 2つの設定を ぼくくんに 見てもらう。「@codex review」を PR #2 に 書いて 試すかも 聞く。
 1. おおぐいの量と ぬし勝率（next/REPORT.md の 質問1）。いまは +4（+24 まで）。

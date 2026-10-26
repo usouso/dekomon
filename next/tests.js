@@ -609,7 +609,8 @@ var P = CFG.playerAtk; // 13
   var sm = KR.summarize(ex).join('\n');
   row('記録', '要約に 勝ち数・てごわいの 割合・よく つけた パーツ・負けた 相手', { hard: true, part: true, lost: true },
     { hard: sm.indexOf('てごわいを 選んだ 割合：50%（1/2）') >= 0, part: sm.indexOf(S.PART_BY_ID.horn.name + ' 2') >= 0, lost: sm.indexOf('負けた 相手：' + S.ENEMY_BY_ID.frog.name + ' 1') >= 0 });
-  row('記録', 'こわれた 記録は 空として 読む（途中セーブとは 別）', { a: 0, b: 0, c: 1 }, { a: KR.normalize(null).runs.length, b: KR.normalize({ runs: 'x' }).runs.length, c: KR.normalize({ runs: [null, { battles: [] }] }).runs.length });
+  row('記録', 'こわれた 記録は 空として 読む・中の こわれた 戦いや 秒は 捨てる（途中セーブとは 別）', { a: 0, b: 0, c: 1, d: 1, sec: [{}, { pre: 1 }] }, (function () { var n = KR.normalize({ runs: [null, { battles: [null, { no: 1 }], sec: [null, { pre: 1 }] }] }); KR.addTime(n.runs[0], 0, 'pre', 0); KR.addBattle(n.runs[0], { no: 2 });
+      return { a: KR.normalize(null).runs.length, b: KR.normalize({ runs: 'x' }).runs.length, c: n.runs.length, d: n.runs[0].battles.length - 1, sec: n.runs[0].sec }; })());
 })();
 
 // ======================= 出力 =======================

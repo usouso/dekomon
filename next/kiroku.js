@@ -21,7 +21,12 @@
     if (!data || typeof data !== 'object' || !Array.isArray(data.runs)) return empty();
     data.v = VERSION;
     data.runs = data.runs.filter(function (r) { return r && typeof r === 'object' && Array.isArray(r.battles); });
-    data.runs.forEach(function (r) { if (!Array.isArray(r.sec)) r.sec = []; if (r.end === undefined) r.end = null; });
+    data.runs.forEach(function (r) {
+      r.battles = r.battles.filter(function (b) { return b && typeof b === 'object' && typeof b.no === 'number'; });
+      if (!Array.isArray(r.sec)) r.sec = [];
+      r.sec = r.sec.map(function (t) { return t && typeof t === 'object' ? t : {}; });
+      if (r.end === undefined) r.end = null;
+    });
     return data;
   }
   function runId(d) { return d.getTime().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36); }
@@ -101,7 +106,7 @@
     'battles[].synergies': '発動した 噛み合い [{ id, n＝回数, first＝初めて みつけた }]',
     'battles[].waza': 'モンスターの 技の 発動（決定 13 の あとで 入る。いまは なし）',
     'battles[].got': 'もらったもの [{ kind:part, part }｜{ kind:nare, part, amt }]（まけたら 空）',
-    'battles[].sec': 'その戦いで 画面に いた 秒 { fork＝わかれみち, summit＝ちょうじょう, pre＝バトル前（着せかえ）, battle＝戦い, win＝勝ち, grow＝そだち, zukan / dendo＝とちゅうで 見た }。画面を 開いたまま 離れた 時間も 入る（別の タブ・閉じている あいだは 入らない）',
+    'battles[].sec': 'その戦いで 画面に いた 秒 { start＝周回の 始め・boss＝ぬしの 紹介（1戦目に つく）, fork＝わかれみち, summit＝ちょうじょう, pre＝バトル前（着せかえ）, battle＝戦い, win＝勝ち, grow＝そだち, zukan / dendo＝とちゅうで 見た }。画面を 開いたまま 離れた 時間も 入る（別の タブ・閉じている あいだ・タイトルに 出ている あいだは 入らない）。戦いの とちゅうで 出て やりなおすと battle は 2回分',
     'runs[].end': '周回の おわり { at, wins＝勝ち数, maxHit＝さいだいの いちげき {dmg,label}, lostTo＝負けた 相手, boss＝ぬしを 倒した, abandoned＝とちゅうで やめた }。null は まだ 続いている'
   };
   // 書き出す 形：先頭に 説明・辞書。sec は 戦いの 中へ 入れる

@@ -328,7 +328,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .found .ftag { position: absolute; left: 10%; right: 10%; top: 20%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
 .found.merge .ftag { opacity: 1; }
 .found.suck .fname { transform-origin: 0 0; transition: all calc(.4s * var(--spd)) ease-in, opacity calc(.12s * var(--spd)) ease-out; left: 10px; right: auto; top: 10px; transform: scale(.15); opacity: .2; }
-.found.suck .ftag { opacity: 0; }
+.found.suck .ftag { opacity: 0; transition: none; }
+@media (max-width: 899px) { .found .fname { top: calc(20% + 36px); transform: scale(.6); transform-origin: 50% 0; } .found.merge .fname { transform: scale(1); } .found.suck .fname { transform-origin: 0 0; transform: scale(.15); } }
 .zkicon { position: absolute; left: 8px; top: 8px; width: 44px; height: 44px; z-index: 8; opacity: .55; transition: transform calc(.3s * var(--spd)), opacity calc(.3s * var(--spd)); }
 .zkicon.lit { opacity: 1; transform: scale(1.3); filter: drop-shadow(0 0 12px #ffcc4d); }
 /* ひらめき（電球、金色） */
@@ -980,6 +981,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   .kv-mon { height: 72px; }
   .kv-fdesc { display: none; } /* ばしょの 文は 押すと 出る */
   .kv-slot { min-height: 44px; flex-direction: row; gap: 6px; }
+  .kv-slot .kv-nm.long { font-size: .88rem; letter-spacing: -.06em; } .kv-slot.on:has(.kv-nm.long) { gap: 2px; }
   .kv-stage, .kv-handcol { flex: 0 0 auto; } /* スマホ：舞台と 手札は 縮めず、まとめて 中で スクロール */
   .kv-side.foe .met { display: none; } /* 名前の 行を 1行に（はじめて は 文の欄でも 分かる） */
   .kv-chip { font-size: 1rem; padding: 2px 8px 2px 3px; }
@@ -1021,6 +1023,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .dr-it .kv-lv2 { font-size: .9rem; }
 #fork .trailbox .trail svg { height: 48px; }
 .dr-it .kv-nm { white-space: nowrap; font-size: .95rem; }
+/* 5文字の 名前（ながいあし・ながしっぽ）は 札に 入るように 字の間を つめ、字は 1割ほど 小さく（ほかの 名前は そのまま） */
+.dr-it .kv-nm.long { font-size: .88rem; letter-spacing: -.06em; }
+.kv-card .kv-nm.long { letter-spacing: -.07em; font-size: .94em; }
 .dr-it.last { border-color: #9fd8ff; }
 .dr-it.lv2 { border-color: #a8862a; }
 .dr-it.lv2.last { border-color: #9fd8ff; }
@@ -2060,7 +2065,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     S.LOCS.forEach(function (loc) {
       G.owned.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; }).forEach(function (id) {
         var isLv2 = G.lv2.indexOf(id) >= 0, last = (G.lastParts || []).indexOf(id) >= 0;
-        var b = el('button', 'dr-it' + (isLv2 ? ' lv2' : '') + (last ? ' last' : ''), partIcon(id) + '<span class="kv-nm">' + esc(S.PART_BY_ID[id].short) + '</span>' + (isLv2 ? '<span class="kv-lv2">Lv2</span>' : ''));
+        var b = el('button', 'dr-it' + (isLv2 ? ' lv2' : '') + (last ? ' last' : ''), partIcon(id) + '<span class="kv-nm' + (S.PART_BY_ID[id].short.length >= 5 ? ' long' : '') + '">' + esc(S.PART_BY_ID[id].short) + '</span>' + (isLv2 ? '<span class="kv-lv2">Lv2</span>' : ''));
         b.type = 'button'; b.dataset.id = id;
         b.addEventListener('click', function () { showInfo('forkInfo', infoPartHTML(id, { mine: true })); });
         grid.appendChild(b);
@@ -2203,7 +2208,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var sl = $('slots'); sl.innerHTML = '';
     for (var i = 0; i < 3; i++) (function (id, n) {
       if (!id) { var eb = el('button', 'kv-slot empty', '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを えらんで、もう 1かい おすと ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
-      var b = el('button', 'kv-slot on' + (G.lv2.indexOf(id) >= 0 ? ' lv2' : ''), partIcon(id) + '<span class="kv-nm">' + esc(S.PART_BY_ID[id].short) + '</span>'); b.type = 'button';
+      var b = el('button', 'kv-slot on' + (G.lv2.indexOf(id) >= 0 ? ' lv2' : ''), partIcon(id) + '<span class="kv-nm' + (S.PART_BY_ID[id].short.length >= 5 ? ' long' : '') + '">' + esc(S.PART_BY_ID[id].short) + '</span>'); b.type = 'button';
       b.addEventListener('click', function () { selectPart(id); });
       sl.appendChild(b);
     })(G.attached[i], i + 1);
@@ -2226,7 +2231,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         var nare = G.nare[id] || 0, full = S.CFG.nare.full, soon = !isLv2 && nare >= full, parent = !!(G.egg && G.egg.part === id && !isLv2);
         var marks = hints ? (hints.anyGood ? '<span class="mark g">◎</span>' : '') + (hints.anyBad ? '<span class="mark b">✕</span>' : '') : '';
         var c = el('button', 'kv-card' + (on ? ' on' : '') + (isLv2 ? ' lv2' : '') + (preSel === id ? ' sel' : '') + (soon ? ' soon' : ''),
-          partIcon(id) + '<span class="kv-nm">' + esc(p.short) + '</span><span class="kv-mk">' + marks + '</span>' +
+          partIcon(id) + '<span class="kv-nm' + (p.short.length >= 5 ? ' long' : '') + '">' + esc(p.short) + '</span><span class="kv-mk">' + marks + '</span>' +
           (isLv2 ? '<span class="kv-lv2">Lv2</span>' : '') + (parent ? '<span class="kv-par">おや</span>' : '') + (on ? '<span class="kv-on">✓</span>' : '') +
           (isLv2 ? '' : '<i class="kv-nare' + (soon ? ' full' : '') + '" style="width:' + Math.round(Math.min(1, nare / full) * 100) + '%"></i>'));
         c.type = 'button'; c.dataset.id = id;
@@ -2625,7 +2630,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     else { $('sparkT1').textContent = 'ひらめいた！'; $('sparkName').textContent = P2.name + ' Lv2「' + P2.lv2name + '」' + (by === 'nare' ? '（なれ！）' : ''); }
     var pop = $('sparkpop'); pop.classList.remove('on'); void pop.offsetWidth; pop.classList.add('on');
     sfx('sparkle');
-    setTimeout(function () { pop.classList.remove('on'); }, 1500 / OPT.speed);
+    setTimeout(function () { pop.classList.remove('on'); }, 1400 / OPT.speed);
   }
 
   // ---------- 検査：文字の重なり・はみ出し、後ろの画面の透け（?auto=1 のあいだ） ----------
@@ -2828,7 +2833,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         if (ev.t === 'spark') {
           // ひらめき：0.8秒 止める。その手の効果は Lv2 で出る（sim がそうなっている）
           tl.at(0, function () { sparkFx(ev.side, ev.part, ev.by); removeNareBar(ev.part); hitstop(800); });
-          tl.add(800);
+          tl.add(1500); // 「ひらめいた！」が 消えてから その手の つづき（大きな文字と 重ねない）
         } else if (ev.t === 'act') {
           tl.at(0, function () { setNareBar(ev.part, ev.n); });
         } else if (ev.t === 'skip') {

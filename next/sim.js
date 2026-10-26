@@ -30,7 +30,7 @@
     lv2: { eyeDodges: 1, poisonGrow: 1, ooguiStep: 6, ooguiCap: 30, clawSpdDown: 1, brokenHands: 3, jump2Mult: 1.3, stompMult: 1.5, zushinMax: 8,
            shellHideBelow: 0.3, deflectMax: 10, extendHands: 1, storeMax: 8, storeStep: 2, tailwindMax: 6, tailwindStep: 1 },
     // 分かれ道の「てごわい」相手と、頂上の ぬし
-    hard: { hp: 1.15, atk: 1.15 },
+    hard: { hp: 1.15, atk: 1.15, nareMul: 2 }, // nareMul：てごわいの 戦いでは パーツの 発動で たまる なれが この倍（2026-10-27 ぼくくんの 決定 10-A。1 で 切れる）
     boss: { hp: 1.6, atk: 1.1 },
     // ひらめきの確率：発動1回あたり base ＋ 段階ごとに perStage ＋ 出なかった戦いごとに pity。1戦に1回まで。
     spark: { base: 0.010, perStage: 0.002, pity: 0.015 },
@@ -366,12 +366,16 @@
     var nareBase = (sparkOpt && sparkOpt.nare) || {};
     var sparkDone = false, sparkPart = null, sparkBy = null;
     var activations = {};
+    // なれの たまり：てごわいの 相手（e.hard）なら 1回の発動で +nareMul（決定 10-A）。nareGain は この戦いで たまった なれ
+    var nareStep = (e.hard && CFG.hard.nareMul > 1) ? CFG.hard.nareMul : 1;
+    var nareGain = {};
     function trySpark(f, part, events) {
       if (f.side !== 'p' || !f.active[part]) return false;
       activations[part] = (activations[part] || 0) + 1;
       if (f.lv2[part]) return false;
-      var nare = (nareBase[part] || 0) + activations[part];
-      events.push({ t: 'act', side: f.side, part: part, n: nare });
+      nareGain[part] = (nareGain[part] || 0) + nareStep;
+      var nare = (nareBase[part] || 0) + nareGain[part];
+      events.push({ t: 'act', side: f.side, part: part, n: nare, step: nareStep });
       if (!sparkOpt || sparkDone || variance <= 0) return false;
       var chance = CFG.spark.base + CFG.spark.perStage * ((sparkOpt.stage || 1) - 1) + CFG.spark.pity * (sparkOpt.pity || 0);
       var byNare = nare > CFG.nare.full; // full に なった あと（full を超えた）の発動で必ず
@@ -723,7 +727,7 @@
     return { winner: winner, timeout: timeout, nHands: hands.length, hands: hands, start: start,
       p: { hp: p.hp, maxHp: p.maxHp }, e: { hp: e.hp, maxHp: e.maxHp },
       spark: sparkPart, sparkBy: sparkBy,
-      summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, spark: sparkPart, sparkBy: sparkBy,
+      summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, nareGain: nareGain, nareStep: nareStep, spark: sparkPart, sparkBy: sparkBy,
         received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used, maxHit: maxHit, oogui: ooguiUp } };
   }
 

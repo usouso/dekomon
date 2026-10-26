@@ -322,7 +322,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .found .fcard { position: absolute; top: 34%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
 .found .fcard.l { left: -40%; } .found .fcard.r { right: -40%; }
 .found.fly .fcard.l { left: 22%; } .found.fly .fcard.r { right: 22%; }
-.found.merge .fcard { opacity: 0; }
+.found.merge .fcard { opacity: 0; transition: none; } /* 名前が 出る 瞬間に 札は 消す（消えかけの 札と 名前を 重ねない） */
 .found .fname { position: absolute; left: 10%; right: 10%; top: 34%; line-height: 1.15; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
 .found.merge .fname { opacity: 1; transform: translateY(-50%) scale(1); }
 .found .ftag { position: absolute; left: 10%; right: 10%; top: 20%; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity calc(.2s * var(--spd)); }
@@ -437,6 +437,15 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .nbar i { display: block; height: 100%; background: #7fb4d8; border-radius: 3px; }
 .nbar.near { opacity: 1; width: 44px; height: 8px; border-color: #ffd54a; } .nbar.near i { background: #ffd54a; }
 .nbar.full { opacity: 1; width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.full i { background: #ffe08a; }
+/* てごわいの 戦い：なれが 2倍 たまる。ゲージを はっきり（いつも 見える・赤い わく・のびが 大きい） */
+.nbar.x2 { opacity: 1; width: 44px; height: 8px; border: 2px solid #ff6b6b; } .nbar.x2 i { background: #ff9f6b; transition: width calc(.25s * var(--spd)) ease-out; }
+.nbar.x2.near i { background: #ffd54a; }
+.nbar.x2.full { width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.x2.full i { background: #ffe08a; }
+.b-fld { display: inline-block; padding-right: 28px; } /* なれ ×2 が はねても 枠の中 */
+.nx2 { display: inline-block; margin-left: 14px; transform-origin: 0 50%; font-size: 1.05rem; font-weight: 900; padding: 1px 10px; border-radius: 10px; background: #ff9f6b; color: #2a0b0b; white-space: nowrap; }
+.nx2.fx-nare-up { animation: nx2up calc(.5s * var(--spd)) ease-out; }
+@keyframes nx2up { 0% { transform: scale(1.2); box-shadow: 0 0 14px #ff9f6b; } 100% { transform: scale(1); box-shadow: none; } }
+.dr-nx2 { font: inherit; cursor: pointer; border: 0; -webkit-appearance: none; appearance: none; font-size: 1.05rem; font-weight: 900; background: #ff9f6b; color: #2a0b0b; border-radius: 10px; padding: 1px 10px; margin-left: 6px; white-space: nowrap; }
 .anim.blownback { animation: blownback calc(.5s * var(--spd)) ease-out; }
 @keyframes blownback { 0% { transform: translateX(0);} 40% { transform: translateX(calc(-22% * var(--dir))) rotate(calc(-12deg * var(--dir)));} 100% { transform: translateX(0);} }
 .anim.stunned { animation: stunned calc(.6s * var(--spd)) ease-in-out; }
@@ -1162,7 +1171,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         </div>
         <div class="kv-vs">VS</div>
         <div class="kv-side foe" id="preFoe">
-          <div class="kv-nm"><span id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
+          <div class="kv-nm"><span id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="nx2" id="eNareX2" style="display:none">なれ ×2</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
           <div id="eStats"></div>
           <div class="kv-mon" id="eMon"></div>
           <div class="kv-chips" id="eChips"></div>
@@ -1186,7 +1195,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 <!-- バトル -->
 <div id="battle" class="screen">
   <div class="b-inner">
-  <div class="b-top"><span id="bField"></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
+  <div class="b-top"><span class="b-fld"><span id="bField"></span><span class="nx2" id="bNareX2" style="display:none">なれ ×2</span></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
   <div class="hpRow">
     <div class="hpBox p"><div class="hp-name"><span class="nm" id="bPName">あなた</span><span class="num" id="hpNumP"></span></div><div class="hp" id="hpP"><div class="ghost" id="ghostP"></div><div class="fill" id="fillP"></div></div></div>
     <div class="hpBox e"><div class="hp-name"><span class="nm" id="bEName"></span><span class="num" id="hpNumE"></span></div><div class="hp" id="hpE"><div class="ghost" id="ghostE"></div><div class="fill" id="fillE"></div></div></div>
@@ -2091,10 +2100,12 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       var met = metCount(def.id);
       var d = el('div', 'dr-door' + (path.hard ? ' hard' : ''));
       d.style.setProperty('--fc', fld.color);
-      d.innerHTML = '<div class="dr-head"><span class="dr-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="dr-hard">てごわい</span>' : '') + '</div>' +
+      d.innerHTML = '<div class="dr-head"><span class="dr-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="dr-hard">てごわい</span>' + (S.CFG.hard.nareMul > 1 ? '<button type="button" class="dr-nx2">なれ ×' + S.CFG.hard.nareMul + '</button>' : '') : '') + '</div>' +
         '<div class="dr-foe"><div class="dr-name"><b>' + esc(def.name) + '</b><span class="met' + (met ? '' : ' first') + '">' + (met ? (met + 1) + 'かいめ' : 'はじめて') + '</span></div>' +
         statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, fld.id), hpCls: path.hard ? 'hard' : '', atkCls: path.hard ? 'hard' : '' }, 'e') +
         '<div class="dr-mon">' + monsterSVG(def.id, def.parts, 'l', def.traits) + '</div></div>';
+      var nxb = d.querySelector('.dr-nx2');
+      if (nxb) nxb.addEventListener('click', function () { showInfo('forkInfo', '<div class="info"><div class="if-name">なれ ×' + S.CFG.hard.nareMul + '（てごわい）</div><div class="if-eff">この たたかいでは、パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'); });
       var chips = el('div', 'kv-chips');
       def.traits.forEach(function (t) { chips.appendChild(chipEl('trait', t, 'forkInfo')); });
       def.parts.forEach(function (pid) { chips.appendChild(chipEl('part', pid, 'forkInfo')); });
@@ -2161,6 +2172,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('eName').textContent = e.name;
     var mb = $('eMet'); mb.textContent = met ? (met + 1) + 'かいめ' : 'はじめて'; mb.className = 'met' + (met ? '' : ' first');
     $('eHard').style.display = hard ? 'inline-block' : 'none';
+    $('eNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('eNareX2').style.display = (hard && S.CFG.hard.nareMul > 1) ? 'inline-block' : 'none';
     $('eBoss').style.display = e.boss ? 'inline-block' : 'none';
     $('preFoe').className = 'kv-side foe' + (hard ? ' hard' : '') + (e.boss ? ' boss' : '');
     $('eStats').innerHTML = statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, f.id), hpCls: hard ? 'hard' : '', atkCls: hard ? 'hard' : '' }, 'e');
@@ -2540,7 +2552,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     Array.prototype.forEach.call(bar.querySelectorAll('.stchip.' + st), function (c) { c.classList.remove('up'); void c.offsetWidth; c.classList.add('up'); });
   }
   // なれ の小さいゲージ：自分の 付けている Lv2 でないパーツの上に。満タン近くだけ目立つ
-  var NARE_NOW = {};
+  var NARE_NOW = {}, NARE_X2 = false; // NARE_X2：てごわいの 戦い（なれ ×2）
   function placeNareBars() {
     var layer = $('nareLayer'); layer.innerHTML = '';
     G.attached.forEach(function (pid) {
@@ -2558,7 +2570,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var d = $('nareLayer').querySelector('.nbar[data-part="' + pid + '"]'); if (!d) return;
     var full = S.CFG.nare.full, r = Math.min(1, n / full);
     d.querySelector('i').style.width = Math.round(r * 100) + '%';
-    d.className = 'nbar' + (n >= full ? ' full' : (r >= 0.75 ? ' near' : ''));
+    d.className = 'nbar' + (n >= full ? ' full' : (r >= 0.75 ? ' near' : '')) + (NARE_X2 ? ' x2' : '');
   }
   function removeNareBar(pid) { var d = $('nareLayer').querySelector('.nbar[data-part="' + pid + '"]'); if (d) d.parentNode.removeChild(d); }
   function setMax(side, max) {
@@ -2787,6 +2799,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     G.curRes = res;
 
     $('bField').textContent = f.name + (hard ? '　てごわい' : '');
+    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
     $('bPName').textContent = G.run.name;
     $('bEName').textContent = e.name;
     $('bHand').textContent = '0';
@@ -2835,7 +2848,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           tl.at(0, function () { sparkFx(ev.side, ev.part, ev.by); removeNareBar(ev.part); hitstop(800); });
           tl.add(1500); // 「ひらめいた！」が 消えてから その手の つづき（大きな文字と 重ねない）
         } else if (ev.t === 'act') {
-          tl.at(0, function () { setNareBar(ev.part, ev.n); });
+          tl.at(0, function () { setNareBar(ev.part, ev.n); if (ev.step > 1) { var x = $('bNareX2'); x.classList.remove('fx-nare-up'); void x.offsetWidth; x.classList.add('fx-nare-up'); } });
         } else if (ev.t === 'skip') {
           tl.at(0, function () { playAnim(ev.side, 'stunned'); setBig(ev.side, 'うごけない', null, null, 'status'); dmgFx(ev.side, 'うごけない', 'weak'); sfx('weak'); });
           tl.add(800);
@@ -3012,7 +3025,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       if (mismatch) console.error('[でこもん] 画面と計算がずれた', { shownHp: { p: HP.p, e: HP.e }, simHp: { p: res.p.hp, e: res.e.hp }, shownHands: handsPlayed, simHands: res.nHands });
       if (OPT.auto) { G.auto.battles++; if (mismatch) G.auto.mismatches++; if (won) G.auto.wins++; if (res.spark) G.auto.sparks++; if (res.sparkBy === 'nare') G.auto.sparkNare++; if (res.sparkBy === 'parent') G.auto.sparkParent++; Object.keys(res.summary.lv2Used).forEach(function (pid) { G.auto.lv2Used[pid] = (G.auto.lv2Used[pid] || 0) + 1; }); }
       // なれ：発動した回数を足す（Lv2 になったパーツは もう数えない）
-      Object.keys(res.summary.activations).forEach(function (pid) { if (lv2Before.indexOf(pid) < 0) G.nare[pid] = (G.nare[pid] || 0) + res.summary.activations[pid]; });
+      Object.keys(res.summary.activations).forEach(function (pid) { if (lv2Before.indexOf(pid) < 0) G.nare[pid] = (G.nare[pid] || 0) + (res.summary.nareGain[pid] || 0); }); // てごわいなら 発動1回で +2（決定 10-A）
       if (res.spark) { if (G.lv2.indexOf(res.spark) < 0) G.lv2.push(res.spark); G.sparked.push(res.spark); recordSpark(res.spark); G.pity = 0; } else G.pity++;
       // そだちの材料
       G.grow.oogui = (G.grow.oogui || 0) + (res.summary.oogui || 0); // おおぐい：周回のあいだ残る（途中セーブも grow ごと）

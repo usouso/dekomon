@@ -74,7 +74,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     parts.forEach(function (p) { stats.use[p]++; });
     if (res.timeout) stats.timeouts++;
     res.summary.synergies.forEach(function (s) { if (s.side === 'p') synSeen[s.id] = true; });
-    Object.keys(res.summary.activations).forEach(function (p) { stats.actByPart[p] += res.summary.activations[p]; if (lv2.indexOf(p) < 0) nare[p] = (nare[p] || 0) + res.summary.activations[p]; });
+    Object.keys(res.summary.activations).forEach(function (p) { stats.actByPart[p] += res.summary.activations[p]; if (lv2.indexOf(p) < 0) nare[p] = (nare[p] || 0) + (res.summary.nareGain[p] || 0); }); // なれ：てごわいなら 発動1回で +2（決定 10-A）
     Object.keys(res.summary.lv2Used).forEach(function (p) { stats.lv2Used[p]++; });
     stats.maxHits.push(res.summary.maxHit.dmg);
     if (res.summary.maxHit.label) stats.maxHitLabel[res.summary.maxHit.label] = (stats.maxHitLabel[res.summary.maxHit.label] || 0) + 1;
@@ -194,6 +194,11 @@ var hardBot = {
   loadout: matchedBot.loadout,
   fork: function (paths) { return paths[0].hard ? 0 : 1; }
 };
+// ふつう：道は必ず ふつう側（てごわいを 選ばない）。パーツは 合わせと同じ（決定 10 の 比べ）
+var normalBot = {
+  loadout: matchedBot.loadout,
+  fork: function (paths) { return paths[0].hard ? 1 : 0; }
+};
 // 固定：パーツは固定。道は その3つで 勝ちやすい方
 var fixedBot = {
   loadout: null,
@@ -214,6 +219,26 @@ var hsM = reportBot('合わせボット（毎戦その相手に最良の3つ。�
 var stH = newStats();
 for (var j2 = 0; j2 < RUNS; j2++) playRun(hardBot, stH);
 var hsH = reportBot('てごわいボット（道は必ず てごわい側。パーツは合わせと同じ）', stH);
+var stN = newStats();
+for (var j3 = 0; j3 < RUNS; j3++) playRun(normalBot, stN);
+var hsN = reportBot('ふつうボット（道は必ず ふつう側＝てごわいを 選ばない。パーツは合わせと同じ）', stN);
+// 決定 10：てごわいの なれ ×2。選ぶ（てごわいボット）／選ばない（ふつうボット）の 比べと、×2 の あり／なし
+(function () {
+  var mul0 = S.CFG.hard.nareMul;
+  S.CFG.hard.nareMul = 1; var stH1 = newStats(); for (var k = 0; k < RUNS; k++) playRun(hardBot, stH1); S.CFG.hard.nareMul = mul0;
+  function row(name, st) { return '| ' + name + ' | ' + pct(st.clears / st.runs) + ' | ' + pct(st.boss.n ? st.boss.w / st.boss.n : 0) + '（' + st.boss.n + ' 戦） | ' + f2(st.sparks / st.runs) + ' | ' + f2(st.sparkNare / st.runs) + ' |'; }
+  console.log('### 決定 10：てごわいの なれ ×' + mul0 + '（選ぶ／選ばない。周回 ' + RUNS + ' 回ずつ）');
+  console.log('');
+  console.log('| ボット | 10連勝率 | ぬし勝率 | ひらめき／周回 | なれ満タンの ひらめき／周回 |');
+  console.log('|---|---|---|---|---|');
+  console.log(row('てごわいボット（なれ ×' + mul0 + '）', stH));
+  console.log(row('てごわいボット（なれ ×1＝前）', stH1));
+  console.log(row('ふつうボット', stN));
+  console.log(row('合わせボット（勝ちやすい方）', stM));
+  console.log('');
+  console.log('選ぶ ÷ 選ばない：10連勝率 ' + (stN.clears ? (stH.clears / stN.clears).toFixed(2) : '-') + ' 倍、ぬし勝率 ' + ((stN.boss.n && stH.boss.n) ? ((stH.boss.w / stH.boss.n) / (stN.boss.w / stN.boss.n)).toFixed(2) : '-') + ' 倍（目安 0.9〜1.2）');
+  console.log('');
+})();
 
 console.log('### 合わせボットのパーツ使用率（その戦いで付けていた割合）とひらめき');
 console.log('');

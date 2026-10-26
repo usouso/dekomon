@@ -441,7 +441,7 @@ var P = CFG.playerAtk; // 13
   var ap3 = S.applyReward({ kind: 'nare', part: 'fang', amt: 10 }, ['fang'], { fang: 3 }, []);
   row('なれ +10', 'なれ 3 → 13 は まだ 満タンでない', { to: 13, full: false }, { to: ap3.to, full: ap3.full });
   // 噛み合い 3 が 消えて、9・10・11 が ある（版8：10・11 は 差し替え）
-  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」は なく、9・10・11 が ある（10 こ）。10 ふきとばし＋ばねあし、11 かいたい＋ばねあし', { n: 10, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11], has3: false, n10: 'ふきとばし＋ばねあし', n11: 'かいたい＋ばねあし' }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3], n10: S.SYN_BY_ID[10].name, n11: S.SYN_BY_ID[11].name });
+  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」は なく、9・10・11 が ある（10 こ）。10 ふきとばし＋ばねあし、11 かいたい＋ツノ', { n: 10, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11], has3: false, n10: 'ふきとばし＋ばねあし', n11: 'かいたい＋ツノ' }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3], n10: S.SYN_BY_ID[10].name, n11: S.SYN_BY_ID[11].name });
   row('噛み合いの文', '図鑑の文は 2行まで（40文字 以下）', true, S.SYNERGIES.every(function (x) { return x.desc.length <= 40; }));
   // 9 はじく＋トゲ：起きる（相手の 1げき 11−4 = 7 ≤ 10 → 0 に はじく → 同じ 1げきで トゲの はんげき）
   var r10 = fight({ parts: ['scale', 'spike'], lv2: ['scale'] }, dummy({ spd: 20 }));
@@ -462,31 +462,33 @@ var P = CFG.playerAtk; // 13
   // 10 起きない：ぬま では ばねあしが 2かい こうげきできない（ふきとばしは 出る）
   var r13m = fight({ parts: ['horn', 'spring'], lv2: ['horn'] }, dummy({ spd: 5 }), 'mud');
   row('ふきとばし＋ばねあし', 'ぬま では ばねあしが 1かいなので 起きない（ふきとばしは 出る）', { syn10: false, blown: true }, { syn10: r13m.summary.synergies.some(function (x) { return x.id === 10; }), blown: evs(r13m, function (ev) { return ev.t === 'blown'; }).length > 0 });
-  // 11 かいたい＋ばねあし：起きる。相手の トゲを かいたいで こわした あいだ（相手の つぎの手まで）に、ばねあしの 2かいが はんげきなしで 通る。
-  //   相手の トゲが こわれている ところから 始め、自分の 3手めが すぐ来るように ownHands を 2 にしておく（3手めの ばねあし）
-  var p14 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, ['crush']);
-  var e14 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
-  e14.active.spike = false; e14.broken.spike = 3; p14.ownHands = 2;
-  var r14 = S.simulateBattle(p14, e14, 'plain', { variance: 0 });
-  var h14 = r14.hands[0];
-  row('かいたい＋ばねあし', S.SYN_BY_ID[11].desc + '（トゲが こわれている ところから）', { double: true, hits: 2, counters: 0, syn11: true }, { double: h14.events.some(function (ev) { return ev.t === 'double'; }), hits: h14.events.filter(function (ev) { return ev.t === 'hit'; }).length, counters: h14.events.filter(function (ev) { return ev.t === 'counter'; }).length, syn11: h14.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 11; }) });
-  // 11 起きない：トゲが こわれていなければ 2かいとも はんげきを うける
-  var p15 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, ['crush']);
-  var e15 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
-  p15.ownHands = 2;
-  var r15 = S.simulateBattle(p15, e15, 'plain', { variance: 0 });
-  var h15 = r15.hands[0];
-  row('かいたい＋ばねあし', 'トゲが こわれていない手では 起きない（1かいめは はんげきを うける。2かいめで もろい あいての トゲを こわす）', { hits: 2, counters: 1, brokenNow: true, syn11: false }, { hits: h15.events.filter(function (ev) { return ev.t === 'hit'; }).length, counters: h15.events.filter(function (ev) { return ev.t === 'counter'; }).length, brokenNow: h15.events.some(function (ev) { return ev.t === 'broken' && ev.part === 'spike'; }), syn11: h15.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 11; }) });
+  // 11 かいたい＋ツノ（昼の作業で差し替え）：起きる。相手の コウラが かいたいで こわれている ところから、自分の 3手め（ツノの手）が すぐ来るように ownHands を 2 に。
+  //   コウラが こわれているので ツノの 1げきは へらない（13 × 2.5 = 32.5 → 33。こわれていなければ −33% で 22）
+  function syn11(r) { return r.summary.synergies.some(function (x) { return x.id === 11; }); }
+  function syn11first(r) { // 自分の 最初の ツノの手 だけで 見る
+    var h = r.hands.filter(function (x) { return x.actor === 'p' && x.events.some(function (ev) { return ev.t === 'hit' && ev.horn; }); })[0];
+    return !!h && h.events.some(function (ev) { return ev.t === 'synergy' && ev.id === 11; });
+  }
+  function hornHit(r) { var h = evs(r, function (ev) { return ev.t === 'hit' && ev.side === 'p' && ev.horn; })[0]; return h ? h.dmg : null; }
+  function fight11(lv2, broken) {
+    var pp = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'horn'], 1, lv2);
+    var ee = S.makeFighter('e', dummy({ spd: 5, parts: ['shell'] }), ['shell'], 1, []);
+    if (broken) { ee.active.shell = false; ee.broken.shell = 3; }
+    pp.ownHands = 2;
+    return S.simulateBattle(pp, ee, 'plain', { variance: 0, rng: S.makeRng(1) });
+  }
+  var r14 = fight11(['crush'], true);
+  row('かいたい＋ツノ', S.SYN_BY_ID[11].desc + '（コウラが こわれている ところから。ツノは へらずに 33）', { horn: 33, syn11: true }, { horn: hornHit(r14), syn11: syn11first(r14) });
+  // 11 起きない：パーツが こわれていなければ（コウラで 22 に へる）
+  var r15 = fight11(['crush'], false);
+  row('かいたい＋ツノ', 'パーツが こわれていない あいてでは 起きない（最初の ツノの手。コウラで 22 に へる）', { horn: 22, syn11: false }, { horn: hornHit(r15), syn11: syn11first(r15) });
   // 11 起きない：くだくツメが Lv1（かいたい なし）なら、こわれていても 噛み合いでは ない
-  var p16 = S.makeFighter('p', S.playerDef(null, 'テスト'), ['crush', 'spring'], 1, []);
-  var e16 = S.makeFighter('e', dummy({ spd: 5, parts: ['spike'] }), ['spike'], 1, []);
-  e16.active.spike = false; e16.broken.spike = 3; p16.ownHands = 2;
-  var r16 = S.simulateBattle(p16, e16, 'plain', { variance: 0 });
-  row('かいたい＋ばねあし', 'くだくツメが Lv1 なら（かいたいで こわしたのでは ないので）起きない', false, r16.summary.synergies.some(function (x) { return x.id === 11; }));
-  // 11 実戦の形：ドロガエル（トゲ・ながいしっぽ）に くだくツメ Lv2＋ばねあし で、こわす→ばねあし の順が そろえば 起きる（乱数の種を 変えて 1つでも 起きるか）
+  var r16 = fight11([], true);
+  row('かいたい＋ツノ', 'くだくツメが Lv1 なら（かいたいで こわしたのでは ないので）起きない', { horn: 33, syn11: false }, { horn: hornHit(r16), syn11: syn11(r16) });
+  // 11 実戦の形：イシガメ（コウラ・ツノ）に くだくツメ Lv2＋ツノ で、もろく → こわす → ツノ の順が そろえば 起きる
   var fired11 = 0;
-  for (var sd = 1; sd <= 60; sd++) { var rf = fight({ parts: ['crush', 'spring', 'weight'], lv2: ['crush'] }, S.ENEMY_BY_ID.frog, 'plain', { rng: S.makeRng(sd) }); if (rf.summary.synergies.some(function (x) { return x.id === 11; })) fired11++; }
-  row('かいたい＋ばねあし', 'ドロガエル 相手に 60 戦（乱数の種 1〜60）で 1回以上 起きる', true, fired11 > 0);
+  for (var sd = 1; sd <= 60; sd++) { var rf = fight({ parts: ['crush', 'horn', 'fang'], lv2: ['crush'] }, S.ENEMY_BY_ID.turtle, 'plain', { rng: S.makeRng(sd) }); if (syn11(rf)) fired11++; }
+  row('かいたい＋ツノ', 'イシガメ 相手に 60 戦（乱数の種 1〜60）で 1回以上 起きる', true, fired11 > 0);
 })();
 
 // ======================= 版8：卵（継いだパーツ・おやの ひらめき・名前） =======================

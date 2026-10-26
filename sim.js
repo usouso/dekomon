@@ -97,7 +97,8 @@
     { id: 9,  name: 'はじく＋トゲ',       parts: ['scale', 'spike'],  lv2: ['scale'],           desc: '0 に はじいた 1げきにも、トゲが はんげきする' },
     // 版8：10・11 を差し替え（id は ずらさない。保存に 10・11 が残っていても 新しい定義で数える）
     { id: 10, name: 'ふきとばし＋ばねあし', parts: ['horn', 'spring'],  lv2: ['horn'],            desc: '3手めに 2かい こうげきして、あいての手も とばす。3かい つづけて うごく' },
-    { id: 11, name: 'かいたい＋ばねあし',   parts: ['crush', 'spring'], lv2: ['crush'],           desc: 'トゲを こわした あいだは、ばねあしの 2かいにも はんげきが 来ない' }
+    // 昼の作業：11 を「かいたい＋ばねあし」から「かいたい＋ツノ」に（版8 質問1-A。ばねあしの 3手ごと との重なりが 要らない）
+    { id: 11, name: 'かいたい＋ツノ',       parts: ['crush', 'horn'],   lv2: ['crush'],           desc: 'もろくして パーツを こわした あいてに、ツノの ×2.5 が はいる' }
   ];
   SYNERGIES.forEach(function (s) { if (!s.lv2) s.lv2 = []; });
   var SYN_BY_ID = {}; SYNERGIES.forEach(function (s) { SYN_BY_ID[s.id] = s; });
@@ -493,7 +494,7 @@
       var jump2 = !!(second && a.active.spring && a.lv2.spring); // おおジャンプ：2かいめの こうげきが ×1.3
       if (jump2) usedLv2('spring');
       var hornHit = false, eyeHit = false, landedHere = 0, halvedAny = false, countered = false;
-      var spikeBroken = !!d.broken.spike; // 噛み合い11：かいたいで 相手の トゲが こわれている あいだ
+      var partBroken = Object.keys(d.broken).length > 0; // 噛み合い11：かいたいで 相手の パーツが こわれている あいだ（この こうげきの はじめ）
       if (a.active.leech) trySpark(a, 'leech', events);
       for (var h = 0; h < nHits; h++) {
         var parts = [];
@@ -558,6 +559,8 @@
         noteHit(a.side, label, dmg);
         if (shellHide) events.push({ t: 'shellHide', side: d.side });
         if (thisHorn && brittleNow && dmg > 0) fireSyn(a.side, 7, events);
+        // 噛み合い11：かいたいで パーツが こわれている あいてに、ツノの 1げきが あたった
+        if (thisHorn && dmg > 0 && partBroken && a.lv2.crush && a.active.crush) fireSyn(a.side, 11, events);
         // つめあと：あてるたび あいての はやさ −1
         if (claws && a.lv2.claw && dmg > 0) { d.spdMod -= CFG.lv2.clawSpdDown; refreshSpd(d.side); usedLv2('claw'); events.push({ t: 'spdDown', side: d.side, spd: spd[d.side] }); }
         if (a.active.leech && dmg > 0) {
@@ -613,8 +616,6 @@
       if (a.active.weight && landedHere >= 2) fireSyn(a.side, 1, events);
       if (isDouble && hornHit) fireSyn(a.side, 2, events);
       if (wingMadeThree && landedHere > 0) fireSyn(a.side, 8, events);
-      // 噛み合い11：かいたいで トゲを こわした あいだに、ばねあしの 2かいの こうげきが はんげきなしで 通った
-      if (isDouble && a.active.spring && a.lv2.crush && spikeBroken && landedHere > 0 && !countered && !ranged) fireSyn(a.side, 11, events);
     }
 
     for (var i = 0; i < CFG.maxHands; i++) {

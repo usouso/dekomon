@@ -441,8 +441,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .nbar.x2 { opacity: 1; width: 44px; height: 8px; border: 2px solid #ff6b6b; } .nbar.x2 i { background: #ff9f6b; transition: width calc(.25s * var(--spd)) ease-out; }
 .nbar.x2.near i { background: #ffd54a; }
 .nbar.x2.full { width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.x2.full i { background: #ffe08a; }
+.b-fld { display: inline-block; padding-right: 28px; } /* なれ ×2 が はねても 枠の中 */
 .nx2 { display: inline-block; margin-left: 14px; transform-origin: 0 50%; font-size: 1.05rem; font-weight: 900; padding: 1px 10px; border-radius: 10px; background: #ff9f6b; color: #2a0b0b; white-space: nowrap; }
-.nx2.up { animation: nx2up calc(.5s * var(--spd)) ease-out; }
+.nx2.fx-nare-up { animation: nx2up calc(.5s * var(--spd)) ease-out; }
 @keyframes nx2up { 0% { transform: scale(1.2); box-shadow: 0 0 14px #ff9f6b; } 100% { transform: scale(1); box-shadow: none; } }
 .dr-nx2 { font: inherit; cursor: pointer; border: 0; -webkit-appearance: none; appearance: none; font-size: 1.05rem; font-weight: 900; background: #ff9f6b; color: #2a0b0b; border-radius: 10px; padding: 1px 10px; margin-left: 6px; white-space: nowrap; }
 .anim.blownback { animation: blownback calc(.5s * var(--spd)) ease-out; }
@@ -1194,7 +1195,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 <!-- バトル -->
 <div id="battle" class="screen">
   <div class="b-inner">
-  <div class="b-top"><span><span id="bField"></span><span class="nx2" id="bNareX2" style="display:none">なれ ×2</span></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
+  <div class="b-top"><span class="b-fld"><span id="bField"></span><span class="nx2" id="bNareX2" style="display:none">なれ ×2</span></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
   <div class="hpRow">
     <div class="hpBox p"><div class="hp-name"><span class="nm" id="bPName">あなた</span><span class="num" id="hpNumP"></span></div><div class="hp" id="hpP"><div class="ghost" id="ghostP"></div><div class="fill" id="fillP"></div></div></div>
     <div class="hpBox e"><div class="hp-name"><span class="nm" id="bEName"></span><span class="num" id="hpNumE"></span></div><div class="hp" id="hpE"><div class="ghost" id="ghostE"></div><div class="fill" id="fillE"></div></div></div>
@@ -2798,7 +2799,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     G.curRes = res;
 
     $('bField').textContent = f.name + (hard ? '　てごわい' : '');
-    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('up');
+    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
     $('bPName').textContent = G.run.name;
     $('bEName').textContent = e.name;
     $('bHand').textContent = '0';
@@ -2847,7 +2848,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           tl.at(0, function () { sparkFx(ev.side, ev.part, ev.by); removeNareBar(ev.part); hitstop(800); });
           tl.add(1500); // 「ひらめいた！」が 消えてから その手の つづき（大きな文字と 重ねない）
         } else if (ev.t === 'act') {
-          tl.at(0, function () { setNareBar(ev.part, ev.n); if (ev.step > 1) { var x = $('bNareX2'); x.classList.remove('up'); void x.offsetWidth; x.classList.add('up'); } });
+          tl.at(0, function () { setNareBar(ev.part, ev.n); if (ev.step > 1) { var x = $('bNareX2'); x.classList.remove('fx-nare-up'); void x.offsetWidth; x.classList.add('fx-nare-up'); } });
         } else if (ev.t === 'skip') {
           tl.at(0, function () { playAnim(ev.side, 'stunned'); setBig(ev.side, 'うごけない', null, null, 'status'); dmgFx(ev.side, 'うごけない', 'weak'); sfx('weak'); });
           tl.add(800);

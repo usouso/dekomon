@@ -1444,7 +1444,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var mh = runMaxHit();
     var entry = { id: d.getTime().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36), name: G.run.name, wins: G.wins, parts: last ? last.parts.slice() : [], lv2: G.lv2.slice(), sparked: G.sparked.slice(), synergies: Object.keys(syn).map(Number),
       parent: G.egg ? G.egg.parentId : null, parentName: G.egg ? G.egg.parentName : null, inherited: G.egg ? G.egg.part : null, gen: G.gen || 1, color: G.color || colorForName(G.run.name), eggUsed: null,
-      grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }, growHist: G.growHist.slice(), maxHit: mh, boss: G.wins >= S.CFG.runBattles,
+      grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick, oogui: G.grow.oogui || 0 }, growHist: G.growHist.slice(), maxHit: mh, boss: G.wins >= S.CFG.runBattles,
       enemies: h.map(function (x) { return x.enemy.id; }), date: d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2), cleared: G.wins >= S.CFG.runBattles };
     STORE.hall.unshift(entry);
     if (STORE.hall.length > 50) STORE.hall.length = 50;
@@ -1784,8 +1784,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('eReward').className = 'reward' + (G.rewards.length > 1 ? ' two' : '');
     var d = myDef();
     $('pName').textContent = G.run.name;
-    var gh = d.hp - S.CFG.playerHp, ga = d.atk - S.CFG.playerAtk;
-    $('pHpV').innerHTML = fmt(d.hp) + (gh > 0 ? '<span class="grow">(+' + fmt(gh) + ')</span>' : '');
+    var oo = G.grow.oogui || 0, gh = d.hp - S.CFG.playerHp - oo, ga = d.atk - S.CFG.playerAtk; // そだちの ぶん と おおぐいの ぶんを 分けて 見せる
+    $('pHpV').innerHTML = fmt(d.hp) + (gh > 0 ? '<span class="grow">(+' + fmt(gh) + ')</span>' : '') + (oo > 0 ? '<span class="grow">(おおぐい +' + oo + ')</span>' : '');
     $('pAtkV').innerHTML = fmt(d.atk) + (ga > 0 ? '<span class="grow">(+' + fmt(ga) + ')</span>' : '');
     $('note').textContent = '';
     renderGrowRow();
@@ -2431,7 +2431,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           tl.at(0, function () { var d = dmgFx(ev.side, '+' + ev.amt, 'heal'); if (d) setTimeout(function () { d.textContent = '✕'; d.style.color = '#e2b7ff'; }, 250 / OPT.speed); setBig(ev.side, 'もうどく：かいふく できない', null, null, 'status'); sfx('poison'); });
           tl.add(350);
         } else if (ev.t === 'maxUp') {
-          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + (ev.healed || 0), 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい', null, '上限 ' + ev.maxHp, 'bighit'); sfx('leech'); });
+          // おおぐい：たおした あと、たいりょくの 上限が のびる（この周回のあいだ残る）
+          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + ev.amt, 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい', '+' + ev.amt, '上限 ' + ev.maxHp, 'bighit'); sfx('leech'); });
+          tl.add(1000);
         } else if (ev.t === 'spdDown') {
           tl.at(0, function () { SPDMOD[ev.side] = ev.spd - (SPDBASE[ev.side] || ev.spd); renderStatus(ev.side); flashChip(ev.side, 'spd'); scratchFx(ev.side); });
         } else if (ev.t === 'broken') {
@@ -2596,6 +2598,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       Object.keys(res.summary.activations).forEach(function (pid) { if (lv2Before.indexOf(pid) < 0) G.nare[pid] = (G.nare[pid] || 0) + res.summary.activations[pid]; });
       if (res.spark) { if (G.lv2.indexOf(res.spark) < 0) G.lv2.push(res.spark); G.sparked.push(res.spark); recordSpark(res.spark); G.pity = 0; } else G.pity++;
       // そだちの材料
+      G.grow.oogui = (G.grow.oogui || 0) + (res.summary.oogui || 0); // おおぐい：周回のあいだ残る（途中セーブも grow ごと）
       G.acc.received += res.summary.received; G.acc.landed += res.summary.landed; G.acc.first += res.summary.firstHands;
       G.lastParts = used.slice();
       G.history.push({ enemy: e, field: f, hard: hard, parts: used, win: won, hands: res.nHands, timeout: res.timeout, summary: res.summary, spark: res.spark });
@@ -2629,7 +2632,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var byParent = spark && sum.sparkBy === 'parent';
     var line3 = spark ? '<div>' + (byParent ? 'おもいだした（おやの）' : 'ひらめき') + '：<span class="spk">' + esc(S.PART_BY_ID[spark].name) + ' Lv2「' + esc(S.PART_BY_ID[spark].lv2name) + '」</span></div>' : '';
     var mh = sum.maxHit && sum.maxHit.dmg > 0 ? '<div>さいだいの いちげき：<b class="mh">' + sum.maxHit.dmg + '</b>（' + esc(sum.maxHit.label) + 'で）</div>' : '';
-    return '<div class="t">ふりかえり</div><div>' + line1 + '</div>' + mh + line2 + line3;
+    var line4 = sum.oogui ? '<div>おおぐい：<span class="spk">上限 +' + sum.oogui + '</span>（この しゅうかいで +' + (G.grow.oogui || 0) + (G.grow.oogui >= S.CFG.lv2.ooguiCap ? '。いっぱい' : '') + '）</div>' : '';
+    return '<div class="t">ふりかえり</div><div>' + line1 + '</div>' + mh + line2 + line3 + line4;
   }
   var winTimers = [];
   function pickedHTML(list) {

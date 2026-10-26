@@ -581,6 +581,40 @@ var P = CFG.playerAtk; // 13
   row('てごわい：なれ ×2', 'Lv2 の パーツには なれが たまらない', 0, rl.summary.nareGain.fang || 0);
 })();
 
+// ======================= 2026-10-27 決定 12：試遊の 記録（kiroku.js。ルールは 変えない） =======================
+(function () {
+  var KR = require('./kiroku.js');
+  var t0 = new Date(2026, 9, 27, 21, 5);
+  var st = KR.empty();
+  var r1 = KR.newRun(st, { ver: 'v', name: 'ぺっご', gen: 1, egg: null }, t0);
+  var r2 = KR.newRun(st, { ver: 'v', name: 'ぺっか', gen: 2, egg: { parentName: 'ぺっご', part: 'horn' } }, t0);
+  row('記録', '新しい 周回を 始めると、終わっていない 前の 周回は「とちゅうで やめた」になる。たまごは 親と 継いだ パーツ',
+    { n: 2, ab: true, kind: 'egg', parent: 'ぺっご', inherit: 'horn', open: null }, { n: st.runs.length, ab: !!(r1.end && r1.end.abandoned), kind: r2.kind, parent: r2.parent, inherit: r2.inherit, open: r2.end });
+  KR.addTime(r2, 0, 'pre', 12.34); KR.addTime(r2, 0, 'pre', 1); KR.addTime(r2, 1, 'fork', 3);
+  var b = { no: 1, hard: true, enemy: 'wolf', field: 'wind', other: null, parts: ['horn'], win: true, hands: 5, timeout: false, spark: null, sparkBy: null, synergies: [], waza: [], got: [] };
+  KR.addBattle(r2, b); KR.addBattle(r2, Object.assign({}, b, { hands: 6 })); KR.addBattle(r2, Object.assign({}, b, { no: 2, hard: false, win: false }));
+  row('記録', '画面に いた 秒は 戦いごとに 足す（0.1秒の 単位）。同じ 戦いは 2回 入れない（新しい方）',
+    { sec0: { pre: 13.3 }, sec1: { fork: 3 }, nb: 2, hands1: 6 }, { sec0: r2.sec[0], sec1: r2.sec[1], nb: r2.battles.length, hands1: r2.battles[0].hands });
+  KR.endRun(r2, { wins: 1, maxHit: { dmg: 30, label: 'ツノ' }, lostTo: 'frog', boss: false }, t0);
+  KR.addTime(r2, 1, 'win', 5); KR.addBattle(r2, Object.assign({}, b, { no: 3 }));
+  row('記録', '終わった 周回には もう 足さない', { wins: 1, lostTo: 'frog', nb: 2, sec1: { fork: 3 } }, { wins: r2.end.wins, lostTo: r2.end.lostTo, nb: r2.battles.length, sec1: r2.sec[1] });
+  row('記録', '噛み合いは 1戦で 1つに まとめて 回数。図鑑に 無かったものは first。相手の 噛み合いは 入れない',
+    [{ id: 3, n: 2, first: true }, { id: 5, n: 1, first: false }], KR.synergyList([{ id: 3, side: 'p' }, { id: 5, side: 'p' }, { id: 3, side: 'p' }, { id: 7, side: 'e' }], [5]));
+  var big = KR.empty(); for (var i = 0; i < KR.MAX_RUNS + 5; i++) KR.newRun(big, { name: 'n' + i }, t0);
+  row('記録', '周回は 最大 ' + KR.MAX_RUNS + '（古いものから 消える）', { n: KR.MAX_RUNS, first: 'n5' }, { n: big.runs.length, first: big.runs[0].name });
+  var ex = KR.exportData(st, S, t0);
+  row('記録', '書き出しは 先頭に 説明と 辞書。秒は 戦いの 中に 入る（しまってある 形は 変えない）',
+    { setsumei: true, horn: S.PART_BY_ID.horn.name, boss: S.BOSS.name, sec: { pre: 13.3 }, mada: [], kept: true, file: 'dekomon-kiroku-20261027-2105.json', at: '2026-10-27 21:05' },
+    { setsumei: !!ex._setsumei && Object.keys(ex)[0] === '_setsumei', horn: ex.jisho.parts.horn, boss: ex.jisho.enemies.boss, sec: ex.runs[1].battles[0].sec, mada: ex.runs[1].secMada, kept: Array.isArray(st.runs[1].sec) && st.runs[1].battles[0].sec === undefined, file: KR.fileName(t0), at: ex.kakidashita.slice(0, 16) });
+  var st2 = KR.empty(), r3 = KR.newRun(st2, { name: 'x' }, t0); KR.addTime(r3, 0, 'pre', 20); KR.addBattle(r3, Object.assign({}, b, { no: 1 })); KR.addTime(r3, 1, 'fork', 7);
+  row('記録', '終わっていない 戦いの 秒も 書き出す（secMada）', [{ no: 2, sec: { fork: 7 } }], KR.exportData(st2, S, t0).runs[0].secMada);
+  var sm = KR.summarize(ex).join('\n');
+  row('記録', '要約に 勝ち数・てごわいの 割合・よく つけた パーツ・負けた 相手', { hard: true, part: true, lost: true },
+    { hard: sm.indexOf('てごわいを 選んだ 割合：50%（1/2）') >= 0, part: sm.indexOf(S.PART_BY_ID.horn.name + ' 2') >= 0, lost: sm.indexOf('負けた 相手：' + S.ENEMY_BY_ID.frog.name + ' 1') >= 0 });
+  row('記録', 'こわれた 記録は 空として 読む・中の こわれた 戦いや 秒は 捨てる（途中セーブとは 別）', { a: 0, b: 0, c: 1, d: 1, sec: [{}, { pre: 1 }] }, (function () { var n = KR.normalize({ runs: [null, { battles: [null, { no: 1 }], sec: [null, { pre: 1 }] }] }); KR.addTime(n.runs[0], 0, 'pre', 0); KR.addBattle(n.runs[0], { no: 2 });
+      return { a: KR.normalize(null).runs.length, b: KR.normalize({ runs: 'x' }).runs.length, c: n.runs.length, d: n.runs[0].battles.length - 1, sec: n.runs[0].sec }; })());
+})();
+
 // ======================= 出力 =======================
 console.log('| 札 | 文 | 期待 | 実測 | 一致 |');
 console.log('|---|---|---|---|---|');

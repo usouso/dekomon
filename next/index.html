@@ -393,7 +393,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .menupop { position: fixed; top: 62px; right: 8px; z-index: 90; background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px; display: none; width: 260px; }
 .menupop.on { display: block; }
 .menupop .btn.sub { margin: 6px 0; }
-.menupop .mnote { color: var(--sub); font-size: 1rem; margin: 4px 2px 2px; }
+.menupop .mnote { color: var(--sub); font-size: 1rem; margin: 4px 2px 2px; overflow-wrap: anywhere; }
+.menupop .btn.sub:disabled { opacity: .55; cursor: default; }
 .contlbl { color: var(--accent); font-size: 1.15rem; font-weight: 700; margin-top: 8px; min-height: 1.6em; }
 .overlay { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 20px; }
 .overlay.on { display: flex; }
@@ -1057,7 +1058,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 
 <div class="volbtn" id="volBtn" title="おんりょう"></div>
 <div class="menubtn" id="menuBtn" title="メニュー">≡</div>
-<div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button></div>
+<div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button><button class="btn sub" id="mKiroku">きろくを ほぞん</button></div>
 <div class="overlay pop" id="bossPop"><div class="box bossbox"><div class="smt-name">やまの ぬし</div><div class="bp-mon" id="bpMon"></div><div class="card e boss" id="bpCard" style="margin:8px 0"></div><div class="sub center">10ごうめ ちょうじょうで まっている　／　タップで とじる</div></div></div>
 <div class="overlay pop" id="partPop"><div class="box partbox" id="partPopBox"></div></div>
 <div class="overlay" id="confirm"><div class="box"><div class="q" id="confirmQ"></div><button class="btn" id="confirmYes">いいよ</button><button class="btn sub" id="confirmNo">やめる</button></div></div>
@@ -1281,6 +1282,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 </div>
 
 <script src="sim.js?v=8"></script>
+<script src="kiroku.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -1294,6 +1296,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     seed: Q.get('seed'),
     mute: Q.get('mute') === '1' || Q.get('auto') === '1',
     reset: Q.get('reset') === '1',
+    kiroku: Q.get('kiroku') === '1', // 決定 12：確かめ用。?auto=1 でも 記録する（記録に auto の 印）
     egg: Q.get('egg') === '1' // 版8：自動のとき、親になれる子がいれば たまごから 始める（最初の子・最初の Lv2）
   };
   var $ = function (id) { return document.getElementById(id); };
@@ -1342,6 +1345,34 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     STORE.ownedEver = ev0; save(KEY.ownedEver, ev0);
   }
   function noteOwned(ids) { var ch = false; ids.forEach(function (id) { if (STORE.ownedEver.indexOf(id) < 0) { STORE.ownedEver.push(id); ch = true; } }); if (ch) save(KEY.ownedEver, STORE.ownedEver); }
+  // ---------- 決定 12：ぼくくんの 試遊の 記録（kiroku.js。ブラウザの中だけ。?auto=1 では 記録しない。途中セーブとは 別の鍵） ----------
+  // kiroku.js が 読めないときは 記録を 切る（記録は おまけ。ゲームは 止めない）。確かめ用の 自動（?auto=1&kiroku=1）は 別の 鍵に 書く（ぼくくんの 記録を 押し出さない）
+  var KR = window.DekoKiroku || null, KIROKU_KEY = OPT.auto ? 'next.dekomon.kiroku.auto' : 'next.dekomon.kiroku';
+  var KIROKU = KR ? KR.normalize(load(KIROKU_KEY, null)) : { v: 0, runs: [] }, KREC = null, KT = { screen: null, at: 0, battle: 0, off: false };
+  var KIROKU_SCREENS = { start: 1, boss: 1, fork: 1, summit: 1, pre: 1, battle: 1, win: 1, grow: 1, zukan: 1, dendo: 1 };
+  var GAME_VER = (function () { var h = 0, t = JSON.stringify(S.CFG); for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return 'next-cfg-' + h.toString(36); })();
+  function kOn() { return !!KR && (!OPT.auto || OPT.kiroku); }
+  function kSave() { if (kOn()) save(KIROKU_KEY, KIROKU); }
+  // 記録の 中で 何が 起きても ゲームは 止めない
+  function kSafe(fn) { try { fn(); } catch (e) { console.warn('[でこもん 記録]', e); } }
+  // いまの 画面に いた 時間を 足して、時計を 今に（周回の 記録が 開いているときだけ 数える）
+  function kFlush() {
+    if (!kOn()) return; var now = Date.now();
+    if (KREC && KT.screen && KIROKU_SCREENS[KT.screen] && !KT.off && KT.at) kSafe(function () { KR.addTime(KREC, KT.battle, KT.screen, (now - KT.at) / 1000); });
+    KT.at = document.hidden ? 0 : now; // 見えていない あいだは 時計を 止める（Codex PR #7）
+  }
+  // タイトルに 出たら、つぎに 周回の 画面に もどるまで（タイトルから 開いた ずかん・でんどう も）数えない
+  function kTick(id) { if (!kOn()) return; kFlush(); KT.screen = id; KT.battle = G.battle; if (id === 'title') KT.off = true; else if (KIROKU_SCREENS[id] && id !== 'zukan' && id !== 'dendo') KT.off = false; if (KREC) kSave(); }
+  function kInfo(extra) { var o = { ver: GAME_VER, auto: OPT.auto || undefined, name: G.run.name, gen: G.gen, egg: G.egg ? { parentName: G.egg.parentName, part: G.egg.part } : null }; Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
+  function kEnd(lostTo) {
+    if (!kOn() || !KREC) return;
+    kFlush();
+    kSafe(function () { KR.endRun(KREC, { wins: G.wins, maxHit: runMaxHit(), lostTo: lostTo || null, boss: G.wins >= S.CFG.runBattles }); });
+    KREC = null; kSave();
+  }
+  // 別の タブ・閉じている あいだは 数えない
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { kFlush(); if (KREC) kSave(); } else KT.at = Date.now(); });
+  window.addEventListener('pagehide', function () { kFlush(); if (KREC) kSave(); });
   function zukanFound() { return STORE.zukan.filter(function (id) { return !!S.SYN_BY_ID[id]; }).length; }
 
   // ---------- 見た目のデータ ----------
@@ -1574,6 +1605,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   // ---------- 画面切り替え ----------
   var SCREENS = ['title', 'zukan', 'dendo', 'eggq', 'egg', 'start', 'boss', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
   function show(id) {
+    kTick(id); // 決定 12：前の 画面に いた 秒
     SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
     window.scrollTo(0, 0);
     Array.prototype.forEach.call(document.querySelectorAll('.pcbody'), function (b) { b.scrollTop = 0; });
@@ -1608,6 +1640,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     if (G.egg) G.nare[G.egg.part] = S.CFG.nare.full + 1;
     if (OPT.auto && G.egg) G.auto.eggRuns++;
     noteOwned(G.owned);
+    if (kOn()) kSafe(function () { KREC = KR.newRun(KIROKU, kInfo()); KT.battle = 0; KT.off = false; kSave(); });
     showStart();
   }
   function genText(gen) { return (gen || 1) + 'だいめ'; }
@@ -1660,7 +1693,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function sumSave(sum) { return { dealt: sum.dealt, synergies: sum.synergies, spark: sum.spark, sparkBy: sum.sparkBy || null, maxHit: sum.maxHit || null }; }
   function saveRun(phase) {
     if (OPT.auto || !G.run) return;
-    var data = { v: 8, phase: phase, seed: seed, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
+    var data = { v: 8, phase: phase, seed: seed, kid: KREC ? KREC.id : null, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
       egg: G.egg, gen: G.gen, color: G.color,
       owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, rewards: G.rewards, forkFor: G.forkFor, picked: G.picked, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
       history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: sumSave(h.summary) }; }),
@@ -1685,6 +1718,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     G.history = (d.history || []).map(function (h) { return { enemy: S.ENEMY_BY_ID[h.enemy], field: S.FIELD_BY_ID[h.field], hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: { dealt: h.summary.dealt, synergies: h.summary.synergies, spark: h.summary.spark, maxHit: h.summary.maxHit || null, activations: {} } }; });
     G.lastSummary = d.lastSummary ? { sum: d.lastSummary.sum, enemy: S.ENEMY_BY_ID[d.lastSummary.enemy], spark: d.lastSummary.spark } : null;
     noteOwned(G.owned);
+    // 決定 12：記録の 続き（記録が できる前の 保存なら「とちゅうから」の 記録を 始める）
+    if (kOn()) kSafe(function () { KREC = KR.findRun(KIROKU, d.kid); if (!KREC || KREC.end) KREC = KR.newRun(KIROKU, kInfo({ resumed: true, fromBattle: nextBattleNo(d) })); else KR.closeOpen(KIROKU, KREC.id, new Date()); KT.screen = null; KT.off = false; kSave(); });
     if (d.phase === 'start') showStart();
     else if (d.phase === 'boss') showBossIntro();
     else if (d.phase === 'fork') showFork();
@@ -1803,12 +1838,26 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var pop = $('menuPop');
     $('menuNote').textContent = inRun() ? 'しゅうかいは ほぞんしてある（タイトルの「つづきから」）' : '';
     $('mZukan').style.display = G.screen === 'battle' ? 'none' : 'block'; $('mDendo').style.display = G.screen === 'battle' ? 'none' : 'block';
+    $('mKiroku').textContent = KIROKU.runs.length ? 'きろくを ほぞん' : 'きろくは まだ ない'; $('mKiroku').disabled = !KIROKU.runs.length;
     pop.classList.toggle('on'); $('volPop').classList.remove('on');
   });
   document.addEventListener('click', function (ev) { if (!$('menuPop').contains(ev.target) && !$('menuBtn').contains(ev.target)) $('menuPop').classList.remove('on'); });
   $('mTitle').addEventListener('click', function () { if (G.screen === 'battle') stopTimeline(); $('menuPop').classList.remove('on'); renderZukan(); renderTitle(); show('title'); });
   $('mZukan').addEventListener('click', function () { $('menuPop').classList.remove('on'); openZukan(); });
   $('mDendo').addEventListener('click', function () { $('menuPop').classList.remove('on'); openDendo(); });
+  // 決定 12：記録を JSON の ファイルに（ダウンロード。外へは 送らない）
+  $('mKiroku').addEventListener('click', function () {
+    if (!KIROKU.runs.length || !KR) return;
+    kFlush(); kSave();
+    var name = KR.fileName(new Date());
+    try {
+      var blob = new Blob([JSON.stringify(KR.exportData(KIROKU, S, new Date()), null, 1)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = name; a.style.display = 'none'; $('menuPop').appendChild(a); a.click(); a.remove(); // メニューの 中で 押す（外の クリックで メニューが 閉じて 「ほぞんした」が 見えなくならないように）
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      $('menuNote').textContent = KIROKU.runs.length + 'しゅうかいぶん ほぞんした（' + name + '）';
+    } catch (err) { $('menuNote').textContent = 'ほぞん できなかった'; }
+  });
 
   // ---------- 周回の始め ----------
   function showStart() {
@@ -2618,6 +2667,10 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('fcardL').textContent = names[0]; $('fcardR').textContent = names[1];
     $('fname').textContent = sy.name;
     f.className = 'found on' + ($('bResult').classList.contains('on') ? ' hi' : '');
+    // 「みつけた！」は 名前の 上の はしより 上に（名前が 2行に なる スマホでも 重ねない。名前は はねて 1.2倍まで 大きく なる）
+    var tg = f.querySelector('.ftag'), fn = $('fname'); tg.style.top = '';
+    var want = fn.offsetTop - fn.offsetHeight / 2 * 1.2 - tg.offsetHeight - 4;
+    if (want < tg.offsetTop) tg.style.top = Math.max(4, Math.round(want)) + 'px';
     sy.parts.forEach(function (pid) { if (pid) glowPart(side, pid); });
     sfx('found');
     setTimeout(function () { f.classList.add('fly'); }, 30 / OPT.speed);
@@ -2790,7 +2843,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function startBattle() {
     var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
     STORE.met[e.id] = (STORE.met[e.id] || 0) + 1; save(KEY.met, STORE.met);
-    var lv2Before = G.lv2.slice();
+    var lv2Before = G.lv2.slice(), zukanBefore = STORE.zukan.slice(), kPick = G.run.choices[G.battle] || 0;
     var p = S.makeFighter('p', myDef(), G.attached, 1, lv2Before);
     var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
     var brng = S.makeRng(Math.floor(G.rng() * 4294967296));
@@ -3044,11 +3097,25 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           if (got.kind === 'part') { noteOwned([got.part]); if (OPT.auto) G.auto.picked++; } else if (OPT.auto) G.auto.nareR++;
         });
         G.rewards = [];
+        kBattle();
         if (S.growAfterWin(G.wins)) { var gd = S.growDirection(G.acc); G.grow[gd.dir]++; G.growHist.push(gd.dir); G.pendingGrow = gd.dir; G.acc = { received: 0, landed: 0, first: 0 }; if (OPT.auto) G.auto.grows[gd.dir]++; }
         if (G.wins >= S.CFG.runBattles) showClear();
         else showWin();
-      } else showOver();
+      } else { kBattle(); showOver(); }
     });
+    // 決定 12：この 戦いを 記録に（もらったものを 足した あと）
+    function kBattle() {
+      if (!kOn() || !KREC) return;
+      kSafe(kBattle1);
+    }
+    function kBattle1() {
+      var oth = null;
+      if (!e.boss) { var op = G.run.steps[G.battle][1 - kPick]; if (op) oth = { enemy: S.enemyDefOf(op.enemy).id, field: op.field, hard: !!op.hard }; }
+      KR.addBattle(KREC, { no: G.battle + 1, hard: !!hard, enemy: e.id, field: f.id, other: oth, parts: used.slice(), win: won, hands: res.nHands, timeout: !!res.timeout,
+        spark: res.spark || null, sparkBy: res.spark ? res.sparkBy : null, synergies: KR.synergyList(res.summary.synergies, zukanBefore), waza: [],
+        got: won ? (G.picked || []).map(function (x) { return x.kind === 'nare' ? { kind: 'nare', part: x.part, amt: x.amt } : { kind: 'part', part: x.part }; }) : [] });
+      kSave();
+    }
   }
 
   // ---------- 勝ち・結果 ----------
@@ -3167,7 +3234,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     return '<div class="t">そだち</div><div><span class="growhist">' + esc(growHistText(G.growHist)) + '</span></div><div>たいりょく ' + fmt(d.hp) + plus(d.hp, S.CFG.playerHp) + ' ／ こうげき ' + fmt(d.atk) + plus(d.atk, S.CFG.playerAtk) + ' ／ はやさ ' + fmt(d.spd) + plus(d.spd, S.CFG.playerSpd) + '</div><div>ひらめいた（Lv2）：<span class="spk">' + sp + '</span></div>';
   }
   function showClear() {
-    enterHall(); renderZukan();
+    enterHall(); renderZukan(); kEnd(null);
     $('clearName').textContent = G.run.name;
     var cg = $('clearGen'); cg.textContent = genText(G.gen) + (G.egg ? '（おや：' + G.egg.parentName + '）' : ''); cg.className = 'gen' + (G.gen === 1 ? ' g1' : '');
     clearSave();
@@ -3182,6 +3249,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function showOver() {
     enterHall(); renderZukan();
     var h = G.history[G.history.length - 1];
+    kEnd(h.enemy.id);
     $('overTitle').textContent = G.wins + 'れんしょう で おわり';
     $('overName').textContent = G.run.name;
     var og = $('overGen'); og.textContent = genText(G.gen) + (G.egg ? '（おや：' + G.egg.parentName + '）' : ''); og.className = 'gen' + (G.gen === 1 ? ' g1' : '');
@@ -3240,7 +3308,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   $('titleBtn1').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   $('titleBtn2').addEventListener('click', function () { renderZukan(); renderTitle(); show('title'); });
   renderZukan(); renderTitle();
-  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, showFork: showFork, showSummit: showSummit, showBossIntro: showBossIntro, showEggQ: showEggQ, showEgg: showEgg, eggParents: eggParents, renderDendo: renderDendo, startRunEgg: function (i, pid) { var ps = eggParents(); startRun(ps[i || 0], pid || ps[i || 0].lv2[0]); }, openBossPop: openBossPop, openPartPop: openPartPop, openZukan: openZukan, openDendo: openDendo, zukanTab: zukanTab, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun, trailHTML: trailHTML, startRun: startRun } };
+  window.__dekomon = { G: G, OPT: OPT, seed: seed, STORE: STORE, KIROKU: function () { return KIROKU; }, dbg: { showClear: showClear, showOver: showOver, showPre: showPre, showWin: showWin, showStart: showStart, showGrow: showGrow, showFork: showFork, showSummit: showSummit, showBossIntro: showBossIntro, showEggQ: showEggQ, showEgg: showEgg, eggParents: eggParents, renderDendo: renderDendo, startRunEgg: function (i, pid) { var ps = eggParents(); startRun(ps[i || 0], pid || ps[i || 0].lv2[0]); }, openBossPop: openBossPop, openPartPop: openPartPop, openZukan: openZukan, openDendo: openDendo, zukanTab: zukanTab, saveRun: saveRun, loadSave: loadSave, resumeRun: resumeRun, trailHTML: trailHTML, startRun: startRun } };
   if (OPT.auto) setTimeout(function () { $('startBtn').click(); }, 300);
 })();
 </script>

@@ -232,7 +232,7 @@ if (process.env.DEKO_ONLY === 'detarame') {
   for (var di = 0; di < RUNS; di++) playRun(detarameBot, stD);
   reportBot('でたらめボット（場所の制約を守って ランダムに 3つ。道もランダム）', stD);
   var s1 = stD.stage[0], s2 = stD.stage[1];
-  console.log('1戦目 ' + pct(s1.w / s1.n) + '（' + s1.n + ' 戦）・2戦目 ' + pct(s2.n ? s2.w / s2.n : 0) + '（' + s2.n + ' 戦）・1〜2戦目を 両方 勝つ ' + pct(s2.w / RUNS) + '（目安 85% 以上：決定 21-d）');
+  console.log((FEW ? '【はじめての 周回：もちもの 3つ】' : '【いつもの 6つ】') + '1戦目 ' + pct(s1.n ? s1.w / s1.n : 0) + '（' + s1.n + ' 戦）・2戦目 ' + pct(s2.n ? s2.w / s2.n : 0) + '（' + s2.n + ' 戦）・1〜2戦目を 両方 勝つ ' + pct(s2.w / RUNS) + '（目安 85% 以上：決定 21-d）');
   process.exit(0);
 }
 console.log('# でこもん 版8 ボット結果');

@@ -1725,7 +1725,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       G.color = parent.color || colorForName(parent.name);
       parent.eggUsed = G.run.name; save(KEY.hall, STORE.hall); // 親1体に たまごは 1つ
     } else G.color = sp ? sp.color : colorForName(G.run.name);
-    G.owned = S.startItems(G.rng, G.egg ? G.egg.part : null, !G.egg && firstEver()).slice(); // 決定 21-b：はじめての 周回は 3つ G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
+    // 決定 21-b：はじめての 周回は 3つ（この 行の 後ろには 書かない）
+    G.owned = S.startItems(G.rng, G.egg ? G.egg.part : null, !G.egg && firstEver()).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
     G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.rewards = []; G.forkFor = -1; G.pendingGrow = null;
     if (G.egg) G.nare[G.egg.part] = S.CFG.nare.full + 1;
     if (OPT.auto && G.egg) G.auto.eggRuns++;
@@ -2509,6 +2510,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     swapFlash = null;
     var hw = $('hintWrap'); hw.innerHTML = '';
     if (G.firstRun && G.battle === 0 && G.attached.length === 0) hw.appendChild(el('span', 'hint', 'えらぶ ↓'));
+    else if (G.battle === 0 && firstEver() && G.owned.length === 3 && G.attached.length === 3) hw.appendChild(el('span', 'hint', 'つけて おいたよ'));
     if (G.screen === 'pre') window.__fitZoom(true);
   }
   // 合わせた／長押しした 札：作り直さずに 印（sel）だけ 動かして 文を出す（作り直すと カーソルの 下の 札が かわって また 合わせた ことに なる）

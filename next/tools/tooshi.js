@@ -50,6 +50,9 @@ const SIZES = (process.argv[3] || '1366x650,1920x910,375x812').split(',').map(s 
         if (['win', 'over', 'grow'].indexOf(s2) < 0) throw new Error('戦いが 終わらない（' + s2 + '）');
         if (s2 === 'win') { await press('#winNext'); path.push(await waitScr(['fork', 'grow', 'summit', 'pre'], 6000)); }
         console.log('  通った 画面：title → ' + path.join(' → '));
+        // 同じ ページで つぎの 周回を 始めても 前の 周回の 数が 残らない（21-b の 確認役の 指摘）
+        const rs = await page.evaluate(() => { const D = window.__dekomon, G = D.G; D.dbg.startRun(null, null, 'koron'); return { b: G.battle, w: G.wins, h: G.history.length, l: G.lv2.length, a: G.attached.length }; });
+        if (rs.b || rs.w || rs.h || rs.l || rs.a) ng(w + 'x' + h + ' 同じ ページの つぎの 周回に 前の 数が 残った ' + JSON.stringify(rs));
       } catch (e) { ng(w + 'x' + h + ' 殿堂 ' + hall + '体：' + e.message + '（' + path.join(' → ') + '）'); }
     }
     if (errs.length) ng(w + 'x' + h + ' エラー ' + errs.join(' / '));

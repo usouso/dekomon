@@ -215,6 +215,26 @@ var fixedBot = {
   fork: function (paths, owned, stage, grow, lv2, fixedParts) { return scoreOf(fixedParts, paths[1], stage, grow, lv2) > scoreOf(fixedParts, paths[0], stage, grow, lv2) ? 1 : 0; }
 };
 
+// 決定 21-d の 物差し：でたらめボット（もちものから 場所の 制約を 守って ランダムに 3つ まで つける。道も ランダム）。
+// DEKO_ONLY=detarame で これだけ 回して 終わる（ほかの ボットの 乱数の 順番は 変えない）。DEKO_FEW=1 と 合わせると はじめての 周回の 形。
+// 目安（決定 21-d）：1〜2戦目は でたらめでも 85% 以上。
+var detarameBot = {
+  loadout: function (owned) {
+    var out = [], used = {}, pool = owned.slice();
+    for (var i = pool.length - 1; i > 0; i--) { var k = S.randInt(rng, i + 1), t = pool[i]; pool[i] = pool[k]; pool[k] = t; }
+    pool.forEach(function (id) { var loc = S.PART_BY_ID[id].loc; if (out.length < 3 && !used[loc]) { used[loc] = true; out.push(id); } });
+    return out;
+  },
+  fork: function () { return S.randInt(rng, 2); }
+};
+if (process.env.DEKO_ONLY === 'detarame') {
+  var stD = newStats();
+  for (var di = 0; di < RUNS; di++) playRun(detarameBot, stD);
+  reportBot('でたらめボット（場所の制約を守って ランダムに 3つ。道もランダム）', stD);
+  var s1 = stD.stage[0], s2 = stD.stage[1];
+  console.log((FEW ? '【はじめての 周回：もちもの 3つ】' : '【いつもの 6つ】') + '1戦目 ' + pct(s1.n ? s1.w / s1.n : 0) + '（' + s1.n + ' 戦）・2戦目 ' + pct(s2.n ? s2.w / s2.n : 0) + '（' + s2.n + ' 戦）・1〜2戦目を 両方 勝つ ' + pct(s2.w / RUNS) + '（目安 85% 以上：決定 21-d）');
+  process.exit(0);
+}
 console.log('# でこもん 版8 ボット結果');
 console.log('');
 console.log('ぬし：たいりょく ×' + S.CFG.boss.hp + '、こうげき ×' + S.CFG.boss.atk + '（ふつうの相手の平均 ' + S.BOSS.hp + '・' + S.BOSS.atk + ' が基礎）。てごわい：たいりょく ×' + S.CFG.hard.hp + '、こうげき ×' + S.CFG.hard.atk + '。なれ +' + S.CFG.nare.dup + '（満タン ' + S.CFG.nare.full + '）。乱数の種 ' + SEED);

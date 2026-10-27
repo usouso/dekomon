@@ -133,9 +133,14 @@
     // 版8：10・11 を差し替え（id は ずらさない。保存に 10・11 が残っていても 新しい定義で数える）
     { id: 10, name: 'ふきとばし＋ばねあし', parts: ['horn', 'spring'],  lv2: ['horn'],            desc: '3手めに 2かい こうげきして、あいての手も とばす。3かい つづけて うごく' },
     // 昼の作業：11 を「かいたい＋ばねあし」から「かいたい＋ツノ」に（版8 質問1-A。ばねあしの 3手ごと との重なりが 要らない）
-    { id: 11, name: 'かいたい＋ツノ',       parts: ['crush', 'horn'],   lv2: ['crush'],           desc: 'もろくして パーツを こわした あいてに、ツノの ×2.5 が はいる' }
+    { id: 11, name: 'かいたい＋ツノ',       parts: ['crush', 'horn'],   lv2: ['crush'],           desc: 'もろくして パーツを こわした あいてに、ツノの ×2.5 が はいる' },
+    // 決定 13：技 入りの 噛み合い（waza に その 技を もつ 子だけ。CFG.waza.on が false なら 起きない）。気づきにくい もの：同じ こうげきの 中で つながる・技どうしが かさなる
+    { id: 12, name: 'かみつきかえし＋トゲ', parts: ['spike'],          waza: ['kamitsuki'],      desc: 'かみつきかえしが でると、トゲと あわせて はんげきが 2つ' },
+    { id: 13, name: 'すきをつく＋しっぽ＋ツメ', parts: ['tail', 'claw'], waza: ['suki'],        desc: 'しっぽで よろけさせた その こうげきの 2げきめから ×1.5' },
+    { id: 14, name: 'ねらいうち＋キバ＋ツメ', parts: ['fang', 'claw'], waza: ['nerai'],         desc: 'キバで どくに した その こうげきの 2げきめから +2' },
+    { id: 15, name: 'いかり＋おおなぐり',   parts: [],                 waza: ['ikari', 'oonaguri'], desc: 'ためた いかりと おおなぐりが かさなって、1げきめ ×3' }
   ];
-  SYNERGIES.forEach(function (s) { if (!s.lv2) s.lv2 = []; });
+  SYNERGIES.forEach(function (s) { if (!s.lv2) s.lv2 = []; if (!s.waza) s.waza = []; });
   var SYN_BY_ID = {}; SYNERGIES.forEach(function (s) { SYN_BY_ID[s.id] = s; });
 
   // ---------- パーツ（16種。場所8つ×2） ----------
@@ -546,6 +551,7 @@
       if (rageNow) { a.rage = false; wazaEv(a, 'ikari', events, { use: true }); }
       var naguriNow = !!a.waza.oonaguri && (a.ownHands % CFG.waza.oonaguriEvery === 0);
       var sukiShown = false, neraiShown = false;
+      var noStatusAtStart = !hasStatus(d), noStaggerAtStart = !(d.status.stagger > 0); // 噛み合い 13・14：この こうげきの 中で かけた 状態
       if (a.active.leech) trySpark(a, 'leech', events);
       for (var h = 0; h < nHits; h++) {
         var parts = [];
@@ -558,6 +564,7 @@
         if (handMult && handMult > 1) { mult *= handMult; wz.push('kiai'); }
         if (rageNow) { mult *= CFG.waza.ikariMult; wz.push('ikari'); }
         if (naguriNow && h === 0) { mult *= CFG.waza.oonaguriMult; wz.push('oonaguri'); wazaEv(a, 'oonaguri', events); }
+        var syn15 = rageNow && naguriNow && h === 0;
         var bigMove = thisHorn || chargeNow;
         // みきり：相手の おおわざを 1戦に1回 よける
         if (bigMove && d.active.eye && d.lv2.eye && d.dodgeLeft > 0) {
@@ -573,7 +580,8 @@
         if (staggered) { mult *= CFG.staggerMult; halvedAny = true; }
         if (jump2) mult *= CFG.lv2.jump2Mult;
         // すきをつく：よろけの あいてへの 1げきが ×1.5
-        if (a.waza.suki && d.status.stagger > 0) { mult *= CFG.waza.sukiMult; wz.push('suki'); if (!sukiShown) { sukiShown = true; wazaEv(a, 'suki', events); } }
+        var syn13 = false;
+        if (a.waza.suki && d.status.stagger > 0) { mult *= CFG.waza.sukiMult; wz.push('suki'); if (!sukiShown) { sukiShown = true; wazaEv(a, 'suki', events); } if (h > 0 && noStaggerAtStart && a.active.tail && claws) syn13 = true; }
         // ふみつけ：じぶんより おそい あいてに ×1.5
         var stomp = false;
         if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) {
@@ -587,7 +595,8 @@
           if (a.lv2.weight && spd[d.side] > spd[a.side]) { zushin = Math.min(CFG.lv2.zushinMax, spd[d.side] - spd[a.side]); flat += zushin; usedLv2('weight'); }
         }
         // ねらいうち：じょうたいの あいてへの 1げきが +CFG.waza.nerai（倍率に のらない。もろいの ×1.6 には のる＝おもしと 同じ）
-        if (a.waza.nerai && hasStatus(d)) { flat += CFG.waza.nerai; wz.push('nerai'); if (!neraiShown) { neraiShown = true; wazaEv(a, 'nerai', events); } }
+        var syn14 = false;
+        if (a.waza.nerai && hasStatus(d)) { flat += CFG.waza.nerai; wz.push('nerai'); if (!neraiShown) { neraiShown = true; wazaEv(a, 'nerai', events); } if (h > 0 && noStatusAtStart && a.active.fang && claws && d.status.poison) syn14 = true; }
         var brittleNow = !!d.status.brittle;
         var dmg = vary(effAtk(a) * mult) + flat;
         if (brittleNow) dmg *= d.status.brittle.mult;
@@ -617,6 +626,9 @@
           jump2: jump2, waza: wz });
         noteHit(a.side, label, dmg);
         if (shellHide) events.push({ t: 'shellHide', side: d.side });
+        if (dmg > 0 && syn13) fireSyn(a.side, 13, events);
+        if (dmg > 0 && syn14) fireSyn(a.side, 14, events);
+        if (dmg > 0 && syn15) fireSyn(a.side, 15, events);
         if (thisHorn && brittleNow && dmg > 0) fireSyn(a.side, 7, events);
         // 噛み合い11：かいたいで パーツが こわれている あいてに、ツノの 1げきが あたった
         if (thisHorn && dmg > 0 && partBroken && a.lv2.crush && a.active.crush) fireSyn(a.side, 11, events);
@@ -645,7 +657,9 @@
           if (a.active.tail) { trySpark(a, 'tail', events); applyStatus(a, d, 'stagger', events); }
         }
         // はんげき（トゲ）：1げき うけるたび（0 でも）。ばらまき なら とおくからの相手にも
+        var spikeHere = false;
         if (d.active.spike && (!ranged || d.lv2.spike)) {
+          spikeHere = true;
           trySpark(d, 'spike', events);
           var thrown = ranged && d.lv2.spike;
           if (thrown) usedLv2('spike');
@@ -677,6 +691,7 @@
           wazaEv(d, 'kamitsuki', events);
           events.push({ t: 'counter', side: d.side, part: null, waza: 'kamitsuki', dmg: kc, hp: a.hp, deflect: kDeflect });
           noteHit(d.side, 'かみつき', kc);
+          if (spikeHere) fireSyn(d.side, 12, events); // 噛み合い12：同じ 1げきに トゲと かみつきの はんげき
           if (a.hp <= 0) break;
         }
         // いかり：1げき うけたとき（0 でも）ikariRate で つぎの こうげきが ×ikariMult（ためているあいだは ふえない）

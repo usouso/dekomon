@@ -463,7 +463,7 @@ var P = CFG.playerAtk; // 13
   var ap3 = S.applyReward({ kind: 'nare', part: 'fang', amt: 10 }, ['fang'], { fang: 3 }, []);
   row('なれ +10', 'なれ 3 → 13 は まだ 満タンでない', { to: 13, full: false }, { to: ap3.to, full: ap3.full });
   // 噛み合い 3 が 消えて、9・10・11 が ある（版8：10・11 は 差し替え）
-  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」は なく、9・10・11 が ある（10 こ）。10 ふきとばし＋ばねあし、11 かいたい＋ツノ', { n: 10, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11], has3: false, n10: 'ふきとばし＋ばねあし', n11: 'かいたい＋ツノ' }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3], n10: S.SYN_BY_ID[10].name, n11: S.SYN_BY_ID[11].name });
+  row('噛み合いの一覧', '3「じょうたい＋ひかるめ」は なく、9・10・11 と 技 入りの 12〜15 が ある（14 こ）。10 ふきとばし＋ばねあし、11 かいたい＋ツノ', { n: 14, ids: [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], has3: false, n10: 'ふきとばし＋ばねあし', n11: 'かいたい＋ツノ' }, { n: S.SYNERGIES.length, ids: S.SYNERGIES.map(function (x) { return x.id; }), has3: !!S.SYN_BY_ID[3], n10: S.SYN_BY_ID[10].name, n11: S.SYN_BY_ID[11].name });
   row('噛み合いの文', '図鑑の文は 2行まで（40文字 以下）', true, S.SYNERGIES.every(function (x) { return x.desc.length <= 40; }));
   // 9 はじく＋トゲ：起きる（相手の 1げき 11−4 = 7 ≤ 10 → 0 に はじく → 同じ 1げきで トゲの はんげき）
   var r10 = fight({ parts: ['scale', 'spike'], lv2: ['scale'] }, dummy({ spd: 20 }));
@@ -707,6 +707,19 @@ var P = CFG.playerAtk; // 13
   var r7d = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.1 });
   row('いかり', 'summary.waza は ためた 回数（使った ときは 数えない）', wazaEvs(r7d, 'ikari').filter(function (x) { return x.ready; }).length, r7d.summary.waza.ikari);
   row('わざ あり', '技の 回数は summary.waza（記録・ボット用）', { kiai: 1 }, r2.summary.waza);
+  // 技 入りの 噛み合い 12〜15（決定 13）
+  function synIn(res, id) { return evs(res, function (ev) { return ev.t === 'synergy' && ev.id === id && ev.side === 'p'; }).length > 0; }
+  var y12 = fightW({ species: 'gotsun' }, { parts: ['spike'] }, dummy(), { rngV: 0.1 });
+  var y12h = y12.hands.filter(function (h) { return h.actor === 'e'; })[0].events.filter(function (ev) { return ev.t === 'counter' && ev.side === 'p'; }).map(function (ev) { return ev.waza || ev.part; });
+  var y12b = fightW({ species: 'koron' }, { parts: ['spike'] }, dummy(), { rngV: 0.1 });
+  row('かみつきかえし＋トゲ', S.SYN_BY_ID[12].desc + '（かみつきかえしの ない 子では 起きない）', { order: ['spike', 'kamitsuki'], syn: true, other: false }, { order: y12h, syn: synIn(y12, 12), other: synIn(y12b, 12) });
+  var y13b = fightW({ species: 'pyun' }, { parts: ['tail'] }, dummy());
+  row('すきをつく＋しっぽ＋ツメ', S.SYN_BY_ID[13].desc + '（ツメが ないと 1げきなので 起きない）', { syn: true, tailOnly: false }, { syn: synIn(r5, 13), tailOnly: synIn(y13b, 13) });
+  var y14 = fightW({ species: 'koron' }, { parts: ['fang', 'claw'] }, dummy());
+  var y14h = ownHits(y14)[0];
+  row('ねらいうち＋キバ＋ツメ', S.SYN_BY_ID[14].desc + '（キバだけ・ツメ 1げきめは +0）', { syn: true, fangOnly: false, plus: NR }, { syn: synIn(y14, 14), fangOnly: synIn(r1, 14), plus: y14h[1] - y14h[0] });
+  row('いかり＋おおなぐり', S.SYN_BY_ID[15].desc + '（いかりが 出ないと 起きない）', { syn: true, hit5: rd(DA * OM * IM), no: false }, { syn: synIn(r7, 15), hit5: ownHits(r7)[4][0], no: synIn(r7b, 15) });
+  row('技 入りの 噛み合い', 'どれも 技を 1つ 以上 もつ（図鑑の「わざ 入り」）。文は 40文字 以下', true, [12, 13, 14, 15].every(function (id) { return S.SYN_BY_ID[id].waza.length > 0 && S.SYN_BY_ID[id].desc.length <= 40; }));
   CFG.waza.on = true;
   var k1 = S.monKey({ species: 'pyun' }), k2 = S.monKey({ species: 'pyun', waza: [] }), k3 = S.monKey(null);
   CFG.waza.on = false;

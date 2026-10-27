@@ -43,6 +43,7 @@
     var r = { id: runId(now), start: stamp(now), ver: info.ver || '', kind: info.egg ? 'egg' : 'new', name: info.name || '', gen: info.gen || 1,
       parent: info.egg ? info.egg.parentName : null, inherit: info.egg ? info.egg.part : null, battles: [], sec: [], end: null };
     if (info.auto) r.auto = true; // 確かめ用の 自動（?auto=1&kiroku=1）
+    if (info.species) { r.species = info.species; r.waza = (info.waza || []).slice(); } // 決定 13：モンスターの 種類と 技（わざ なしの ときは 無い）
     if (info.resumed) { r.resumed = true; r.fromBattle = info.fromBattle || 1; }
     store.runs.push(r);
     while (store.runs.length > MAX_RUNS) store.runs.shift();
@@ -75,6 +76,8 @@
     run.end = { at: stamp(now), wins: e.wins, maxHit: e.maxHit || null, lostTo: e.lostTo || null, boss: !!e.boss };
   }
   // 1戦の 噛み合い：同じものは 1つに まとめて 回数。first＝図鑑に まだ 無かった
+  // 1戦の 技：{ id: 回数 } → [{ id, n }]（決定 13）
+  function wazaList(used) { return Object.keys(used || {}).map(function (id) { return { id: id, n: used[id] }; }); }
   function synergyList(list, zukanBefore) {
     var out = [], at = {};
     (list || []).forEach(function (s) {
@@ -87,7 +90,7 @@
 
   var SETSUMEI = {
     'これは': 'でこもん 試作版（next/）を ぼくくんが 遊んだ 記録。ブラウザの中に ためて、≡メニューの「きろくを ほぞん」で 書き出した もの。外へは 送っていない。',
-    'jisho': 'id → 名前（parts＝パーツ、enemies＝相手、fields＝ばしょ、synergies＝噛み合い）',
+    'jisho': 'id → 名前（parts＝パーツ、enemies＝相手、fields＝ばしょ、synergies＝噛み合い、species＝モンスターの 種類、waza＝技）',
     'runs': '周回（古い じゅん。最大 ' + MAX_RUNS + '）',
     'runs[].start': '始めた 時刻（その端末の 時刻）',
     'runs[].ver': '版（next ＋ ルールの数値 CFG の 指紋。数値が 変わると 指紋も 変わる）',
@@ -104,7 +107,8 @@
     'battles[].win / hands / timeout': '勝ったか・手数・16手で おわったか',
     'battles[].spark / sparkBy': 'ひらめいた パーツ（なければ null）・きっかけ（nare＝なれ満タン／chance＝運／parent＝おやの を おもいだした）',
     'battles[].synergies': '発動した 噛み合い [{ id, n＝回数, first＝初めて みつけた }]',
-    'battles[].waza': 'モンスターの 技の 発動（決定 13 の あとで 入る。いまは なし）',
+    'runs[].species / waza': 'モンスターの 種類と 技（決定 13。≡メニューで わざ なし の ときは 無い）',
+    'battles[].waza': 'モンスターの 技の 発動 [{ id, n＝回数 }]（わざ なし なら 空）',
     'battles[].got': 'もらったもの [{ kind:part, part }｜{ kind:nare, part, amt }]（まけたら 空）',
     'battles[].sec': 'その戦いで 画面に いた 秒 { start＝周回の 始め・boss＝ぬしの 紹介（1戦目に つく）, fork＝わかれみち, summit＝ちょうじょう, pre＝バトル前（着せかえ）, battle＝戦い, win＝勝ち, grow＝そだち, zukan / dendo＝とちゅうで 見た }。画面を 開いたまま 離れた 時間も 入る（別の タブ・閉じている あいだ・タイトルに 出ている あいだは 入らない）。戦いの とちゅうで 出て やりなおすと battle は 2回分',
     'runs[].secMada': 'まだ 終わっていない 戦いの 秒 [{ no＝何戦目, sec }]（その 戦いの 前で やめた・とちゅうで 書き出した。どこで 迷ったか 見る）',
@@ -113,12 +117,14 @@
   // 書き出す 形：先頭に 説明・辞書。sec は 戦いの 中へ 入れる
   function exportData(store, S, now) {
     now = now || new Date();
-    var jisho = { parts: {}, enemies: {}, fields: {}, synergies: {} };
+    var jisho = { parts: {}, enemies: {}, fields: {}, synergies: {}, species: {}, waza: {} };
     if (S) {
       S.PARTS.forEach(function (p) { jisho.parts[p.id] = p.name; });
       Object.keys(S.ENEMY_BY_ID).forEach(function (k) { jisho.enemies[k] = S.ENEMY_BY_ID[k].name; });
       Object.keys(S.FIELD_BY_ID).forEach(function (k) { jisho.fields[k] = S.FIELD_BY_ID[k].name; });
       S.SYNERGIES.forEach(function (s) { jisho.synergies[s.id] = s.name; });
+      (S.SPECIES || []).forEach(function (sp) { jisho.species[sp.id] = sp.name; });
+      (S.WAZA || []).forEach(function (w) { jisho.waza[w.id] = w.name; });
     }
     var runs = store.runs.map(function (r) {
       var o = JSON.parse(JSON.stringify(r));
@@ -140,7 +146,7 @@
     var nm = function (tbl, id) { return (tbl && tbl[id]) || String(id); };
     var runs = data.runs || [];
     var lines = [];
-    var allB = 0, allHard = 0, allForks = 0, partUse = {}, lost = {}, wins = [], firstSyn = 0, sparks = 0;
+    var allB = 0, allHard = 0, allForks = 0, partUse = {}, lost = {}, wins = [], firstSyn = 0, sparks = 0, shu = {}, wazaUse = {};
     lines.push('| # | 始めた | 名前 | 始め方 | 勝ち数 | てごわい | ひらめき | 新しい噛み合い | 負けた相手 |');
     lines.push('|---|---|---|---|---|---|---|---|---|');
     runs.forEach(function (r, i) {
@@ -154,7 +160,8 @@
       allB += r.battles.length; allHard += hard; allForks += forks.length; sparks += sp; firstSyn += fs;
       if (r.end && !r.end.abandoned) wins.push(w);
       if (r.end && r.end.lostTo) lost[r.end.lostTo] = (lost[r.end.lostTo] || 0) + 1;
-      r.battles.forEach(function (b) { (b.parts || []).forEach(function (p) { partUse[p] = (partUse[p] || 0) + 1; }); });
+      r.battles.forEach(function (b) { (b.parts || []).forEach(function (p) { partUse[p] = (partUse[p] || 0) + 1; }); (b.waza || []).forEach(function (x) { wazaUse[x.id] = (wazaUse[x.id] || 0) + (x.n || 0); }); });
+      if (r.species) shu[r.species] = (shu[r.species] || 0) + 1;
     });
     lines.push('');
     lines.push('- 周回 ' + runs.length + '（おわった ' + wins.length + '）・戦い ' + allB);
@@ -163,11 +170,13 @@
     lines.push('- ひらめき：' + sparks + '（1周回 ' + (runs.length ? Math.round(sparks / runs.length * 10) / 10 : '—') + '）・新しく みつけた 噛み合い：' + firstSyn);
     var top = Object.keys(partUse).sort(function (a, b) { return partUse[b] - partUse[a]; }).slice(0, 6);
     lines.push('- よく つけた パーツ：' + (top.length ? top.map(function (p) { return nm(J.parts, p) + ' ' + partUse[p]; }).join('、') : '—'));
+    var sk = Object.keys(shu), wk = Object.keys(wazaUse).sort(function (a, b) { return wazaUse[b] - wazaUse[a]; });
+    lines.push('- えらんだ 種類（決定 13）：' + (sk.length ? sk.map(function (k) { return nm(J.species, k) + ' ' + shu[k]; }).join('、') : '—（わざ なし）') + '・技の 発動：' + (wk.length ? wk.map(function (k) { return nm(J.waza, k) + ' ' + wazaUse[k]; }).join('、') : '—'));
     var lk = Object.keys(lost).sort(function (a, b) { return lost[b] - lost[a]; });
     lines.push('- 負けた 相手：' + (lk.length ? lk.map(function (e) { return nm(J.enemies, e) + ' ' + lost[e]; }).join('、') : '—'));
     return lines;
   }
 
   return { VERSION: VERSION, MAX_RUNS: MAX_RUNS, stamp: stamp, empty: empty, normalize: normalize, newRun: newRun, findRun: findRun, closeOpen: closeOpen,
-    addTime: addTime, addBattle: addBattle, endRun: endRun, synergyList: synergyList, exportData: exportData, fileName: fileName, summarize: summarize };
+    addTime: addTime, addBattle: addBattle, endRun: endRun, synergyList: synergyList, wazaList: wazaList, exportData: exportData, fileName: fileName, summarize: summarize };
 });

@@ -711,6 +711,42 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   .start-cols { grid-template-columns: 1fr 1.6fr; }
   #clear .cols2, #over .cols2 { grid-template-columns: 1fr 1.5fr; }
 }
+/* 決定 13：モンスターの 種類を 選ぶ 画面・技の 見せ方（演出の class は fx-） */
+.shu-body { display: flex; flex-direction: column; gap: 10px; }
+.shu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.shucard { background: var(--panel); border: 3px solid var(--panel2); border-radius: 16px; padding: 8px 10px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; text-align: center; color: inherit; font: inherit; }
+.shucard.sel { border-color: var(--sc, var(--accent)); box-shadow: 0 0 0 3px var(--sc, var(--accent)) inset; }
+.shucard .shu-mon { width: 170px; height: 170px; }
+.shucard .shu-t { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.shucard .nw { white-space: nowrap; display: inline-block; margin: 0 4px; }
+.shucard .shu-name { font-size: 1.6rem; font-weight: 900; }
+.shucard .shu-st { font-size: 1.05rem; font-weight: 700; color: var(--sub); }
+.shucard .shu-st b { color: var(--ink, #f4f1ea); font-size: 1.15rem; }
+.shu-w { width: 100%; text-align: left; background: #0003; border-radius: 10px; padding: 4px 8px; border-left: 6px solid var(--sc, var(--accent)); }
+.shu-w .wn { font-size: 1.15rem; font-weight: 900; }
+.shu-w .wk { display: inline-block; font-size: 1rem; font-weight: 800; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: var(--panel2); color: var(--sub); }
+.shu-w .wk.kokozo { background: #5a3a10; color: #ffe08a; }
+.shu-w .ws { font-size: 1.05rem; font-weight: 700; }
+#shu .big-title { white-space: nowrap; }
+:where(html.eshort) .shucard .shu-mon { width: 84px; height: 84px; }
+:where(html.eshort) .shu-info { min-height: 0; }
+html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
+:where(html.eshort) .shu-info .if-w { margin: 2px 0; }
+:where(html.eshort) .shu-body { gap: 6px; }
+@media (max-width: 899px) { #shu .big-title { font-size: 1.7rem; } }
+.shu-info { background: #222838; border: 2px solid #4a5168; border-radius: 14px; padding: 6px 12px; min-height: 5.4em; }
+.shu-info .if-w { margin: 4px 0; font-weight: 700; font-size: 1.05rem; }
+.shu-info .if-w b { font-size: 1.15rem; }
+.start-shu { margin-top: 4px; font-weight: 800; font-size: 1.1rem; }
+.start-shu .wchip { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border-radius: 8px; background: #0004; border-left: 5px solid var(--sc, var(--accent)); }
+@media (max-width: 899px) { .shu-grid { grid-template-columns: 1fr; gap: 8px; } .shucard { flex-direction: row; align-items: flex-start; padding: 6px 8px; } .shucard .shu-mon { width: 84px; height: 84px; flex: 0 0 84px; } .shucard .shu-t { align-items: flex-start; text-align: left; } .shucard .shu-name { font-size: 1.35rem; } .shucard .nw { margin: 0 6px 0 0; } .shu-info { display: none; } }
+.big.fx-waza { font-size: 1.9rem; }
+.big.fx-waza .fx-wazaname { display: inline-block; padding: 0 12px; border-radius: 12px; color: #14161c; text-shadow: none; border: 3px solid #fff; }
+@media (min-width: 900px) { .big.fx-waza { font-size: 2.2rem; } }
+.mon.fx-wazaglow .body { filter: drop-shadow(0 0 10px var(--wzc, #fff)) drop-shadow(0 0 4px #fff); }
+.ring.fx-wazaring { width: 130px; height: 130px; border-width: 7px; border-color: var(--wzc, #fff); animation-duration: calc(.6s * var(--spd)); }
+.stchip.fx-wzcd { border-left: 5px solid var(--wzc, var(--accent)); color: #fff; }
+.stchip.fx-wzcd.now { background: #7a5c00dd; }
 /* 版8：たまご・系譜・○だいめ・おやの札 */
 .eggq-body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding-top: calc(var(--vh, 1vh) * 4); }
 .btn.eggbtn { max-width: 420px; min-height: 84px; font-size: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
@@ -1059,7 +1095,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 
 <div class="volbtn" id="volBtn" title="おんりょう"></div>
 <div class="menubtn" id="menuBtn" title="メニュー">≡</div>
-<div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button><button class="btn sub" id="mKiroku">きろくを ほぞん</button></div>
+<div class="menupop" id="menuPop"><div class="mnote" id="menuNote"></div><button class="btn sub" id="mTitle">タイトルへ</button><button class="btn sub" id="mZukan">ずかん</button><button class="btn sub" id="mDendo">でんどう</button><button class="btn sub" id="mKiroku">きろくを ほぞん</button><button class="btn sub" id="mWaza">わざ</button></div>
 <div class="overlay pop" id="bossPop"><div class="box bossbox"><div class="smt-name">やまの ぬし</div><div class="bp-mon" id="bpMon"></div><div class="card e boss" id="bpCard" style="margin:8px 0"></div><div class="sub center">10ごうめ ちょうじょうで まっている　／　タップで とじる</div></div></div>
 <div class="overlay pop" id="partPop"><div class="box partbox" id="partPopBox"></div></div>
 <div class="overlay" id="confirm"><div class="box"><div class="q" id="confirmQ"></div><button class="btn" id="confirmYes">いいよ</button><button class="btn sub" id="confirmNo">やめる</button></div></div>
@@ -1118,11 +1154,22 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   <div class="end-btns"><button class="btn sub" id="eggBack">もどる</button></div>
 </div>
 
+<!-- 決定 13：モンスターの 種類を 選ぶ（あたらしい なかま のとき。わざ なし なら 出ない） -->
+<div id="shu" class="screen">
+  <div class="topbar"><div class="big-title">なかまを えらぶ</div></div>
+  <div class="pcbody shu-body">
+    <div class="sub" id="shuHow"></div>
+    <div class="shu-grid" id="shuList"></div>
+    <div class="shu-info" id="shuInfo"></div>
+  </div>
+  <div class="end-btns"><button class="btn sub" id="shuBack">もどる</button><button class="btn" id="shuGo" disabled>この子で はじめる</button></div>
+</div>
+
 <!-- 周回の始め：名前ともちもの -->
 <div id="start" class="screen">
   <div class="topbar"><span class="sub" id="startHead">あたらしい なかま</span></div>
   <div class="pcbody cols2 start-cols">
-    <div class="col"><div class="row"><div><div class="namebig" id="startName"></div><div class="gen" id="startGen"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div></div><div id="startMon"></div></div><div class="egg-note" id="startEgg" style="display:none"></div></div>
+    <div class="col"><div class="row"><div><div class="namebig" id="startName"></div><div class="gen" id="startGen"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div><div class="start-shu" id="startShu" style="display:none"></div></div><div id="startMon"></div></div><div class="egg-note" id="startEgg" style="display:none"></div></div>
     <div class="col"><div class="label">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
   </div>
   <div class="end-btns"><button class="btn" id="startGo">すすむ</button></div>
@@ -1297,6 +1344,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     seed: Q.get('seed'),
     mute: Q.get('mute') === '1' || Q.get('auto') === '1',
     reset: Q.get('reset') === '1',
+    waza: Q.get('waza'), // 決定 13：確かめ用。?waza=0／1 で わざ なし／あり（覚えない）
     kiroku: Q.get('kiroku') === '1', // 決定 12：確かめ用。?auto=1 でも 記録する（記録に auto の 印）
     egg: Q.get('egg') === '1' // 版8：自動のとき、親になれる子がいれば たまごから 始める（最初の子・最初の Lv2）
   };
@@ -1317,6 +1365,16 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function load(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function remove(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  // 決定 13：わざ あり／なし（≡メニューで 切りかえ。next. の 鍵に 覚える。初めは あり）。?waza=0／1 は その回だけ（覚えない）
+  var WAZA_KEY = 'next.dekomon.waza';
+  // 周回ごとに 決める（周回の とちゅうで 切りかえても その周回は 変わらない＝あり と なしの 戦いが 1周で まざらない）。メニューの 切りかえは つぎの 周回から
+  var WAZA_PREF = (OPT.waza === '0' || OPT.waza === '1') ? OPT.waza === '1' : load(WAZA_KEY, true) !== false;
+  S.CFG.waza.on = WAZA_PREF;
+  function wazaOn() { return !!S.CFG.waza.on; }
+  function setWazaOn(on) { S.CFG.waza.on = !!on; GAME_VER = gameVer(); }
+  // 種類の 体の形（sim.js の shape → bodyShape の 形）。パーツが つく 場所は どの形でも 同じ
+  var SHU_SHAPE = { round: 'round', block: 'block', slim: 'tall', big: 'wide' };
+  function shuShape(spId) { return spId ? (SHU_SHAPE[S.speciesOf(spId).shape] || 'round') : 'round'; }
   if (OPT.reset) { try { Object.keys(KEY).forEach(function (k) { localStorage.removeItem(KEY[k]); }); } catch (e) {} }
   // 版5（なければ 版4）からの引き継ぎ（版6 のキーが まだ無いときだけ）。途中セーブは 形が変わったので 引き継がない
   ['zukan', 'sparks', 'met', 'vol', 'hall'].forEach(function (k) { try { if (localStorage.getItem(KEY[k]) === null && !OPT.reset) { var old = localStorage.getItem('dekomon5.' + k); if (old === null) old = localStorage.getItem('dekomon4.' + k); if (old !== null) localStorage.setItem(KEY[k], old); } } catch (e) {} });
@@ -1351,7 +1409,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   var KR = window.DekoKiroku || null, KIROKU_KEY = OPT.auto ? 'next.dekomon.kiroku.auto' : 'next.dekomon.kiroku';
   var KIROKU = KR ? KR.normalize(load(KIROKU_KEY, null)) : { v: 0, runs: [] }, KREC = null, KT = { screen: null, at: 0, battle: 0, off: false };
   var KIROKU_SCREENS = { start: 1, boss: 1, fork: 1, summit: 1, pre: 1, battle: 1, win: 1, grow: 1, zukan: 1, dendo: 1 };
-  var GAME_VER = (function () { var h = 0, t = JSON.stringify(S.CFG); for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return 'next-cfg-' + h.toString(36); })();
+  function gameVer() { var h = 0, t = JSON.stringify(S.CFG); for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return 'next-cfg-' + h.toString(36); }
+  var GAME_VER = gameVer(); // わざ あり／なし を 切りかえると 変わる
   function kOn() { return !!KR && (!OPT.auto || OPT.kiroku); }
   function kSave() { if (kOn()) save(KIROKU_KEY, KIROKU); }
   // 記録の 中で 何が 起きても ゲームは 止めない
@@ -1364,7 +1423,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   }
   // タイトルに 出たら、つぎに 周回の 画面に もどるまで（タイトルから 開いた ずかん・でんどう も）数えない
   function kTick(id) { if (!kOn()) return; kFlush(); KT.screen = id; KT.battle = G.battle; if (id === 'title') KT.off = true; else if (KIROKU_SCREENS[id] && id !== 'zukan' && id !== 'dendo') KT.off = false; if (KREC) kSave(); }
-  function kInfo(extra) { var o = { ver: GAME_VER, auto: OPT.auto || undefined, name: G.run.name, gen: G.gen, egg: G.egg ? { parentName: G.egg.parentName, part: G.egg.part } : null }; Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
+  function kInfo(extra) { var o = { ver: GAME_VER, auto: OPT.auto || undefined, name: G.run.name, gen: G.gen, egg: G.egg ? { parentName: G.egg.parentName, part: G.egg.part } : null,
+    species: wazaOn() && G.run ? (G.run.species || 'koron') : null, waza: wazaOn() && G.run ? S.playerDef(null, null, monOf()).waza : null }; Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
   function kEnd(lostTo) {
     if (!kOn() || !KREC) return;
     kFlush();
@@ -1392,14 +1452,15 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       case 'tall': return '<ellipse cx="100" cy="118" rx="42" ry="58"' + st + '/>';
       case 'wide': return '<ellipse cx="100" cy="126" rx="62" ry="42"' + st + '/>';
       case 'dome': return '<path d="M44 128 Q44 62 100 62 Q156 62 156 128 Z"' + st + '/><g stroke="' + color + '" stroke-width="6" stroke-linecap="round" fill="none"><path d="M62 130 q-4 20 4 36"/><path d="M85 130 q4 22 -2 40"/><path d="M110 130 q-4 22 4 40"/><path d="M135 130 q2 20 -4 36"/></g>';
+      case 'block': return '<rect x="46" y="70" width="108" height="98" rx="24"' + st + '/>';
       case 'blob': return '<path d="M46 130 Q48 70 100 72 Q154 74 154 125 Q152 168 100 166 Q48 165 46 130Z"' + st + '/>';
       default: return '<circle cx="100" cy="120" r="54"' + st + '/>';
     }
   }
   // 右向きの体。face:'l' で左向き。traits で見た目が変わる。lv2 のパーツは金色のふち。grow（そだち）で体が大きくなり、方向で形が変わる。
-  function monsterSVG(lookKey, parts, face, traits, lv2, grow, big, color) {
+  function monsterSVG(lookKey, parts, face, traits, lv2, grow, big, color, shape) {
     var look = LOOK[lookKey] || LOOK.player;
-    if (lookKey === 'player') look = { shape: look.shape, color: color || (typeof G !== 'undefined' && G.color) || look.color }; // 版8：自分の体の色（いまの周回の色。殿堂は その子の色）
+    if (lookKey === 'player') look = { shape: shape || (typeof G !== 'undefined' && G.run && wazaOn() ? shuShape(G.run.species || 'koron') : look.shape), color: color || (typeof G !== 'undefined' && G.color) || look.color }; // 決定 13：種類の 体の形（殿堂の子は その子の 形） // 版8：自分の体の色（いまの周回の色。殿堂は その子の色）
     var isBoss = lookKey === 'boss';
     var on = {}; (parts || []).forEach(function (p) { on[p] = true; });
     var L = {}; (lv2 || []).forEach(function (p) { L[p] = true; });
@@ -1604,7 +1665,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   renderVol();
 
   // ---------- 画面切り替え ----------
-  var SCREENS = ['title', 'zukan', 'dendo', 'eggq', 'egg', 'start', 'boss', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
+  var SCREENS = ['title', 'zukan', 'dendo', 'eggq', 'egg', 'shu', 'start', 'boss', 'fork', 'summit', 'pre', 'battle', 'win', 'grow', 'clear', 'over'];
   function show(id) {
     kTick(id); // 決定 12：前の 画面に いた 秒
     SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
@@ -1621,13 +1682,18 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   var G = { screen: 'title', firstRun: true, rng: null, run: null, owned: [], attached: [], lastParts: null, battle: 0, wins: 0, lv2: [], pity: 0, sparked: [], history: [], lastSummary: null, picked: null,
     egg: null, gen: 1, color: null, // 版8：egg = { parentId, parentName, part }（たまごから 始めたとき）。gen：○だいめ。color：体の色
     nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, rewards: [], forkFor: -1, pendingGrow: null, backTo: 'title',
-    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, sparkParent: 0, eggRuns: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, picked: 0, nareR: 0, pageScroll: {}, innerScroll: {}, screens: {}, doubleFlash: 0 }, brightChanges: 0 };
+    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, sparkParent: 0, eggRuns: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, picked: 0, nareR: 0, pageScroll: {}, innerScroll: {}, screens: {}, doubleFlash: 0, species: {}, waza: {} }, brightChanges: 0 };
   var seed = OPT.seed ? parseInt(OPT.seed, 10) : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
   G.rng = S.makeRng(seed);
 
   // 版8：parent（殿堂の子）と part（継ぐ Lv2）を渡すと たまごから。名前は 親の頭の文字を継ぎ、体の色は 親の色、継いだパーツは なれ 満タン+1
-  function startRun(parent, part) {
+  // 決定 13：spId＝選んだ 種類（あたらしい なかま）。たまごは 親の 種類（親に 種類が 無ければ ころん）。わざ なしなら 種類は 無い
+  function startRun(parent, part, spId) {
     G.run = S.newRun(G.rng); G.run.choices = [];
+    setWazaOn(WAZA_PREF); G.run.wazaOn = wazaOn();
+    var sp = wazaOn() ? S.speciesOf(parent ? parent.species : spId) : null;
+    // わざ なしでも 種類は 残す（たまごの 家系が 切れないように。なしの あいだは 見た目も 強さも いままでの 1種）
+    G.run.species = sp ? sp.id : ((parent && parent.species) || spId || null); G.run.waza = sp ? sp.waza.slice() : null;
     G.egg = null; G.gen = 1;
     if (parent && part) {
       G.run.name = S.makeName(G.rng, S.nameHead(parent.name));
@@ -1635,11 +1701,12 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       G.gen = (parent.gen || 1) + 1;
       G.color = parent.color || colorForName(parent.name);
       parent.eggUsed = G.run.name; save(KEY.hall, STORE.hall); // 親1体に たまごは 1つ
-    } else G.color = colorForName(G.run.name);
+    } else G.color = sp ? sp.color : colorForName(G.run.name);
     G.owned = S.startItems(G.rng, G.egg ? G.egg.part : null).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
     G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.rewards = []; G.forkFor = -1; G.pendingGrow = null;
     if (G.egg) G.nare[G.egg.part] = S.CFG.nare.full + 1;
     if (OPT.auto && G.egg) G.auto.eggRuns++;
+    if (OPT.auto && sp) G.auto.species[sp.id] = (G.auto.species[sp.id] || 0) + 1;
     noteOwned(G.owned);
     if (kOn()) kSafe(function () { KREC = KR.newRun(KIROKU, kInfo()); KT.battle = 0; KT.off = false; kSave(); });
     showStart();
@@ -1656,8 +1723,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     eggParents().forEach(function (h) {
       var c = el('div', 'eggcard');
       var lv2 = h.lv2 || [];
-      c.innerHTML = '<div>' + monsterSVG('player', h.parts || [], 'r', [], lv2, h.grow, false, h.color) + '</div><div class="t"><div class="n">' + esc(h.name) + '<span class="gen' + ((h.gen || 1) === 1 ? ' g1' : '') + '">' + genText(h.gen) + '</span></div>' +
-        '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
+      c.innerHTML = '<div>' + monsterSVG('player', h.parts || [], 'r', [], lv2, h.grow, false, h.color, shuShape(h.species)) + '</div><div class="t"><div class="n">' + esc(h.name) + '<span class="gen' + ((h.gen || 1) === 1 ? ' g1' : '') + '">' + genText(h.gen) + '</span></div>' +
+        (WAZA_PREF ? '<div class="sub">しゅるい：<b style="color:' + S.speciesOf(h.species).color + '">' + esc(S.speciesOf(h.species).name) + '</b>（子も おなじ）</div>' : '') + '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + '　<span class="sub">' + esc(h.date) + '</span></div>' +
         '<small>' + (lv2.length === 1 ? 'Lv2 は 1つ：タップで この子の たまごから' : 'Lv2 が ' + lv2.length + 'つ：継ぐ 1つを タップ') + '</small><div class="lv2pick"></div></div>';
       var pick = c.querySelector('.lv2pick');
       lv2.forEach(function (pid) {
@@ -1671,15 +1738,59 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     });
     show('egg');
   }
-  $('eggNew').addEventListener('click', function () { initAudio(); startRun(); });
+  $('eggNew').addEventListener('click', function () { initAudio(); newMon(); });
   $('eggFrom').addEventListener('click', function () { initAudio(); showEgg(); });
   $('eggqBack').addEventListener('click', function () { renderTitle(); show('title'); });
   $('eggBack').addEventListener('click', function () { showEggQ(); });
   // 自動（?auto=1&egg=1）：親になれる子がいれば 最初の子の 最初の Lv2 で たまごから
   function autoStart() {
     var ps = eggParents();
-    if (OPT.egg && ps.length) startRun(ps[0], ps[0].lv2[0]); else startRun();
+    if (OPT.egg && ps.length) startRun(ps[0], ps[0].lv2[0]); else newMon();
   }
+  // ---------- 決定 13：モンスターの 種類を 選ぶ ----------
+  // あたらしい なかま：わざ ありなら 種類を 選ぶ画面、なしなら すぐ 始める
+  function newMon() { setWazaOn(WAZA_PREF); if (wazaOn()) showShu(); else startRun(); }
+  // 技の 短い 1行（数字は CFG から。くわしい文は 合わせる／長押しで sim.js の 文そのまま）
+  function wazaShort(id) {
+    var w = S.CFG.waza;
+    return { nerai: 'じょうたいの あいてに +' + w.nerai, kiai: 'たいりょく 半分で 1手 ×' + w.kiaiMult, kamitsuki: 'うけると ' + Math.round(w.kamitsukiRate * 100) + '% で かみつく', hitoiki: w.hitoikiEvery + '手ごとに たいりょく +' + w.hitoikiHeal,
+      suki: 'よろけの あいてに ×' + w.sukiMult, renda: w.rendaEvery + '手ごとに もう1かい', ikari: 'うけると ' + Math.round(w.ikariRate * 100) + '% で つぎ ×' + w.ikariMult, oonaguri: w.oonaguriEvery + '手ごとに 1げきめ ×' + w.oonaguriMult }[id] || '';
+  }
+  function wazaKind(id) { return S.WAZA_BY_ID[id].kind === 'kokozo' ? 'ここぞ' : 'そっと'; }
+  function infoShuHTML(sp) {
+    var h = '<div class="info"><div class="if-head"><div class="if-t"><div class="if-name" style="color:' + sp.color + '">' + esc(sp.name) + '</div><div class="if-tags"><span class="tag me">たいりょく ' + sp.hp + '・こうげき ' + sp.atk + '・はやさ ' + sp.spd + '</span></div></div></div>';
+    sp.waza.forEach(function (id) {
+      var w = S.WAZA_BY_ID[id];
+      h += '<div class="if-w"><b style="color:' + sp.color + '">' + esc(w.name) + '</b>（' + wazaKind(id) + 'の わざ）：' + esc(w.text()) + '</div>';
+    });
+    return h + '<div class="sub">わざは たたかいの なかで じどうで でる（そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる）</div></div>';
+  }
+  var SHU_SEL = null;
+  function showShu() {
+    SHU_SEL = null; $('shuGo').disabled = true;
+    $('shuHow').textContent = (canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる';
+    var list = $('shuList'); list.innerHTML = '';
+    S.SPECIES.forEach(function (sp) {
+      var c = el('button', 'shucard'); c.type = 'button'; c.setAttribute('data-sp', sp.id); c.style.setProperty('--sc', sp.color);
+      c.innerHTML = '<div class="shu-mon">' + monsterSVG('player', [], 'r', [], [], null, false, sp.color, shuShape(sp.id)) + '</div><div class="shu-t">' +
+        '<div class="shu-name" style="color:' + sp.color + '">' + esc(sp.name) + '</div>' +
+        '<div class="shu-st"><span class="nw">たいりょく <b>' + sp.hp + '</b></span><span class="nw">こうげき <b>' + sp.atk + '</b></span><span class="nw">はやさ <b>' + sp.spd + '</b></span></div>' +
+        sp.waza.map(function (id) { var w = S.WAZA_BY_ID[id], k = w.kind === 'kokozo'; return '<div class="shu-w"><span class="wn">' + esc(w.name) + '</span><span class="wk' + (k ? ' kokozo' : '') + '">' + wazaKind(id) + '</span><div class="ws">' + esc(wazaShort(id)) + '</div></div>'; }).join('') + '</div>';
+      infoTap(c, function () { showInfo('shuInfo', infoShuHTML(sp)); }, function () { selectShu(sp.id); });
+      list.appendChild(c);
+    });
+    $('shuInfo').innerHTML = '<div class="info empty"><div>しゅるいごとに つよさと わざ（2つ）が ちがう。たまごの 子は おやの しゅるい</div></div>';
+    show('shu');
+    if (OPT.auto) setTimeout(function () { selectShu(S.SPECIES_IDS[G.auto.runs % S.SPECIES_IDS.length]); $('shuGo').click(); }, 300 / OPT.speed);
+  }
+  function selectShu(id) {
+    SHU_SEL = id; $('shuGo').disabled = false;
+    Array.prototype.forEach.call($('shuList').querySelectorAll('.shucard'), function (c) { c.classList.toggle('sel', c.getAttribute('data-sp') === id); });
+    if (!narrow()) showInfo('shuInfo', infoShuHTML(S.speciesOf(id)));
+    initAudio(); sfx('pick');
+  }
+  $('shuGo').addEventListener('click', function () { if (G.screen !== 'shu' || !SHU_SEL) return; initAudio(); startRun(null, null, SHU_SEL); });
+  $('shuBack').addEventListener('click', function () { if (eggParents().length) showEggQ(); else { renderTitle(); show('title'); } });
   // いまの戦いの道（分かれ道で選んだ側。10戦目は ぬし）
   function curPath() { return S.pathOf(G.run, G.battle, G.run.choices[G.battle] || 0); }
   function curEnemyDef() { return S.enemyDefOf(curPath().enemy); }
@@ -1687,14 +1798,19 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function curHard() { return !!curPath().hard; }
   function isBossBattle() { return G.battle >= S.CFG.runBattles - 1; }
   function curStage() { return G.battle + 1; }
-  function myDef() { return S.playerDef(G.grow, G.run.name); }
+  // 決定 13：種類と 技（わざ なしなら sim.js が 無視する）。古い 保存（種類が 無い）は ころん
+  function monOf() { return G.run ? { species: G.run.species || 'koron', waza: G.run.waza || undefined } : null; }
+  function curSpecies() { return wazaOn() && G.run ? S.speciesOf(G.run.species || 'koron') : null; }
+  function myDef() { return S.playerDef(G.grow, G.run.name, monOf()); }
+  // そだつ前の もとの 強さ（種類ごと。わざ なしなら いままでの 115／13／10）
+  function baseStats() { var b = S.playerDef(null, null, monOf()); return { hp: b.hp, atk: b.atk, spd: b.spd }; }
 
   // ---------- 途中セーブ ----------
   // 画面が変わるたびに保存。phase: start（周回の始め）/ boss（やまの ぬしの画面）/ fork（わかれみち）/ summit（ちょうじょう）/ pre（バトル前）/ win（勝ちの画面）/ grow（そだち）。戦いの途中で閉じたら pre から。
   function sumSave(sum) { return { dealt: sum.dealt, synergies: sum.synergies, spark: sum.spark, sparkBy: sum.sparkBy || null, maxHit: sum.maxHit || null }; }
   function saveRun(phase) {
     if (OPT.auto || !G.run) return;
-    var data = { v: 8, phase: phase, seed: seed, kid: KREC ? KREC.id : null, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices },
+    var data = { v: 8, phase: phase, seed: seed, kid: KREC ? KREC.id : null, rngState: G.rng.getState(), run: { steps: G.run.steps, boss: G.run.boss, name: G.run.name, choices: G.run.choices, species: G.run.species || null, waza: G.run.waza || null, wazaOn: !!G.run.wazaOn },
       egg: G.egg, gen: G.gen, color: G.color,
       owned: G.owned, battle: G.battle, wins: G.wins, lv2: G.lv2, pity: G.pity, sparked: G.sparked, nare: G.nare, grow: G.grow, growHist: G.growHist, acc: G.acc, rewards: G.rewards, forkFor: G.forkFor, picked: G.picked, pendingGrow: G.pendingGrow, firstRun: G.firstRun,
       history: G.history.map(function (h) { return { enemy: h.enemy.id, field: h.field.id, hard: !!h.hard, parts: h.parts, win: h.win, hands: h.hands, timeout: h.timeout, spark: h.spark, summary: sumSave(h.summary) }; }),
@@ -1712,7 +1828,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   }
   function resumeRun(d) {
     G.rng = S.makeRng(0, d.rngState);
-    G.run = { steps: d.run.steps, boss: d.run.boss, name: d.run.name, choices: d.run.choices || [] };
+    G.run = { steps: d.run.steps, boss: d.run.boss, name: d.run.name, choices: d.run.choices || [], species: d.run.species || null, waza: d.run.waza || null, wazaOn: d.run.wazaOn }; // 決定 13：種類が 無い 保存は ころん として 読む
+    setWazaOn(d.run.wazaOn === undefined ? WAZA_PREF : d.run.wazaOn); // わざ あり／なしは 保存した 周回の まま（古い 保存は いまの 設定）
+    G.run.wazaOn = wazaOn(); // 古い 保存でも 補った 設定を 周回に 入れて 保存し直す（Codex PR #10）
     G.egg = d.egg || null; G.gen = d.gen || 1; G.color = d.color || colorForName(d.run.name);
     G.owned = d.owned.slice(); G.attached = []; G.lastParts = null; G.battle = d.battle; G.wins = d.wins; G.lv2 = d.lv2.slice(); G.pity = d.pity; G.sparked = d.sparked.slice();
     G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.rewards = d.rewards || []; G.forkFor = (d.forkFor === undefined) ? -1 : d.forkFor; G.picked = d.picked || []; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
@@ -1786,6 +1904,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var mh = runMaxHit();
     var entry = { id: d.getTime().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36), name: G.run.name, wins: G.wins, parts: last ? last.parts.slice() : [], lv2: G.lv2.slice(), sparked: G.sparked.slice(), synergies: Object.keys(syn).map(Number),
       parent: G.egg ? G.egg.parentId : null, parentName: G.egg ? G.egg.parentName : null, inherited: G.egg ? G.egg.part : null, gen: G.gen || 1, color: G.color || colorForName(G.run.name), eggUsed: null,
+      species: G.run.species || (wazaOn() ? 'koron' : null), waza: wazaOn() ? S.playerDef(null, null, monOf()).waza : null,
       grow: { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick, oogui: G.grow.oogui || 0 }, growHist: G.growHist.slice(), maxHit: mh, boss: G.wins >= S.CFG.runBattles,
       enemies: h.map(function (x) { return x.enemy.id; }), date: d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2), cleared: G.wins >= S.CFG.runBattles };
     STORE.hall.unshift(entry);
@@ -1811,7 +1930,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       var isBest = h === best;
       var eggTag = canBeParent(h) ? '<span class="eggmark">たまご</span>' : (h.eggUsed ? '<span class="eggused">おや → ' + esc(h.eggUsed) + '</span>' : '');
       var inh = h.inherited && S.PART_BY_ID[h.inherited] ? '<small>おやの ' + esc(h.parentName || '') + ' から 継いだ：' + esc(S.PART_BY_ID[h.inherited].name) + ' Lv2「' + esc(S.PART_BY_ID[h.inherited].lv2name) + '」</small>' : '';
-      return el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow, false, h.color) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '<span class="gen' + ((h.gen || 1) === 1 ? ' g1' : '') + '">' + genText(h.gen) + '</span></div>' +
+      return el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow, false, h.color, shuShape(h.species)) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '<span class="gen' + ((h.gen || 1) === 1 ? ' g1' : '') + '">' + genText(h.gen) + '</span></div>' +
         '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + eggTag + '　<span class="sub">' + esc(h.date) + '</span></div>' + inh +
         '<small>さいだいの いちげき：' + esc(maxHitText(h.maxHit)) + '</small><small>そだち：<span class="growhist">' + esc(growHistText(h.growHist)) + '</span></small><small>Lv2：' + names(h.lv2) + '</small><small>さいごの パーツ：' + names(h.parts) + '</small><small>みつけた かみあい：' + syn + '</small></div>');
     }
@@ -1840,12 +1959,24 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('menuNote').textContent = inRun() ? 'しゅうかいは ほぞんしてある（タイトルの「つづきから」）' : '';
     $('mZukan').style.display = G.screen === 'battle' ? 'none' : 'block'; $('mDendo').style.display = G.screen === 'battle' ? 'none' : 'block';
     $('mKiroku').textContent = KIROKU.runs.length ? 'きろくを ほぞん' : 'きろくは まだ ない'; $('mKiroku').disabled = !KIROKU.runs.length;
+    $('mWaza').textContent = WAZA_PREF ? 'わざ あり（おすと なし）' : 'わざ なし（おすと あり）'; $('mWaza').style.display = G.screen === 'battle' ? 'none' : 'block';
     pop.classList.toggle('on'); $('volPop').classList.remove('on');
   });
   document.addEventListener('click', function (ev) { if (!$('menuPop').contains(ev.target) && !$('menuBtn').contains(ev.target)) $('menuPop').classList.remove('on'); });
   $('mTitle').addEventListener('click', function () { if (G.screen === 'battle') stopTimeline(); $('menuPop').classList.remove('on'); renderZukan(); renderTitle(); show('title'); });
   $('mZukan').addEventListener('click', function () { $('menuPop').classList.remove('on'); openZukan(); });
   $('mDendo').addEventListener('click', function () { $('menuPop').classList.remove('on'); openDendo(); });
+  // 決定 13：わざ あり／なし（覚える）。周回の とちゅうなら つぎの 画面から（保存の 種類は 残る。なし→あり で 種類が 無い子は ころん）
+  $('mWaza').addEventListener('click', function () {
+    if (G.screen === 'battle') return;
+    WAZA_PREF = !WAZA_PREF; save(WAZA_KEY, WAZA_PREF);
+    $('mWaza').textContent = WAZA_PREF ? 'わざ あり（おすと なし）' : 'わざ なし（おすと あり）';
+    // 周回の 外（タイトル・たまごの 2択・親を 選ぶ・種類を 選ぶ）の ときだけ すぐ 変える。ずかん・でんどう・おわりの 画面からも つぎの 周回から（Codex PR #10）
+    if (['title', 'eggq', 'egg', 'shu'].indexOf(G.screen) < 0) { $('menuNote').textContent = 'つぎの しゅうかいから わざ ' + (WAZA_PREF ? 'あり' : 'なし'); return; } // いまの 周回は そのまま
+    $('menuPop').classList.remove('on');
+    if (G.screen === 'shu') { renderTitle(); show('title'); return; } // 選ぶ画面なら タイトルへ（すぐ 始めない）
+    setWazaOn(WAZA_PREF);
+  });
   // 決定 12：記録を JSON の ファイルに（ダウンロード。外へは 送らない）
   $('mKiroku').addEventListener('click', function () {
     if (!KIROKU.runs.length || !KR) return;
@@ -1868,6 +1999,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var g = $('startGen'); g.textContent = genText(G.gen); g.className = 'gen' + (G.gen === 1 ? ' g1' : '');
     $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = fmt(d.spd);
     $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], G.grow) + '</div>';
+    var sp = curSpecies(), ss = $('startShu');
+    if (sp) { ss.style.display = 'block'; ss.style.setProperty('--sc', sp.color); ss.innerHTML = '<span style="color:' + sp.color + '">' + esc(sp.name) + '</span>　わざ：' + d.waza.map(function (id) { return '<span class="wchip">' + esc(S.WAZA_BY_ID[id].name) + '</span>'; }).join(''); }
+    else ss.style.display = 'none';
     var en = $('startEgg');
     if (G.egg) { var pp = S.PART_BY_ID[G.egg.part]; en.style.display = 'block'; en.innerHTML = 'おや：<b>' + esc(G.egg.parentName) + '</b>　継いだ：<b>' + esc(pp.name) + ' Lv2「' + esc(pp.lv2name) + '」</b><br>つけて たたかえば、さいしょの はつどうで おもいだす'; }
     else en.style.display = 'none';
@@ -2000,9 +2134,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var t = { hp: 'たいりょく：0 に なると まけ。', atk: 'こうげき：1げきの つよさ。', spd: 'はやさ：おおきい ほうが さきに うごく。' + S.CFG.speedGap + ' いじょう ちがうと さいしょに 2かい。' }[k];
     var extra = '';
     if (side === 'p' && G.run) {
-      var d = myDef(), oo = G.grow.oogui || 0;
-      if (k === 'hp') { var gh = d.hp - S.CFG.playerHp - oo; extra = 'もとは ' + S.CFG.playerHp + (gh > 0 ? '、そだち +' + fmt(gh) : '') + (oo > 0 ? '、おおぐい +' + oo : ''); }
-      if (k === 'atk') { var ga = d.atk - S.CFG.playerAtk; extra = 'もとは ' + S.CFG.playerAtk + (ga > 0 ? '、そだち +' + fmt(ga) : ''); }
+      var d = myDef(), oo = G.grow.oogui || 0, b0 = baseStats();
+      if (k === 'hp') { var gh = d.hp - b0.hp - oo; extra = 'もとは ' + b0.hp + (gh > 0 ? '、そだち +' + fmt(gh) : '') + (oo > 0 ? '、おおぐい +' + oo : ''); }
+      if (k === 'atk') { var ga = d.atk - b0.atk; extra = 'もとは ' + b0.atk + (ga > 0 ? '、そだち +' + fmt(ga) : ''); }
       if (k === 'spd') extra = 'パーツの おもさ（かるい +2・おもい −3）、はね、ばしょで かわる';
       if (k !== 'spd') extra += '。そだち：' + growMarks();
     }
@@ -2207,8 +2341,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     infoEmpty('forkInfo', 'みちを きめるのは「ひだりへ」「みぎへ」の ボタン。ほかの 札は おすと せつめい。青い わくは まえの たたかいで つけていた パーツ');
     show('fork');
     if (OPT.auto) setTimeout(function () {
-      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard).score;
-      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard).score;
+      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf()).score;
+      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard, monOf()).score;
       chooseFork(s1 > s0 ? 1 : 0);
     }, 300 / OPT.speed);
   }
@@ -2277,7 +2411,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {
-        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard);
+        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard, monOf());
         G.attached = best.parts.slice();
         renderMe(); renderPlist();
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);
@@ -2301,7 +2435,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var ef = S.makeFighter('e', e, e.parts, curStage(), [], { hard: curHard() });
     var ps = S.effSpd(p, f.id), es = S.effSpd(ef, f.id);
     $('pName').innerHTML = esc(G.run.name) + '<span class="kv-slc">わく ' + G.attached.length + '／3</span>';
-    $('pStats').innerHTML = statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(ps), spdCls: ps !== S.CFG.playerSpd ? 'chg' : '' }, 'p');
+    $('pStats').innerHTML = statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(ps), spdCls: ps !== baseStats().spd ? 'chg' : '' }, 'p');
     var sl = $('slots'); sl.innerHTML = '';
     for (var i = 0; i < 3; i++) (function (id, n) {
       if (!id) { var eb = el('button', 'kv-slot empty', '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを ' + (canHover() && !narrow() ? 'クリック' : 'タップ') + 'すると ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
@@ -2433,6 +2567,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     if (!noShake) { var bar = $('hp' + up(side)); bar.classList.remove('shake'); void bar.offsetWidth; bar.classList.add('shake'); }
     clearTimeout(ghostTimer[side]);
     ghostTimer[side] = setTimeout(function () { $('ghost' + up(side)).style.width = pct + '%'; }, 420 / OPT.speed);
+    kiaiGlow(side);
   }
   function resetHp(side, max) {
     MAX[side] = max; HP[side] = max;
@@ -2445,6 +2580,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   function setBig(side, text, num, small, cls) {
     var b = bigEl(side);
     b.className = 'big ' + (side === 'p' ? 'l' : 'r') + (cls ? ' ' + cls : '');
+    b.style.removeProperty('--wzc');
+    if (small) $('synpop').classList.remove('on'); // 2行の 大きな文字は 噛み合いの 名前と 重なるので 名前を さげる
     b.innerHTML = esc(text) + (num !== undefined && num !== null ? '<span class="bn">' + esc(num) + '</span>' : '') + (small ? '<br><span class="sm">' + esc(small) + '</span>' : '');
   }
   function playAnim(side, cls, keep) {
@@ -2636,9 +2773,48 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       if (cdn[k] === null || cdn[k] === undefined) return;
       bar.appendChild(el('span', 'stchip cd' + (cdn[k] === 0 ? ' now' : ''), cdn[k] === 0 ? names[k] + '！' : names[k] + ' あと' + cdn[k]));
     });
+    // 決定 13：待ち時間の ある 技（○手ごとに）の のこり。0 は この手に 出る
+    var cw = cdn.waza || {};
+    Object.keys(cw).forEach(function (wid) {
+      var c = el('span', 'stchip cd fx-wzcd' + (cw[wid] === 0 ? ' now' : ''), esc(S.WAZA_BY_ID[wid].name) + (cw[wid] === 0 ? '！' : ' あと' + cw[wid]));
+      c.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(c);
+    });
     if (SPDMOD[side]) bar.appendChild(el('span', 'stchip spd', 'はやさ ' + SPDMOD[side]));
   }
   var SPDMOD = { p: 0, e: 0 }, SPDBASE = { p: 0, e: 0 };
+  // ---------- 決定 13：技の 見せ方。技の 名前を 大きく その子の 色の ふだで（パーツの 発動と 見分ける）。全画面の 光は 使わない ----------
+  var WZC = { p: null, e: null }, KIAI = { p: false, e: false };
+  function wazaSub(ev) {
+    var w = S.CFG.waza;
+    switch (ev.id) {
+      case 'nerai': return '1げき +' + w.nerai;
+      case 'kiai': return 'この手 ×' + w.kiaiMult;
+      case 'kamitsuki': return 'はんげき';
+      case 'hitoiki': return 'たいりょく +' + w.hitoikiHeal;
+      case 'suki': return 'よろけに ×' + w.sukiMult;
+      case 'renda': return 'もう1かい';
+      case 'ikari': return ev.use ? 'この こうげき ×' + w.ikariMult : 'ためた！ つぎ ×' + w.ikariMult;
+      case 'oonaguri': return '1げきめ ×' + w.oonaguriMult;
+    }
+    return '';
+  }
+  function wazaGlow(side, on) { var m = animEl(side).querySelector('.mon'); if (m) { m.style.setProperty('--wzc', WZC[side] || '#fff'); m.classList.toggle('fx-wazaglow', !!on); } }
+  function wazaFx(side, ev, quiet) {
+    var col = WZC[side] || '#ffe08a', b = bigEl(side);
+    if (!quiet) {
+      $('synpop').classList.remove('on');
+      b.className = 'big ' + (side === 'p' ? 'l' : 'r') + ' fx-waza';
+      var center = $('sparkpop').classList.contains('on') || $('found').className !== 'found'; // ひらめき・みつけた！ が 出ている あいだは 2行目を 出さない（下に 重なる。ひらめきを 先に 見せる）
+      b.innerHTML = '<span class="fx-wazaname" style="background:' + col + '">' + esc(ev.name) + '！</span>' + (center ? '' : '<br><span class="sm">わざ　' + esc(wazaSub(ev)) + '</span>');
+    }
+    var c = bodyPt(side); var r = spawn('ring fx-wazaring', c.x, c.y); r.style.setProperty('--wzc', col); removeLater(r, 900);
+    if (ev.id === 'kiai') { KIAI[side] = false; wazaGlow(side, false); }
+    if (ev.id === 'ikari') wazaGlow(side, !!ev.ready);
+    if (!quiet) sfx(ev.id === 'kamitsuki' ? 'fang' : (S.WAZA_BY_ID[ev.id].kind === 'kokozo' ? 'eye' : 'pick'));
+    if (OPT.auto && side === 'p' && !ev.use) G.auto.waza[ev.id] = (G.auto.waza[ev.id] || 0) + 1;
+  }
+  // ふんばり：たいりょくが 半分より すくないと（まだ 出ていなければ）体が 光る＝つぎの 自分の手に 出る
+  function kiaiGlow(side) { if (KIAI[side]) wazaGlow(side, HP[side] > 0 && HP[side] < MAX[side] / 2); }
   function flashChip(side, st) {
     var bar = $(side === 'p' ? 'stP' : 'stE');
     Array.prototype.forEach.call(bar.querySelectorAll('.stchip.' + st), function (c) { c.classList.remove('up'); void c.offsetWidth; c.classList.add('up'); });
@@ -2905,6 +3081,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('animP').innerHTML = monsterSVG('player', G.attached, 'r', [], lv2Before, G.grow);
     $('animE').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits, [], null, true);
     SPDMOD = { p: 0, e: 0 }; NARE_NOW = {}; $('nareLayer').innerHTML = '';
+    var csp = curSpecies(); WZC = { p: csp ? csp.color : null, e: null }; KIAI = { p: p.waza && p.waza.kiai ? true : false, e: false }; // 決定 13
     $('bResult').className = 'result'; $('bResult').textContent = '';
     $('synpop').className = 'synpop'; $('sparkpop').className = 'sparkpop'; $('found').className = 'found'; $('zkicon').classList.remove('lit');
     $('battle').classList.remove('shake');
@@ -2927,7 +3104,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     });
     tl.add(1000);
 
-    var handsPlayed = 0;
+    var handsPlayed = 0, wazaSeen = {};
     res.hands.forEach(function (hand) {
       var a = hand.actor, d = other(a);
       var firstHitDone = { p: false, e: false };
@@ -2943,6 +3120,13 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           // ひらめき：0.8秒 止める。その手の効果は Lv2 で出る（sim がそうなっている）
           tl.at(0, function () { sparkFx(ev.side, ev.part, ev.by); removeNareBar(ev.part); hitstop(800); });
           tl.add(1500); // 「ひらめいた！」が 消えてから その手の つづき（大きな文字と 重ねない）
+        } else if (ev.t === 'waza') {
+          // 決定 13：技が 出た（そっと＝短く、ここぞ＝長く 見せる。つぎの 出来事の 大きな文字に すぐ 消されないように 間を とる）
+          // そっと効く技は その戦いの 1回目だけ 大きく。2回目からは 体の 輪だけ（いつも 効いている ので 毎回 止めない）
+          var kokozo = S.WAZA_BY_ID[ev.id].kind === 'kokozo', wkey = ev.side + ev.id + (ev.ready ? 'r' : ev.use ? 'u' : '');
+          var quiet = !kokozo && wazaSeen[wkey]; wazaSeen[wkey] = true;
+          tl.at(0, function () { wazaFx(ev.side, ev, quiet); });
+          if (!quiet) tl.add(kokozo || ev.ready ? 750 : 500);
         } else if (ev.t === 'act') {
           tl.at(0, function () { setNareBar(ev.part, ev.n); if (ev.step > 1) { var x = $('bNareX2'); x.classList.remove('fx-nare-up'); void x.offsetWidth; x.classList.add('fx-nare-up'); } });
         } else if (ev.t === 'skip') {
@@ -3058,15 +3242,16 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           var cs = ev.side, tgt = other(cs);
           var cFin = ev.hp === 0;
           var cPre = cFin ? 300 : 0;
-          if (cFin) tl.at(0, function () { spikeExt(cs); });
+          if (cFin && ev.waza !== 'kamitsuki') tl.at(0, function () { spikeExt(cs); });
           if (ev.thrown) tl.at(cPre, function () { shoot(cs, 200); });
+          var kami = ev.waza === 'kamitsuki'; // 決定 13：かみつきかえし（パーツ でない はんげき）
           tl.at(cPre + (ev.thrown ? 200 : 0), function () {
-            spikeExt(cs); glowPart(cs, 'spike', ev.thrown); sfx('spike'); sfx('don');
+            if (kami) { playAnim(cs, 'lunge'); sfx('fang'); sfx('don'); } else { spikeExt(cs); glowPart(cs, 'spike', ev.thrown); sfx('spike'); sfx('don'); }
             setHp(tgt, ev.hp);
             if (ev.deflect) { var cq2 = bodyPt(tgt, true); sparks(cq2.x, cq2.y, 10, 90, '#cfe9ff', true); sfx('scale'); dmgFx(tgt, '0', 'weak'); setBig(tgt, 'はじいた！', null, null, 'bighit'); }
             else { hitFx(tgt, cFin, false); dmgFx(tgt, ev.dmg, 'counter'); }
             hitstop(cFin ? 250 : 80); zoomArena(cFin);
-            setBig(cs, ev.thrown ? 'ばらまき！' : 'トゲ！ はんげき', ev.dmg, null, ev.thrown ? 'bighit' : '');
+            setBig(cs, kami ? 'かみつき！ はんげき' : ev.thrown ? 'ばらまき！' : 'トゲ！ はんげき', ev.dmg, null, ev.thrown ? 'bighit' : '');
             if (cFin) { finishFlash(); shakeScreen(); sfx('finish'); }
           });
           if (cFin) tl.at(cPre + 520, function () { fadeDmg(); showResult(tgt === 'e' ? 'たおした！' : 'やられた…', tgt === 'e' ? '#ffcc4d' : '#ff9c9c', true); });
@@ -3155,7 +3340,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       var oth = null;
       if (!e.boss) { var op = G.run.steps[G.battle][1 - kPick]; if (op) oth = { enemy: S.enemyDefOf(op.enemy).id, field: op.field, hard: !!op.hard }; }
       KR.addBattle(KREC, { no: G.battle + 1, hard: !!hard, enemy: e.id, field: f.id, other: oth, parts: used.slice(), win: won, hands: res.nHands, timeout: !!res.timeout,
-        spark: res.spark || null, sparkBy: res.spark ? res.sparkBy : null, synergies: KR.synergyList(res.summary.synergies, zukanBefore), waza: [],
+        spark: res.spark || null, sparkBy: res.spark ? res.sparkBy : null, synergies: KR.synergyList(res.summary.synergies, zukanBefore), waza: KR.wazaList ? KR.wazaList(res.summary.waza) : [],
         got: won ? (G.picked || []).map(function (x) { return x.kind === 'nare' ? { kind: 'nare', part: x.part, amt: x.amt } : { kind: 'part', part: x.part }; }) : [] });
       kSave();
     }
@@ -3237,7 +3422,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var descs = { tough: 'りんかくが ふとく なった', strong: 'まえはんしんが おおきく なった', quick: 'ほそながく なった' };
     // そだつ前の体と数字（いまの そだちから この1回ぶんを 引く）
     var before = { tough: G.grow.tough, strong: G.grow.strong, quick: G.grow.quick }; before[dir] = Math.max(0, before[dir] - 1);
-    var dB = S.playerDef(before, G.run.name), dA = myDef();
+    before.oogui = G.grow.oogui || 0;
+    var dB = S.playerDef(before, G.run.name, monOf()), dA = myDef();
     var pair = dir === 'tough' ? ['たいりょく', dB.hp, dA.hp] : (dir === 'strong' ? ['こうげき', dB.atk, dA.atk] : ['はやさ', dB.spd, dA.spd]);
     $('growTitle').textContent = G.run.name + 'は そだった！';
     $('growBefore').innerHTML = monsterSVG('player', G.lastParts || [], 'r', [], G.lv2, before);
@@ -3274,7 +3460,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     // 版8：Lv2 の名前だけ（1行に収める）。+0 は 出さない
     var sp = G.sparked.length ? G.sparked.map(function (p) { return esc(S.PART_BY_ID[p].lv2name); }).join('・') : 'なし';
     var plus = function (v, base) { return v - base > 0 ? '（+' + fmt(v - base) + '）' : ''; };
-    return '<div class="t">そだち</div><div><span class="growhist">' + esc(growHistText(G.growHist)) + '</span></div><div>たいりょく ' + fmt(d.hp) + plus(d.hp, S.CFG.playerHp) + ' ／ こうげき ' + fmt(d.atk) + plus(d.atk, S.CFG.playerAtk) + ' ／ はやさ ' + fmt(d.spd) + plus(d.spd, S.CFG.playerSpd) + '</div><div>ひらめいた（Lv2）：<span class="spk">' + sp + '</span></div>';
+    return '<div class="t">そだち</div><div><span class="growhist">' + esc(growHistText(G.growHist)) + '</span></div><div>たいりょく ' + fmt(d.hp) + plus(d.hp, baseStats().hp) + ' ／ こうげき ' + fmt(d.atk) + plus(d.atk, baseStats().atk) + ' ／ はやさ ' + fmt(d.spd) + plus(d.spd, baseStats().spd) + '</div><div>ひらめいた（Lv2）：<span class="spk">' + sp + '</span></div>';
   }
   function showClear() {
     enterHall(); renderZukan(); kEnd(null);
@@ -3310,7 +3496,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     show('over');
     if (OPT.auto) { G.auto.runs++; logAuto(); setTimeout(restart, 700 / OPT.speed); }
   }
-  function restart() { G.firstRun = false; if (OPT.auto) autoStart(); else if (eggParents().length) showEggQ(); else startRun(); }
+  function restart() { G.firstRun = false; if (OPT.auto) autoStart(); else if (eggParents().length) showEggQ(); else newMon(); }
   // 紙ふぶき：3秒 ふってくる（色は 場所の色と 金）
   function confettiFx() {
     var box = $('confetti'); box.innerHTML = '';
@@ -3326,7 +3512,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   }
   function logAuto() {
     var a = G.auto;
-    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、てごわい ' + a.hardW + '/' + a.hardB + '、ぬし ' + a.bossW + '/' + a.bossB + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '・おやの ' + a.sparkParent + '）、たまご ' + a.eggRuns + '、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、拾った ' + a.picked + '、なれ+10 ' + a.nareR + '、ページスクロール ' + JSON.stringify(a.pageScroll) + '、中スクロール ' + JSON.stringify(a.innerScroll) + '、2回の明るさ ' + a.doubleFlash + '、図鑑 ' + zukanFound() + '/' + S.SYNERGIES.length + '・' + STORE.sparks.length + '/16');
+    console.log('[でこもん auto] 周回 ' + a.runs + '、10連勝 ' + a.clears + '、戦い ' + a.battles + '、勝ち ' + a.wins + '、ずれ ' + a.mismatches + '、てごわい ' + a.hardW + '/' + a.hardB + '、ぬし ' + a.bossW + '/' + a.bossB + '、ひらめき ' + a.sparks + '（なれ ' + a.sparkNare + '・おやの ' + a.sparkParent + '）、たまご ' + a.eggRuns + '、そだち ' + JSON.stringify(a.grows) + '、明るさの変化 ' + G.brightChanges + '、重なり ' + a.overlaps + '、透け ' + a.seeThrough + '、噛み合い ' + JSON.stringify(a.synergies) + '、Lv2 ' + JSON.stringify(a.lv2Used) + '、拾った ' + a.picked + '、なれ+10 ' + a.nareR + '、ページスクロール ' + JSON.stringify(a.pageScroll) + '、中スクロール ' + JSON.stringify(a.innerScroll) + '、2回の明るさ ' + a.doubleFlash + '、種類 ' + JSON.stringify(a.species) + '、技 ' + JSON.stringify(a.waza) + '、図鑑 ' + zukanFound() + '/' + S.SYNERGIES.length + '・' + STORE.sparks.length + '/16');
     window.__dekomonAuto = a;
   }
 
@@ -3338,13 +3524,13 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     if (d && !OPT.auto) resumeRun(d);
     else if (OPT.auto) autoStart();
     else if (eggParents().length) showEggQ(); // 版8：親になれる子がいれば 2択
-    else startRun();
+    else newMon();
   });
   $('newBtn').addEventListener('click', function () {
     initAudio();
     var d = loadSave();
-    if (!d) { startRun(); return; }
-    confirmBox(d.run.name + 'の しゅうかいが きえるよ。いい？', function () { clearSave(); if (eggParents().length) showEggQ(); else startRun(); });
+    if (!d) { if (eggParents().length) showEggQ(); else newMon(); return; }
+    confirmBox(d.run.name + 'の しゅうかいが きえるよ。いい？', function () { clearSave(); if (eggParents().length) showEggQ(); else newMon(); });
   });
   $('againBtn1').addEventListener('click', function () { initAudio(); restart(); });
   $('againBtn2').addEventListener('click', function () { initAudio(); restart(); });

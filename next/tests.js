@@ -615,6 +615,97 @@ var P = CFG.playerAtk; // 13
       return { a: KR.normalize(null).runs.length, b: KR.normalize({ runs: 'x' }).runs.length, c: n.runs.length, d: n.runs[0].battles.length - 1, sec: n.runs[0].sec }; })());
 })();
 
+// ======================= モンスターの 種類と 技（決定 13。CFG.waza.on で 切りかえ）=======================
+(function () {
+  var on0 = CFG.waza.on;
+  function fixed(v) { var f = function () { return v; }; f.getState = function () { return 0; }; return f; }
+  // 技つきの 戦い。mon = { species, waza? }。rngV を 渡すと 確率の 技は いつも その値（0.1 なら 出る・0.9 なら 出ない）
+  function fightW(mon, p, e, opts) {
+    opts = opts || {};
+    CFG.waza.on = true;
+    var pf = S.makeFighter('p', S.playerDef(p.grow || null, 'テスト', mon), p.parts || [], 1, p.lv2 || []);
+    var ef = S.makeFighter('e', e, e.parts || [], 1, [], {});
+    var res = S.simulateBattle(pf, ef, opts.field || 'plain', { variance: 0, rng: opts.rngV !== undefined ? fixed(opts.rngV) : S.makeRng(1) });
+    CFG.waza.on = on0;
+    res.pf = pf; return res;
+  }
+  function ownHits(res) { // 自分の手ごとの 1げきの ダメージ
+    var out = [];
+    res.hands.forEach(function (h) { if (h.actor !== 'p') return; out.push(h.events.filter(function (ev) { return ev.t === 'hit' && ev.side === 'p'; }).map(function (ev) { return ev.dmg; })); });
+    return out;
+  }
+  function wazaEvs(res, id) { return evs(res, function (ev) { return ev.t === 'waza' && ev.id === id; }); }
+
+  CFG.waza.on = false;
+  var off = S.playerDef(null, 'x', { species: 'pyun' });
+  CFG.waza.on = true;
+  var onP = S.playerDef(null, 'x', { species: 'pyun' }), old = S.playerDef(null, 'x', null), inh = S.playerDef(null, 'x', { species: 'koron', waza: ['nerai', 'kiai', 'renda'] });
+  CFG.waza.on = on0;
+  row('種類', 'わざ なし（CFG.waza.on = false）なら どの 種類でも いままでの 1種（115／13／10・技なし）', { hp: 115, atk: 13, spd: 10, waza: [] }, { hp: off.hp, atk: off.atk, spd: off.spd, waza: off.waza });
+  var PY = S.SPECIES_BY_ID.pyun, KO = S.SPECIES_BY_ID.koron;
+  row('種類', 'わざ あり：ぴゅんは ' + PY.hp + '／' + PY.atk + '／' + PY.spd + '、技は すきをつく・れんだ', { hp: PY.hp, atk: PY.atk, spd: PY.spd, waza: ['suki', 'renda'] }, { hp: onP.hp, atk: onP.atk, spd: onP.spd, waza: onP.waza });
+  row('種類', '種類の ない 古い 保存は ころん（' + KO.hp + '／' + KO.atk + '／' + KO.spd + '）として 読む。技を 3つ 渡すと 3つ（卵で 継ぐ）', { sp: 'koron', hp: KO.hp, w: ['nerai', 'kiai'], w3: 3 }, { sp: old.species, hp: old.hp, w: old.waza, w3: inh.waza.length });
+  row('種類', 'どの 種類も 技は 2つ（そっと 1つ・ここぞ 1つ）', true, S.SPECIES.every(function (sp) { return sp.waza.length === 2 && S.WAZA_BY_ID[sp.waza[0]].kind === 'sotto' && S.WAZA_BY_ID[sp.waza[1]].kind === 'kokozo'; }));
+  row('技の文', 'どの 技の 文も 2行まで（46文字 以下＝Lv2 の 文と 同じ）', true, S.WAZA.every(function (w) { return w.text().length <= 46; }));
+
+  // ねらいうち（ころん 13）：キバで どくに した あとの 1げきは +3
+  var r1 = fightW({ species: 'koron' }, { parts: ['fang'] }, dummy());
+  var NR = CFG.waza.nerai;
+  row('ねらいうち', S.wazaText('nerai'), [[13], [13 + NR], [13 + NR]], ownHits(r1).slice(0, 3));
+  var r1b = fightW({ species: 'koron' }, { parts: [] }, dummy());
+  row('ねらいうち', 'じょうたいの ない あいてには +0', [[13], [13]], ownHits(r1b).slice(0, 2));
+  // ふんばり：相手 こうげき 30 → 1げき 32。たいりょく 100 → 68 → 36（半分 50 より すくない）→ 自分の 3手め ×2 → 1戦に 1回
+  var r2 = fightW({ species: 'koron' }, { parts: [] }, dummy({ atk: 30 }));
+  row('ふんばり', S.wazaText('kiai'), { hits: [[13], [13], [26], [13]], n: 1 }, { hits: ownHits(r2).slice(0, 4), n: wazaEvs(r2, 'kiai').length });
+  // かみつきかえし（ごつん 11）：あたったとき（確率を 0.1 に）はんげき 11×0.5 = 5.5 → 6。0.9 なら 出ない。とおくからには とどかない
+  var r3 = fightW({ species: 'gotsun' }, { parts: [] }, dummy());
+  var r3a = fightW({ species: 'gotsun' }, { parts: [] }, dummy(), { rngV: 0.1 });
+  var eHits = hitsBy(r3a, 'e').filter(function (x) { return x.dmg > 0; }).length, ks = countersBy(r3a, 'p');
+  row('かみつきかえし', S.wazaText('kamitsuki'), { n: eHits, dmg: 6, waza: 'kamitsuki' }, { n: ks.length, dmg: ks[0] && ks[0].dmg, waza: ks[0] && ks[0].waza });
+  var r3b = fightW({ species: 'gotsun' }, { parts: [] }, dummy(), { rngV: 0.9 });
+  var r3c = fightW({ species: 'gotsun' }, { parts: [] }, dummy({ traits: ['ranged'] }), { rngV: 0.1 });
+  row('かみつきかえし', '確率で 出ないときは 0。とおくからの あいて（はんげきを うけない）にも 0', { no: 0, ranged: 0 }, { no: countersBy(r3b, 'p').length, ranged: countersBy(r3c, 'p').length });
+  // ひといき（ごつん。はやさ 8 で あと）：じぶんの 4・8手めの はじめに +12
+  var hs = [];
+  var own = 0; r3b.hands.forEach(function (h) { if (h.actor !== 'p') return; own++; h.events.forEach(function (ev) { if (ev.t === 'heal' && ev.src === 'ひといき') hs.push([own, ev.amt]); }); });
+  row('ひといき', S.wazaText('hitoiki'), [[4, CFG.waza.hitoikiHeal], [8, CFG.waza.hitoikiHeal]], hs);
+  // すきをつく（ぴゅん 12）：しっぽ＋ツメ で 1げきめで よろけ → 2・3げきめ ×1.5（7.2 → 10.8）
+  var r5 = fightW({ species: 'pyun' }, { parts: ['tail', 'claw'] }, dummy());
+  row('すきをつく', S.wazaText('suki'), [7, 11, 11], ownHits(r5)[0]);
+  // れんだ（ぴゅん）：じぶんの 4・8手めは 2かい
+  var r6 = fightW({ species: 'pyun' }, { parts: [] }, dummy({ atk: 1 }));
+  row('れんだ', S.wazaText('renda'), [1, 1, 1, 2, 1, 1, 1, 2], ownHits(r6).slice(0, 8).map(function (x) { return x.length; }));
+  var re0 = CFG.waza.rendaEvery; CFG.waza.rendaEvery = 3;
+  var r6b = fightW({ species: 'pyun' }, { parts: ['spring'] }, dummy({ atk: 1 }));
+  CFG.waza.rendaEvery = re0;
+  row('れんだ', 'ばねあしと 同じ手なら 3かい（れんだを 3手ごとに して ためす）', [1, 1, 3], ownHits(r6b).slice(0, 3).map(function (x) { return x.length; }));
+  // いかり（どしん。はやさ 9 で あと）：あたったとき（0.1）→ つぎの こうげき ×1.5。おおなぐり：じぶんの 5手め 1げきめ ×2
+  var DA = S.SPECIES_BY_ID.doshin.atk, IM = CFG.waza.ikariMult, OM = CFG.waza.oonaguriMult, rd = Math.round;
+  var r7 = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.1 });
+  row('いかり', S.wazaText('ikari') + '（こうげき ' + DA + '）', [[rd(DA * IM)], [rd(DA * IM)], [rd(DA * IM)], [rd(DA * IM)], [rd(DA * OM * IM)]], ownHits(r7).slice(0, 5));
+  var r7b = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.9 });
+  row('おおなぐり', S.wazaText('oonaguri') + '（いかりが 出ないとき）', [[DA], [DA], [DA], [DA], [DA * OM], [DA]], ownHits(r7b).slice(0, 6));
+  var r7c = fightW({ species: 'doshin' }, { parts: ['claw'] }, dummy({ spd: 1 }), { rngV: 0.9 });
+  row('おおなぐり', 'ツメの 3げきでも ×' + OM + ' は 1げきめ だけ', [rd(DA * 0.6 * OM), rd(DA * 0.6), rd(DA * 0.6)], ownHits(r7c)[4]);
+  // 待ち時間の ゲージ：hand.countdown.waza（0 なら この手に 出る）
+  var cd = r6.hands.filter(function (h) { return h.actor === 'p'; }).slice(0, 4).map(function (h) { return h.countdown.waza.renda; });
+  row('待ち時間', 'れんだの のこり（体の そばの ゲージ用）：3・2・1・0', [3, 2, 1, 0], cd);
+  // わざ なし なら 種類を 渡しても 前と 同じ 戦い（乱数の 順番も 同じ）
+  var a1 = S.runBattle(['fang', 'claw'], 3, 4, 'plain', { rng: S.makeRng(7) });
+  var a2 = S.runBattle(['fang', 'claw'], 3, 4, 'plain', { rng: S.makeRng(7), mon: { species: 'gotsun' } });
+  row('わざ なし', 'CFG.waza.on = false なら mon を 渡しても 同じ 結果・技の 出来事なし（前の版との 同じさは bot で 確かめる）', { same: true, ev: 0 }, { same: JSON.stringify(a1) === JSON.stringify(a2), ev: evs(a2, function (ev) { return ev.t === 'waza'; }).length });
+  var r3d = fightW({ species: 'gotsun' }, { parts: ['scale'], lv2: ['scale'] }, dummy({ atk: 5 }), { rngV: 0.1 });
+  row('かみつきかえし', '0 に はじいた 1げきでも「うけた」ので 出る（トゲと 同じ）', true, countersBy(r3d, 'p').length > 0 && hitsBy(r3d, 'e').every(function (x) { return x.dmg === 0; }));
+  var r7d = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.1 });
+  row('いかり', 'summary.waza は ためた 回数（使った ときは 数えない）', wazaEvs(r7d, 'ikari').filter(function (x) { return x.ready; }).length, r7d.summary.waza.ikari);
+  row('わざ あり', '技の 回数は summary.waza（記録・ボット用）', { kiai: 1 }, r2.summary.waza);
+  CFG.waza.on = true;
+  var k1 = S.monKey({ species: 'pyun' }), k2 = S.monKey({ species: 'pyun', waza: [] }), k3 = S.monKey(null);
+  CFG.waza.on = false;
+  row('ボットの 覚え', '技を 省いた（その種類の 2つ）と 空（技なし）は 別の 鍵・わざ なしは 鍵なし', { a: 'Wpyun:suki,renda', b: 'Wpyun:', c: 'Wkoron:nerai,kiai', off: '' }, { a: k1, b: k2, c: k3, off: S.monKey({ species: 'pyun' }) });
+  CFG.waza.on = on0;
+})();
+
 // ======================= 出力 =======================
 console.log('| 札 | 文 | 期待 | 実測 | 一致 |');
 console.log('|---|---|---|---|---|');

@@ -9,6 +9,9 @@ var TABLE_TRIALS = parseInt(process.argv[4] || '200', 10);
 var AB_RUNS = parseInt(process.argv[5] || String(RUNS), 10);
 var EGG_RUNS = parseInt(process.argv[6] || String(Math.max(50, Math.round(RUNS / 8))), 10); // 版8：16種それぞれ 継いだときの 周回数
 var SEED = 20261026;
+// 決定 13：モンスターの 種類と 技。DEKO_MON='{"species":"pyun"}' で わざ あり（CFG.waza.on = true）・その 種類で 回す。無ければ わざ なし（前と 同じ）
+var CUR_MON = null;
+if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
 
@@ -37,7 +40,8 @@ function newStats() {
     rw: { partEnemy: 0, partOther: 0, nare: 0, none: 0, slots: 0 }, pickedHist: [], nareHist: [], noneHist: [], fullAt: [], nareFull: 0,
     // 版8：卵。sparkParent：おやの ひらめき（by: parent）の回数、parentAt：何戦目で おもいだしたか、lv2Lists：周回の終わりの Lv2 の一覧（卵の親に使う）
     sparkParent: 0, parentAt: [], lv2Lists: [],
-    ooguiBoss: { n: 0, sum: 0 } }; // おおぐい：Lv2 を持って ぬしに 挑んだ周回の 数と、そのときの ふえた上限の 合計
+    ooguiBoss: { n: 0, sum: 0 },
+    waza: {}, synKinds: [] }; // 決定 13：技の 回数（全周回の 合計）・1周で 発動した 異なる噛み合いの 数 // おおぐい：Lv2 を持って ぬしに 挑んだ周回の 数と、そのときの ふえた上限の 合計
   for (var i = 0; i <= NB; i++) st.winsHist.push(0);
   for (var j = 0; j < NB; j++) { st.stage.push({ n: 0, w: 0 }); st.growByStage.push({ n: 0, tough: 0, strong: 0, quick: 0 }); }
   S.PART_IDS.forEach(function (p) { st.use[p] = 0; st.sparkByPart[p] = 0; st.actByPart[p] = 0; st.lv2Used[p] = 0; });
@@ -67,7 +71,8 @@ function playRun(chooser, stats, fixedParts, inherit) {
     var rewards = fixedParts ? [] : path.rewards;
     if (!fixedParts && !enemy.boss) { var slots = hard ? 2 : 1; stats.rw.slots += slots; stats.rw.none += slots - rewards.length; noneR += slots - rewards.length; }
     var parts = fixedParts ? fixedParts : chooser.loadout(owned, eIdx, stage, fId, grow, lv2, hard);
-    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
+    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, mon: CUR_MON, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
+    if (res.summary.waza) Object.keys(res.summary.waza).forEach(function (w) { stats.waza[w] = (stats.waza[w] || 0) + res.summary.waza[w]; });
     stats.battles++;
     stats.hands.push(res.nHands);
     stats.count[parts.length]++;
@@ -108,6 +113,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     }
   }
   Object.keys(synSeen).forEach(function (id) { stats.syn[id]++; });
+  stats.synKinds.push(Object.keys(synSeen).length);
   // Lv2 入りの噛み合い：その Lv2 を（周回の終わりまでに）持っていた周回のうち 発動した割合
   LV2_SYN.forEach(function (sy) { if (sy.lv2.every(function (p) { return lv2.indexOf(p) >= 0; })) { stats.synLv2Runs[sy.id].n++; if (synSeen[sy.id]) stats.synLv2Runs[sy.id].w++; } });
   stats.runs++;
@@ -151,6 +157,7 @@ function reportBot(name, st) {
   console.log('手数：平均 ' + f1(hs.mean) + '、中央 ' + hs.p50 + '、10%点 ' + hs.p10 + '、90%点 ' + hs.p90 + '、8〜14手 ' + pct(hs.within) + '、8手未満 ' + pct(hs.under) + '、16手で判定 ' + pct(st.timeouts / st.battles));
   console.log('つけた個数：0個 ' + pct(st.count[0] / st.battles) + '、1個 ' + pct(st.count[1] / st.battles) + '、2個 ' + pct(st.count[2] / st.battles) + '、3個 ' + pct(st.count[3] / st.battles));
   var sh = st.sparkHist.slice().sort(function (a, b) { return a - b; });
+  if (st.synKinds.length) console.log('噛み合いの 種類（1周で 発動した 異なる噛み合い）：平均 ' + f2(mean(st.synKinds)) + (Object.keys(st.waza).length ? '。技（1周回あたり）：' + Object.keys(st.waza).map(function (w) { return S.WAZA_BY_ID[w].name + ' ' + f2(st.waza[w] / st.runs); }).join('、') : ''));
   console.log('ひらめき：1周回あたり 平均 ' + f2(st.sparks / st.runs) + ' 回（なれ満タン ' + f2(st.sparkNare / st.runs) + '、確率 ' + f2(st.sparkChance / st.runs) + '。中央 ' + sh[Math.floor(sh.length / 2)] + '、最大 ' + sh[sh.length - 1] + '）、0回の周回 ' + pct(st.sparkZero / st.runs) + '、1戦あたり ' + pct(st.sparks / st.battles));
   var gs = growShare(st);
   console.log('そだちの方向：がんじょう ' + pct(gs.tough) + '、たくましい ' + pct(gs.strong) + '、すばやい ' + pct(gs.quick) + '（そだち ' + gs.total + ' 回、1周回あたり ' + f2(gs.total / st.runs) + '）');
@@ -172,15 +179,15 @@ function reportBot(name, st) {
 
 // ---------- ボット ----------
 function scoreOf(parts, path, stage, grow, lv2) {
-  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard });
+  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard, mon: CUR_MON });
   return (r.winner === 'p' ? 1 : 0) + 0.5 * (r.p.hp / r.p.maxHp - r.e.hp / r.e.maxHp);
 }
 // 合わせ：毎戦 その相手に最良の3つ。分かれ道は「勝ちやすい方」（もらえるものは見ない）
 var matchedBot = {
-  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard).parts; },
+  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard, CUR_MON).parts; },
   fork: function (paths, owned, stage, grow, lv2) {
-    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard).score;
-    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard).score;
+    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard, CUR_MON).score;
+    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard, CUR_MON).score;
     return s1 > s0 ? 1 : 0;
   }
 };
@@ -216,6 +223,7 @@ var hsR = reportBot('ランダムボット（場所の制約を守って 0〜3�
 var stM = newStats();
 for (var j = 0; j < RUNS; j++) playRun(matchedBot, stM);
 var hsM = reportBot('合わせボット（毎戦その相手に最良の3つ。道は勝ちやすい方。ひらめき狙いはしない）', stM);
+if (process.env.DEKO_ONLY === 'matched') { console.log('（DEKO_ONLY=matched：合わせボットまで。計算時間 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒）'); process.exit(0); }
 var stH = newStats();
 for (var j2 = 0; j2 < RUNS; j2++) playRun(hardBot, stH);
 var hsH = reportBot('てごわいボット（道は必ず てごわい側。パーツは合わせと同じ）', stH);
@@ -369,8 +377,8 @@ S.PART_IDS.forEach(function (p) {
     S.ENEMIES.forEach(function (e) {
       S.FIELDS.forEach(function (f) {
         for (var t = 0; t < 4; t++) {
-          if (S.runBattle(combo, e.index, 5, f.id, { rng: rng }).winner === 'p') w1++;
-          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, lv2: [p], grow: p === 'leech' ? { tough: 0, strong: 0, quick: 0, oogui: OOGUI5 } : null });
+          if (S.runBattle(combo, e.index, 5, f.id, { rng: rng, mon: CUR_MON }).winner === 'p') w1++;
+          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, mon: CUR_MON, lv2: [p], grow: p === 'leech' ? { tough: 0, strong: 0, quick: 0, oogui: OOGUI5 } : null });
           if (r2.winner === 'p') w2++;
           if (r2.summary.lv2Used[p]) used++;
           n++;
@@ -425,10 +433,10 @@ S.ENEMIES.concat([S.BOSS]).forEach(function (e) {
     var sum = 0;
     var fields = e.boss ? [S.SUMMIT] : S.FIELDS;
     fields.forEach(function (f) {
-      var best = S.bestLoadout(S.PART_IDS, e.index, s, f.id, g, []);
+      var best = S.bestLoadout(S.PART_IDS, e.index, s, f.id, g, [], false, CUR_MON);
       if (s === 10 && (f.id === 'plain' || e.boss)) best10 = best;
       var w = 0;
-      for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(best.parts, e.index, s, f.id, { rng: rng, grow: g }).winner === 'p') w++; }
+      for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(best.parts, e.index, s, f.id, { rng: rng, grow: g, mon: CUR_MON }).winner === 'p') w++; }
       sum += w / TABLE_TRIALS;
     });
     var r = sum / fields.length;
@@ -444,8 +452,8 @@ var bossLv2 = Object.keys(stM.bossLv2).sort(function (a, b) { return stM.bossLv2
 var bossTableLv2 = 0, bossBest = null;
 (function () {
   var g = meanGrowAt(9), w = 0;
-  bossBest = S.bestLoadout(S.PART_IDS, 'boss', 10, S.SUMMIT.id, g, bossLv2);
-  for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(bossBest.parts, 'boss', 10, S.SUMMIT.id, { rng: rng, grow: g, lv2: bossLv2 }).winner === 'p') w++; }
+  bossBest = S.bestLoadout(S.PART_IDS, 'boss', 10, S.SUMMIT.id, g, bossLv2, false, CUR_MON);
+  for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(bossBest.parts, 'boss', 10, S.SUMMIT.id, { rng: rng, grow: g, lv2: bossLv2, mon: CUR_MON }).winner === 'p') w++; }
   bossTableLv2 = w / TABLE_TRIALS;
 })();
 console.log('| やまの ぬし（参考：段10・育ちあり・Lv2 ' + bossLv2.length + 'つ：' + bossLv2.map(function (p) { return S.PART_BY_ID[p].lv2name; }).join('・') + '） | - | - | ' + pct(bossTableLv2) + ' | ' + cname(bossBest.parts) + ' |');

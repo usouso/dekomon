@@ -9,6 +9,7 @@
 var { chromium } = require('playwright');
 var { spawn } = require('child_process');
 var path = require('path');
+var qualityGate = require('./check-gate');
 
 function arg(name, def) { var i = process.argv.indexOf('--' + name); if (i < 0) return def; var v = process.argv[i + 1]; return (v === undefined || v.indexOf('--') === 0) ? true : v; }
 var RUNS = parseInt(arg('runs', '30'), 10);
@@ -94,14 +95,14 @@ function fmtObj(o) { var ks = Object.keys(o || {}); return ks.length ? ks.map(fu
     sc.forEach(function (s) { console.log('| ' + s + ' | ' + A.screens[s] + ' | ' + (A.innerScroll[s] || 0) + ' | ' + ((A.innerEx || {})[s] || '-') + ' | ' + fmtObj((A.zooms || {})[s]) + ' |'); });
     console.log('');
   });
-  // 合格の条件：--inner0 の 大きさは 中のスクロール 0
-  var fail = 0;
-  INNER0.forEach(function (k) { if (!rows.some(function (r) { return r.size.w + 'x' + r.size.h === k; })) { console.log('判定 ' + k + '：調べていない → 不合格（--sizes に 入れる）'); fail++; } });
-  rows.forEach(function (r) {
-    var key = r.size.w + 'x' + r.size.h; if (INNER0.indexOf(key) < 0) return;
-    var n = Object.keys(r.a.auto.innerScroll).reduce(function (a, k) { return a + r.a.auto.innerScroll[k]; }, 0);
-    console.log('判定 ' + key + '：中のスクロール ' + n + ' → ' + (n === 0 ? '合格' : '不合格（' + fmtObj(r.a.auto.innerScroll) + '）'));
-    if (n) fail++;
+  // QUALITY_GATE_BEGIN: automatic telemetry only; manual input and visual QA remain separate.
+  var issues = qualityGate(rows, {
+    runs: RUNS,
+    sizes: SIZES.map(function (s) { return s.w + 'x' + s.h; }),
+    inner0: INNER0
   });
-  if (fail) process.exitCode = 1;
+  issues.forEach(function (issue) { console.log('品質判定：' + JSON.stringify(issue)); });
+  console.log('自動検査の範囲：' + (issues.length ? '不合格 ' + issues.length + '件' : '合格（実入力・実画面の独立確認は別工程）'));
+  if (issues.length) process.exitCode = 1;
+  // QUALITY_GATE_END
 })().catch(function (e) { console.error(e); process.exit(1); });

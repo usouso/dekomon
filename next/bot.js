@@ -11,6 +11,7 @@ var EGG_RUNS = parseInt(process.argv[6] || String(Math.max(50, Math.round(RUNS /
 var SEED = 20261026;
 // 決定 13：モンスターの 種類と 技。DEKO_MON='{"species":"pyun"}' で わざ あり（CFG.waza.on = true）・その 種類で 回す。無ければ わざ なし（前と 同じ）
 var CUR_MON = null;
+var FEW = process.env.DEKO_FEW === '1'; if (FEW) console.log('DEKO_FEW=1：はじめての 周回（始めの もちもの 3つ）');
 if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
@@ -52,7 +53,7 @@ function newStats() {
 // inherit：版8の卵。継ぐパーツ（なれ full+1 で始まり、最初の発動で 必ず ひらめく）
 function playRun(chooser, stats, fixedParts, inherit) {
   var run = S.newRun(rng);
-  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng, inherit || null);
+  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng, inherit || null, FEW && !inherit); // 決定 21-b：DEKO_FEW=1 で はじめての 周回（始めの もちもの 3つ）
   var wins = 0, lv2 = [], pity = 0, nare = {}, grow = S.emptyGrow(), acc = { received: 0, landed: 0, first: 0 }, sparksThisRun = 0;
   if (inherit) nare[inherit] = S.CFG.nare.full + 1;
   var parentAt = -1;

@@ -1190,7 +1190,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   <div class="topbar"><span class="sub" id="startHead">あたらしい なかま</span></div>
   <div class="pcbody cols2 start-cols">
     <div class="col"><div class="row"><div><div class="namebig" id="startName"></div><div class="gen" id="startGen"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div><div class="start-shu" id="startShu" style="display:none"></div></div><div id="startMon"></div></div><div class="egg-note" id="startEgg" style="display:none"></div></div>
-    <div class="col"><div class="label">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
+    <div class="col"><div class="label" id="startCount">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
   </div>
   <div class="end-btns"><button class="btn" id="startGo">すすむ</button></div>
 </div>
@@ -1725,7 +1725,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       G.color = parent.color || colorForName(parent.name);
       parent.eggUsed = G.run.name; save(KEY.hall, STORE.hall); // 親1体に たまごは 1つ
     } else G.color = sp ? sp.color : colorForName(G.run.name);
-    G.owned = S.startItems(G.rng, G.egg ? G.egg.part : null).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
+    // 決定 21-b：はじめての 周回は 3つ（この 行の 後ろには 書かない）
+    G.owned = S.startItems(G.rng, G.egg ? G.egg.part : null, !G.egg && firstEver()).slice(); G.attached = []; G.lastParts = null; G.battle = 0; G.wins = 0; G.lv2 = []; G.pity = 0; G.sparked = []; G.history = []; G.lastSummary = null; G.picked = [];
     G.nare = {}; G.grow = S.emptyGrow(); G.growHist = []; G.acc = { received: 0, landed: 0, first: 0 }; G.rewards = []; G.forkFor = -1; G.pendingGrow = null;
     if (G.egg) G.nare[G.egg.part] = S.CFG.nare.full + 1;
     if (OPT.auto && G.egg) G.auto.eggRuns++;
@@ -2024,6 +2025,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var d = myDef();
     $('startHead').textContent = G.egg ? 'たまごから うまれた なかま' : 'あたらしい なかま';
     $('startName').textContent = G.run.name;
+    $('startCount').textContent = 'もちもの（' + G.owned.length + 'つ）'; // 21-b：はじめての 周回は 3つ（Codex PR #18）
     var g = $('startGen'); g.textContent = genText(G.gen); g.className = 'gen' + (G.gen === 1 ? ' g1' : '');
     $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = fmt(d.spd);
     $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], G.grow) + '</div>';
@@ -2400,13 +2402,15 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 
   // ---------- バトル前 ----------
   function metCount(enemyId) { return STORE.met[enemyId] || 0; }
-  function firstEver() { return STORE.hall.length === 0; } // はじめての 周回（殿堂に まだ だれも いない。途中セーブから 戻っても 同じ）
+  function firstEver() { return STORE.hall.length === 0; } // はじめての 周回（殿堂に まだ だれも いない。途中セーブから 戻っても 同じ）。21-b の 始めの 3つ・21-c の ◎✕ は これ 1つで 決める（G.firstRun は「ページを 開いて 最初の 周回」の「えらぶ ↓」だけ）
   var swapFlash = null;
   function showPre() {
     var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
     var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
     var met = metCount(e.id);
     G.attached = []; // 毎戦、装備を外した状態で始める
+    // 決定 21-b：はじめての 周回の 1戦目は 始めの 3つを つけた 状態で（3つとも 場所が ちがう）。2戦目からは いつもどおり
+    if (!OPT.auto && G.battle === 0 && firstEver() && G.owned.length === 3) G.attached = G.owned.filter(function (id, i, a) { return !a.slice(0, i).some(function (o) { return S.PART_BY_ID[o].loc === S.PART_BY_ID[id].loc; }); });
     preSel = null;
     $('preNo').textContent = (G.battle + 1) + 'せんめ ／ ' + S.CFG.runBattles;
     $('preWins').textContent = G.wins ? G.wins + 'れんしょうちゅう' : '';
@@ -2507,6 +2511,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     swapFlash = null;
     var hw = $('hintWrap'); hw.innerHTML = '';
     if (G.firstRun && G.battle === 0 && G.attached.length === 0) hw.appendChild(el('span', 'hint', 'えらぶ ↓'));
+    else if (G.battle === 0 && firstEver() && G.owned.length === 3 && G.attached.length === 3) hw.appendChild(el('span', 'hint', 'つけて おいたよ'));
     if (G.screen === 'pre') window.__fitZoom(true);
   }
   // 合わせた／長押しした 札：作り直さずに 印（sel）だけ 動かして 文を出す（作り直すと カーソルの 下の 札が かわって また 合わせた ことに なる）

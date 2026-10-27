@@ -322,6 +322,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .found .fcard { position: absolute; top: 34%; padding: 8px 14px; background: var(--panel); border: 3px solid var(--accent); border-radius: 12px; font-size: 1.3rem; font-weight: 900; color: #fff; white-space: nowrap; transform: translateY(-50%); transition: left calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), right calc(.35s * var(--spd)) cubic-bezier(.2,.8,.2,1), opacity calc(.15s * var(--spd)); }
 .found .fcard.l { left: -40%; } .found .fcard.r { right: -40%; }
 .found.fly .fcard.l { left: 22%; } .found.fly .fcard.r { right: 22%; }
+.found.long .fcard { font-size: 1.05rem; } .found.long.fly .fcard.l { left: 3%; } .found.long.fly .fcard.r { right: 3%; } /* 技 入りで 名前が 長いとき 札を 重ねない */
 .found.merge .fcard { opacity: 0; transition: none; } /* 名前が 出る 瞬間に 札は 消す（消えかけの 札と 名前を 重ねない） */
 .found .fname { position: absolute; left: 10%; right: 10%; top: 34%; line-height: 1.15; transform: translateY(-50%) scale(.6); text-align: center; font-size: 2.4rem; font-weight: 900; color: #fff; text-shadow: 0 0 18px #ffcc4d, 0 3px 0 #000; opacity: 0; transition: transform calc(.3s * var(--spd)) cubic-bezier(.2,1.6,.3,1), opacity calc(.2s * var(--spd)); }
 .found.merge .fname { opacity: 1; transform: translateY(-50%) scale(1); }
@@ -579,7 +580,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .zp .d { margin-top: 6px; }
 .zp-lv2 { margin-top: 4px; color: var(--gold); font-weight: 700; }
 .zp-lv2.unknown { color: #8a8f9c; font-weight: 400; }
-.zk .tag.lv { margin-left: 6px; vertical-align: 2px; }
+.zk .tag.lv, .zk .tag.wz { margin-left: 6px; vertical-align: 2px; }
+.tag.wz { background: #123f3b; color: #8fe3d8; font-weight: 800; } /* 決定 13：わざ 入りの 噛み合い */
 .hall-grid { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
 .card.lost .ec-top .mon { width: 84px; height: 84px; flex-basis: 84px; }
 .card.lost .traits { display: inline-flex; gap: 10px; border-top: 0; padding-top: 0; margin-top: 0; flex-wrap: wrap; }
@@ -708,6 +710,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   .items { grid-column: auto; order: 0; }
   .it-grid { grid-template-columns: 1fr 1fr; }
   .zk-grid { grid-template-columns: 1fr 1fr 1fr; }
+  #zukanList.zk-grid { grid-template-columns: 1fr 1fr 1fr 1fr; } /* 決定 13：かみあいが 14 に なったので 4列（1366×650 で 中の スクロールを 出さない） */
+  #zukanList .zk { margin: 0; }
   .start-cols { grid-template-columns: 1fr 1.6fr; }
   #clear .cols2, #over .cols2 { grid-template-columns: 1fr 1.5fr; }
 }
@@ -1869,8 +1873,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var list = $('zukanList'); list.innerHTML = '';
     S.SYNERGIES.forEach(function (sy) {
       var found = STORE.zukan.indexOf(sy.id) >= 0;
-      var lvTag = sy.lv2.length ? '<span class="tag lv">Lv2 入り</span>' : '';
-      list.appendChild(el('div', 'zk ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(sy.name) : '？？？') + lvTag + '</div><div class="d">' + (found ? esc(sy.desc) : 'まだ みつけていない' + (sy.lv2.length ? '（Lv2 の パーツで おきる）' : '')) + '</div>'));
+      var lvTag = (sy.lv2.length ? '<span class="tag lv">Lv2 入り</span>' : '') + (sy.waza.length ? '<span class="tag wz">わざ 入り</span>' : '');
+      var hint = sy.waza.length ? (sy.parts.length ? '（わざと パーツで おきる）' : '（わざどうしで おきる）') : (sy.lv2.length ? '（Lv2 の パーツで おきる）' : '');
+      list.appendChild(el('div', 'zk ' + (found ? 'found' : 'unknown'), '<div class="n">' + (found ? esc(sy.name) : '？？？') + lvTag + '</div><div class="d">' + (found ? esc(sy.desc) : 'まだ みつけていない' + hint) + '</div>'));
     });
     $('sparkSub').textContent = 'ひらめいた ' + STORE.sparks.length + '／' + S.PARTS.length;
     $('zkHead').textContent = 'もったことが ある ' + STORE.ownedEver.length + '／' + S.PARTS.length + '　ひらめいた ' + STORE.sparks.length + '／' + S.PARTS.length + '（Lv2 の文は ひらめいた パーツだけ）';
@@ -2881,11 +2886,12 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   function foundFx(id, side) {
     hideCenter(); setBig('p', ''); setBig('e', '');
     var sy = S.SYN_BY_ID[id];
-    var names = sy.parts.map(function (pid) { return pid ? S.PART_BY_ID[pid].short : 'じょうたい'; });
+    var names = sy.waza.map(function (w) { return S.WAZA_BY_ID[w].name; }).concat(sy.parts.map(function (pid) { return pid ? S.PART_BY_ID[pid].short : 'じょうたい'; }));
     var f = $('found');
-    $('fcardL').textContent = names[0]; $('fcardR').textContent = names[1];
+    $('fcardL').textContent = names[0]; $('fcardR').textContent = names.slice(1).join('＋'); // 技 入り（決定 13）：左が 技、右が パーツ（2つなら ＋ で つなぐ）
     $('fname').textContent = sy.name;
-    f.className = 'found on' + ($('bResult').classList.contains('on') ? ' hi' : '');
+    var longN = (names[0].length + names.slice(1).join('＋').length) > 9;
+    f.className = 'found on' + ($('bResult').classList.contains('on') ? ' hi' : '') + (longN ? ' long' : '');
     // 「みつけた！」は 名前の 上の はしより 上に（名前が 2行に なる スマホでも 重ねない。名前は はねて 1.2倍まで 大きく なる）
     var tg = f.querySelector('.ftag'), fn = $('fname'); tg.style.top = '';
     var want = fn.offsetTop - fn.offsetHeight / 2 * 1.2 - tg.offsetHeight - 4;

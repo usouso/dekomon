@@ -28,7 +28,8 @@ function comboName(key) {
   var sp = key.split('|'), ps = sp[0] ? sp[0].split(',') : [], l2 = sp[1] ? sp[1].split(',') : [];
   return ps.length ? ps.map(function (p) { return S.PART_BY_ID[p].name + (l2.indexOf(p) >= 0 ? '（Lv2 ' + S.PART_BY_ID[p].lv2name + '）' : ''); }).join('＋') : '（なし）';
 }
-var LV1_SYN = S.SYNERGIES.filter(function (s) { return !s.lv2.length; }), LV2_SYN = S.SYNERGIES.filter(function (s) { return s.lv2.length > 0; });
+var WAZA_SYN = S.SYNERGIES.filter(function (s) { return s.waza.length > 0; }); // 決定 13：技 入り（わざ なしでは 起きない）
+var LV1_SYN = S.SYNERGIES.filter(function (s) { return !s.lv2.length && !s.waza.length; }), LV2_SYN = S.SYNERGIES.filter(function (s) { return s.lv2.length > 0; });
 
 // ---------- 周回を遊ぶ（画面と同じ手順：分かれ道 → もらえるものの決定 → 戦い → なれ → 拾い／なれ +10 → そだち。10戦目は ぬし） ----------
 function newStats() {
@@ -157,6 +158,7 @@ function reportBot(name, st) {
   console.log('手数：平均 ' + f1(hs.mean) + '、中央 ' + hs.p50 + '、10%点 ' + hs.p10 + '、90%点 ' + hs.p90 + '、8〜14手 ' + pct(hs.within) + '、8手未満 ' + pct(hs.under) + '、16手で判定 ' + pct(st.timeouts / st.battles));
   console.log('つけた個数：0個 ' + pct(st.count[0] / st.battles) + '、1個 ' + pct(st.count[1] / st.battles) + '、2個 ' + pct(st.count[2] / st.battles) + '、3個 ' + pct(st.count[3] / st.battles));
   var sh = st.sparkHist.slice().sort(function (a, b) { return a - b; });
+  if (S.CFG.waza.on) console.log('技 入りの 噛み合い（1周で 1回でも）：' + WAZA_SYN.map(function (s) { return s.id + ' ' + s.name + ' ' + pct(st.syn[s.id] / st.runs); }).join('、'));
   if (st.synKinds.length) console.log('噛み合いの 種類（1周で 発動した 異なる噛み合い）：平均 ' + f2(mean(st.synKinds)) + (Object.keys(st.waza).length ? '。技（1周回あたり）：' + Object.keys(st.waza).map(function (w) { return S.WAZA_BY_ID[w].name + ' ' + f2(st.waza[w] / st.runs); }).join('、') : ''));
   console.log('ひらめき：1周回あたり 平均 ' + f2(st.sparks / st.runs) + ' 回（なれ満タン ' + f2(st.sparkNare / st.runs) + '、確率 ' + f2(st.sparkChance / st.runs) + '。中央 ' + sh[Math.floor(sh.length / 2)] + '、最大 ' + sh[sh.length - 1] + '）、0回の周回 ' + pct(st.sparkZero / st.runs) + '、1戦あたり ' + pct(st.sparks / st.battles));
   var gs = growShare(st);

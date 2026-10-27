@@ -46,7 +46,10 @@
     // 相手の段階
     enemyBase: 1.06,
     stageHp: 0.10, stageAtk: 0.10,
-    variance: 0.15
+    variance: 0.15,
+    // モンスター固有の技（2026-10-27 ぼくくんの 決定 13。試作：on が false なら 種類も 技も なし＝前と 同じ 1種 115／13／10。乱数の 順番も 前と 同じ）
+    waza: { on: false, nerai: 2, kiaiMult: 2, kamitsukiRate: 0.4, kamitsukiRatio: 0.5, hitoikiEvery: 4, hitoikiHeal: 8,
+            sukiMult: 1.5, rendaEvery: 4, ikariRate: 0.25, ikariMult: 1.5, oonaguriEvery: 5, oonaguriMult: 2 }
   };
 
   // ---------- 体の場所 ----------
@@ -83,6 +86,38 @@
     quick:  { id: 'quick',  name: 'すばやい',   desc: 'はやさ +' + 3, key: 'first' }
   };
   var GROW_IDS = ['tough', 'strong', 'quick'];
+
+  // ---------- モンスターの 技（決定 13）----------
+  // kind：'sotto'（そっと効く技＝ずっと 効いている）／'kokozo'（ここぞの技＝条件が そろうと 出る）。札の文は 文字どおり（tests.js で 守る）。
+  // 条件の 語彙は 4つだけ：「○手ごとに」「1げきが あたったとき ○%」「○の あいてへの 1げき」「たいりょくが 半分より すくない 最初の手」
+  var W = function () { return CFG.waza; };
+  var WAZA = [
+    { id: 'nerai',     name: 'ねらいうち',     kind: 'sotto',  text: function () { return 'じょうたいの あいてへの 1げきが +' + W().nerai; } },
+    { id: 'kiai',      name: 'ふんばり',       kind: 'kokozo', text: function () { return 'たいりょくが 半分より すくない 最初の手、こうげきが ×' + W().kiaiMult; } },
+    { id: 'kamitsuki', name: 'かみつきかえし', kind: 'sotto',  text: function () { return '1げきが あたったとき ' + Math.round(W().kamitsukiRate * 100) + '% で はんげき（じぶんの こうげき ×' + W().kamitsukiRatio + '）'; } },
+    { id: 'hitoiki',   name: 'ひといき',       kind: 'kokozo', text: function () { return W().hitoikiEvery + '手ごとに、じぶんの手の はじめに たいりょく +' + W().hitoikiHeal; } },
+    { id: 'suki',      name: 'すきをつく',     kind: 'sotto',  text: function () { return 'よろけの あいてへの 1げきが ×' + W().sukiMult; } },
+    { id: 'renda',     name: 'れんだ',         kind: 'kokozo', text: function () { return W().rendaEvery + '手ごとに、こうげきを もう1かい する'; } },
+    { id: 'ikari',     name: 'いかり',         kind: 'sotto',  text: function () { return '1げきが あたったとき ' + Math.round(W().ikariRate * 100) + '% で、つぎの こうげきが ×' + W().ikariMult; } },
+    { id: 'oonaguri',  name: 'おおなぐり',     kind: 'kokozo', text: function () { return W().oonaguriEvery + '手ごとに、こうげきの 1げきめが ×' + W().oonaguriMult; } }
+  ];
+  var WAZA_BY_ID = {}; WAZA.forEach(function (w, i) { w.index = i; WAZA_BY_ID[w.id] = w; });
+  var WAZA_IDS = WAZA.map(function (w) { return w.id; });
+  function wazaText(id) { var w = WAZA_BY_ID[id]; return w ? w.text() : ''; }
+  // 待ち時間の ある 技（「○手ごとに」）：体の そばの 小さな ゲージに 出す。every は CFG から
+  function wazaEvery(id) { return id === 'hitoiki' ? CFG.waza.hitoikiEvery : id === 'renda' ? CFG.waza.rendaEvery : id === 'oonaguri' ? CFG.waza.oonaguriEvery : 0; }
+
+  // ---------- モンスターの 種類（決定 13。まず 4種）----------
+  // koron が いままでの 1種（115／13／10）。古い 保存・殿堂の子は koron として 読む。
+  var SPECIES = [
+    { id: 'koron', name: 'ころん', hp: 100, atk: 13, spd: 10, waza: ['nerai', 'kiai'],      color: '#e8a33c', shape: 'round' },
+    { id: 'gotsun', name: 'ごつん', hp: 115, atk: 11, spd: 8,  waza: ['kamitsuki', 'hitoiki'], color: '#7d8a96', shape: 'block' },
+    { id: 'pyun',  name: 'ぴゅん', hp: 97,  atk: 12, spd: 14, waza: ['suki', 'renda'],      color: '#4fb3a9', shape: 'slim' },
+    { id: 'doshin', name: 'どしん', hp: 100, atk: 13, spd: 9,  waza: ['ikari', 'oonaguri'],   color: '#c0504d', shape: 'big' }
+  ];
+  var SPECIES_BY_ID = {}; SPECIES.forEach(function (sp, i) { sp.index = i; SPECIES_BY_ID[sp.id] = sp; });
+  var SPECIES_IDS = SPECIES.map(function (sp) { return sp.id; });
+  function speciesOf(id) { return SPECIES_BY_ID[id] || SPECIES_BY_ID.koron; }
 
   // ---------- 噛み合い ----------
   var SYNERGIES = [
@@ -241,11 +276,16 @@
   // grow.oogui：おおぐい（すいつくくち Lv2）で ふえた たいりょくの 上限（この周回の合計。周回のあいだ残る。途中セーブも grow ごと）
   function emptyGrow() { return { tough: 0, strong: 0, quick: 0 }; }
   function growCount(grow) { return grow ? (grow.tough || 0) + (grow.strong || 0) + (grow.quick || 0) : 0; }
-  function playerDef(grow, name) {
+  // mon（決定 13）：{ species: 'koron' など, waza: [技の id]（省くと その種類の 2つ）}。CFG.waza.on が false なら 無視（いままでの 1種・技なし）
+  function playerDef(grow, name, mon) {
     var g = grow || emptyGrow();
+    var on = !!CFG.waza.on;
+    var sp = on ? speciesOf(mon && mon.species) : null;
+    var base = sp ? { hp: sp.hp, atk: sp.atk, spd: sp.spd } : { hp: CFG.playerHp, atk: CFG.playerAtk, spd: CFG.playerSpd };
+    var waza = on ? ((mon && mon.waza) ? mon.waza.filter(function (w) { return !!WAZA_BY_ID[w]; }) : sp.waza.slice()) : [];
     return { id: 'player', name: name || 'あなた',
-      hp: CFG.playerHp + CFG.grow.hp * (g.tough || 0) + (g.oogui || 0), atk: CFG.playerAtk + CFG.grow.atk * (g.strong || 0), spd: CFG.playerSpd + CFG.grow.spd * (g.quick || 0),
-      traits: [], parts: [], grow: g };
+      hp: base.hp + CFG.grow.hp * (g.tough || 0) + (g.oogui || 0), atk: base.atk + CFG.grow.atk * (g.strong || 0), spd: base.spd + CFG.grow.spd * (g.quick || 0),
+      traits: [], parts: [], grow: g, species: sp ? sp.id : null, waza: waza };
   }
   var PLAYER_DEF = playerDef(null);
   // 前の そだち からの「うけた・あてた・せんて」の数で方向を決める。acc = { received, landed, first }
@@ -320,7 +360,9 @@
       ownHands: 0, hard: hard, boss: !!def.boss,
       // 版5：Lv2 の効果で戦いの中で変わるもの
       oogui: (def.grow && def.grow.oogui) || 0, // おおぐいで この周回に ふえた 上限（playerDef の grow から）
-      spdMod: 0, atkMod: 0, dodgeLeft: CFG.lv2.eyeDodges, shellHideHand: 0, skipNext: false, broken: {}, stored: 0, tailwind: 0
+      spdMod: 0, atkMod: 0, dodgeLeft: CFG.lv2.eyeDodges, shellHideHand: 0, skipNext: false, broken: {}, stored: 0, tailwind: 0,
+      // 決定 13：技（周回の あいだ ずっと。外せない）。kiaiUsed：ふんばりは 1戦に1回。rage：いかりで つぎの こうげきが ×1.5
+      species: def.species || null, waza: toSet((CFG.waza.on && def.waza) || []), kiaiUsed: false, rage: false
     };
   }
   function isHard(f) { return !!(f.T.hard || f.active.scale); }
@@ -422,6 +464,14 @@
     function noteHit(side, label, dmg) { if (side === 'p' && dmg > maxHit.dmg) maxHit = { dmg: dmg, label: label }; }
     var lv2Used = {}; // この戦いで Lv2 の効果が出たパーツ（確認用）
     function usedLv2(part) { lv2Used[part] = (lv2Used[part] || 0) + 1; }
+    // 決定 13：技が 出た。{ t:'waza', side, id, ... }。wazaUsed は 自分の側の 回数（記録・ボット用）
+    var wazaUsed = {};
+    function wazaEv(f, id, events, extra) {
+      var e2 = { t: 'waza', side: f.side, id: id, name: WAZA_BY_ID[id].name };
+      if (extra) Object.keys(extra).forEach(function (k) { e2[k] = extra[k]; });
+      events.push(e2);
+      if (f.side === 'p') wazaUsed[id] = (wazaUsed[id] || 0) + 1;
+    }
 
     function addDealt(side, label, dmg) { dealt[side][label] = (dealt[side][label] || 0) + dmg; }
     function fireSyn(side, id, events) {
@@ -477,7 +527,7 @@
       events.push({ t: 'broken', side: d.side, part: pid, hands: CFG.lv2.brokenHands, by: a.side });
     }
 
-    function attack(a, d, events, isDouble, ctx, handNo, second) {
+    function attack(a, d, events, isDouble, ctx, handNo, second, handMult) {
       var ranged = isRanged(a, fieldId);
       if (a.active.longleg && ranged) trySpark(a, 'longleg', events);
       var claws = !!a.active.claw;
@@ -491,6 +541,11 @@
       if (jump2) usedLv2('spring');
       var hornHit = false, eyeHit = false, landedHere = 0, halvedAny = false, countered = false;
       var partBroken = Object.keys(d.broken).length > 0; // 噛み合い11：かいたいで 相手の パーツが こわれている あいだ（この こうげきの はじめ）
+      // 決定 13：技。いかり（ためていたら この こうげきの 1げき ぜんぶ ×1.5）・おおなぐり（○手ごとに 1げきめ ×2）
+      var rageNow = !!(a.waza.ikari && a.rage);
+      if (rageNow) { a.rage = false; wazaEv(a, 'ikari', events, { use: true }); }
+      var naguriNow = !!a.waza.oonaguri && (a.ownHands % CFG.waza.oonaguriEvery === 0);
+      var sukiShown = false, neraiShown = false;
       if (a.active.leech) trySpark(a, 'leech', events);
       for (var h = 0; h < nHits; h++) {
         var parts = [];
@@ -499,6 +554,10 @@
         var thisHorn = (h === 0 && hornNow);
         if (thisHorn) { trySpark(a, 'horn', events); mult *= CFG.hornMult; parts.push('horn'); hornHit = true; }
         if (chargeNow) mult *= CFG.chargeMult;
+        var wz = []; // この 1げきに のった 技
+        if (handMult && handMult > 1) { mult *= handMult; wz.push('kiai'); }
+        if (rageNow) { mult *= CFG.waza.ikariMult; wz.push('ikari'); }
+        if (naguriNow && h === 0) { mult *= CFG.waza.oonaguriMult; wz.push('oonaguri'); wazaEv(a, 'oonaguri', events); }
         var bigMove = thisHorn || chargeNow;
         // みきり：相手の おおわざを 1戦に1回 よける
         if (bigMove && d.active.eye && d.lv2.eye && d.dodgeLeft > 0) {
@@ -513,6 +572,8 @@
         if (eyeNow) { trySpark(a, 'eye', events); mult *= CFG.eyeMult; parts.push('eye'); eyeHit = true; }
         if (staggered) { mult *= CFG.staggerMult; halvedAny = true; }
         if (jump2) mult *= CFG.lv2.jump2Mult;
+        // すきをつく：よろけの あいてへの 1げきが ×1.5
+        if (a.waza.suki && d.status.stagger > 0) { mult *= CFG.waza.sukiMult; wz.push('suki'); if (!sukiShown) { sukiShown = true; wazaEv(a, 'suki', events); } }
         // ふみつけ：じぶんより おそい あいてに ×1.5
         var stomp = false;
         if (a.active.longleg && a.lv2.longleg && spd[a.side] > spd[d.side]) {
@@ -525,6 +586,8 @@
           // ずしん：おそいほど つよい
           if (a.lv2.weight && spd[d.side] > spd[a.side]) { zushin = Math.min(CFG.lv2.zushinMax, spd[d.side] - spd[a.side]); flat += zushin; usedLv2('weight'); }
         }
+        // ねらいうち：じょうたいの あいてへの 1げきが +3（倍率に のらない。もろいの ×1.6 には のる＝おもしと 同じ）
+        if (a.waza.nerai && hasStatus(d)) { flat += CFG.waza.nerai; wz.push('nerai'); if (!neraiShown) { neraiShown = true; wazaEv(a, 'nerai', events); } }
         var brittleNow = !!d.status.brittle;
         var dmg = vary(effAtk(a) * mult) + flat;
         if (brittleNow) dmg *= d.status.brittle.mult;
@@ -551,7 +614,7 @@
           shell: blocked > 0 ? Math.round(blocked) : 0, hard: isHard(d), hardFlat: isHard(d) ? hardFlat(d) : 0, ranged: ranged,
           big: bigMove, horn: thisHorn, bigmove: chargeNow, eye: eyeNow, halved: staggered,
           brittle: brittleNow ? d.status.brittle.mult : 0, label: label, stomp: stomp, zushin: zushin, deflect: deflect, shellHide: shellHide,
-          jump2: jump2 });
+          jump2: jump2, waza: wz });
         noteHit(a.side, label, dmg);
         if (shellHide) events.push({ t: 'shellHide', side: d.side });
         if (thisHorn && brittleNow && dmg > 0) fireSyn(a.side, 7, events);
@@ -600,6 +663,26 @@
           if (deflect) fireSyn(d.side, 9, events); // 噛み合い9：0 に はじいた 1げきにも はんげき
           if (a.hp <= 0) break;
         }
+        // 決定 13：うけた側の 技。かみつきかえし（あたったとき 40% で はんげき。とおくからの あいてには とどかない）
+        if (dmg > 0 && d.hp > 0 && d.waza.kamitsuki && !ranged && rng() < CFG.waza.kamitsukiRate) {
+          var kc = vary(effAtk(d) * CFG.waza.kamitsukiRatio);
+          if (a.active.shell) { trySpark(a, 'shell', events); kc *= (1 - CFG.shellReduce); shellBlocks[a.side]++; }
+          if (isHard(a)) { if (a.active.scale) trySpark(a, 'scale', events); kc -= hardFlat(a); }
+          kc = Math.max(1, Math.round(kc));
+          var kDeflect = false;
+          if (a.active.scale && a.lv2.scale && kc <= CFG.lv2.deflectMax) { kc = 0; kDeflect = true; usedLv2('scale'); }
+          a.hp = Math.max(0, a.hp - kc);
+          if (kc > 0) { addDealt(d.side, 'かみつき', kc); if (d.side === 'p') landed++; else received++; }
+          countered = true;
+          wazaEv(d, 'kamitsuki', events);
+          events.push({ t: 'counter', side: d.side, part: null, waza: 'kamitsuki', dmg: kc, hp: a.hp, deflect: kDeflect });
+          noteHit(d.side, 'かみつき', kc);
+          if (a.hp <= 0) break;
+        }
+        // いかり：あたったとき 30% で つぎの こうげきが ×1.5（ためているあいだは ふえない）
+        if (dmg > 0 && d.hp > 0 && d.waza.ikari && !d.rage && rng() < CFG.waza.ikariRate) {
+          d.rage = true; wazaEv(d, 'ikari', events, { ready: true });
+        }
       }
       if (staggered) {
         a.status.stagger--;
@@ -625,6 +708,8 @@
       var remC = (CFG.chargeEvery - a.ownHands % CFG.chargeEvery) % CFG.chargeEvery;
       var hand = { n: i + 1, actor: actorSide, events: [],
         countdown: { horn: a.active.horn ? remH : null, spring: a.active.spring ? remS : null, charge: a.T.charge ? remC : null } };
+      // 決定 13：待ち時間の ある 技の のこり（0 なら この手に 出る）
+      Object.keys(a.waza).forEach(function (wid) { var ev2 = wazaEvery(wid); if (ev2) { hand.countdown.waza = hand.countdown.waza || {}; hand.countdown.waza[wid] = (ev2 - a.ownHands % ev2) % ev2; } });
       var ev = hand.events;
       if (i === 0 && startEvents.length) { startEvents.forEach(function (x) { ev.push(x); }); }
       // こわれた パーツは 手ごとに なおっていく
@@ -650,14 +735,25 @@
         }
         if (a.T.regen && a.hp > 0) heal(a, CFG.regenHeal, 'かいふく', null, ev);
         if (a.T.charge && remC === 1) ev.push({ t: 'charge', side: actorSide });
-        var actions = 1;
+        // 決定 13：ひといき（○手ごとに 手の はじめに かいふく）・ふんばり（たいりょく 半分より すくない 最初の手 ×2）
+        if (a.waza.hitoiki && a.ownHands % CFG.waza.hitoikiEvery === 0 && a.hp > 0) {
+          wazaEv(a, 'hitoiki', ev);
+          heal(a, CFG.waza.hitoikiHeal, 'ひといき', null, ev);
+        }
+        var handMult = 1;
+        if (a.waza.kiai && !a.kiaiUsed && a.hp > 0 && a.hp < a.maxHp / 2) {
+          a.kiaiUsed = true; handMult = CFG.waza.kiaiMult; wazaEv(a, 'kiai', ev);
+        }
+        var actions = 1, springDouble = false;
         if (a.active.spring && fieldId !== 'mud' && remS === 0) {
           trySpark(a, 'spring', ev);
-          actions = 2; ev.push({ t: 'double', side: actorSide, part: 'spring' });
+          actions = 2; springDouble = true; ev.push({ t: 'double', side: actorSide, part: 'spring' });
         }
+        // れんだ：○手ごとに こうげきを もう1かい（ばねあしと 重なると 3かい）
+        if (a.waza.renda && a.ownHands % CFG.waza.rendaEvery === 0) { actions++; wazaEv(a, 'renda', ev, { actions: actions }); }
         var ctx = { heals: 0 };
         for (var k = 0; k < actions; k++) {
-          attack(a, d, ev, actions === 2, ctx, i + 1, k === 1);
+          attack(a, d, ev, springDouble, ctx, i + 1, springDouble && k === 1, handMult);
           if (d.hp <= 0 || a.hp <= 0) break;
         }
         if (ctx.heals >= 2) fireSyn(actorSide, 6, ev);
@@ -728,14 +824,14 @@
       p: { hp: p.hp, maxHp: p.maxHp }, e: { hp: e.hp, maxHp: e.maxHp },
       spark: sparkPart, sparkBy: sparkBy,
       summary: { dealt: dealt, synergies: synergies, poisonKO: poisonKO, activations: activations, nareGain: nareGain, nareStep: nareStep, spark: sparkPart, sparkBy: sparkBy,
-        received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used, maxHit: maxHit, oogui: ooguiUp } };
+        received: received, landed: landed, firstHands: firstHands, first: first, lv2Used: lv2Used, maxHit: maxHit, oogui: ooguiUp, waza: wazaUsed } };
   }
 
   // 便利：1戦をつくって回す。opts.grow（そだち）, opts.lv2（Lv2 のパーツ）, opts.spark, opts.name
   function runBattle(playerParts, enemyIndex, stage, fieldId, opts) {
     opts = opts || {};
     var def = enemyDefOf(enemyIndex);
-    var p = makeFighter('p', playerDef(opts.grow || null, opts.name), playerParts, 1, opts.lv2 || []);
+    var p = makeFighter('p', playerDef(opts.grow || null, opts.name, opts.mon || null), playerParts, 1, opts.lv2 || []);
     var e = makeFighter('e', def, def.parts, stage, [], { hard: !!opts.hard });
     return simulateBattle(p, e, fieldId, opts);
   }
@@ -880,16 +976,18 @@
   }
   var memo = {};
   function clearMemo() { memo = {}; }
-  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard) {
-    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '');
+  // mon（決定 13）：{ species, waza }。CFG.waza.on が false なら 無視される
+  function monKey(mon) { return (CFG.waza.on && mon) ? (mon.species || '') + ':' + (mon.waza || []).join(',') : ''; }
+  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon) {
+    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
     if (memo[key]) return memo[key];
     var best = null;
     // 乱れなし1回 ＋ 種を固定した乱れあり2回 の平均で選ぶ（乱れなしだけだと、1点差の きわどい組み合わせを選んでしまう）
     var h = 0; for (var ci = 0; ci < key.length; ci++) h = (h * 31 + key.charCodeAt(ci)) >>> 0;
     loadouts(owned).forEach(function (combo) {
-      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard });
+      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null });
       var s = score(res);
-      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard }));
+      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null }));
       s /= 3;
       if (!best || s > best.score + 1e-9) best = { parts: combo, score: s, win: res.winner === 'p', nHands: res.nHands };
     });
@@ -913,6 +1011,7 @@
     GROWS: GROWS, GROW_IDS: GROW_IDS, emptyGrow: emptyGrow, growCount: growCount, growDirection: growDirection, growAfterWin: growAfterWin,
     SYNERGIES: SYNERGIES, SYN_BY_ID: SYN_BY_ID,
     PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS, CATS: CATS,
+    WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, WAZA_IDS: WAZA_IDS, wazaText: wazaText, wazaEvery: wazaEvery, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, SPECIES_IDS: SPECIES_IDS, speciesOf: speciesOf, monKey: monKey,
     ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDefOf: enemyDefOf, FIELDS: FIELDS, SUMMIT: SUMMIT, FIELD_BY_ID: FIELD_BY_ID, PLAYER_DEF: PLAYER_DEF, playerDef: playerDef, makeName: makeName, nameHead: nameHead,
     makeRng: makeRng, randInt: randInt, shuffle: shuffle,
     makeFighter: makeFighter, effSpd: effSpd, effAtk: effAtk, isHard: isHard, isRanged: isRanged,

@@ -895,8 +895,16 @@
   function pathOf(run, battle, choice) { return battle >= CFG.runBattles - 1 ? run.boss : run.steps[battle][choice || 0]; }
   // 始めの もちもの 6つ：せめ・まもり・うごき から 1つずつ ＋ 残りから 3つ。
   // 版8：inherit（卵で継ぐパーツ）を渡すと、それが 6つのうちの 1つ（その種類の 1つ目）になり、同じ場所のパーツは ランダムに選ばない
-  function startItems(rng, inherit) {
+  // 決定 21-b：few＝はじめての 周回（殿堂 0体）。せめ・まもり・うごき 1つずつの 3つだけ（同じ場所の パーツは 選ばない＝3つとも つけられる）
+  function startItems(rng, inherit, few) {
     var picked = [];
+    if (few && !inherit) {
+      CATS.forEach(function (c) {
+        var cands = PARTS.filter(function (p) { return p.cat === c.id && !picked.some(function (id) { return PART_BY_ID[id].loc === p.loc; }); });
+        picked.push(cands[randInt(rng, cands.length)].id);
+      });
+      return picked;
+    }
     if (inherit && PART_BY_ID[inherit]) {
       var ih = PART_BY_ID[inherit];
       picked.push(inherit);

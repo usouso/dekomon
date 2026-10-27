@@ -527,6 +527,16 @@ var P = CFG.playerAtk; // 13
     ['atk', 'def', 'mov'].forEach(function (c) { if (!items.some(function (id) { return S.PART_BY_ID[id].cat === c; })) catOk = false; });
   }
   row('卵：始めの もちもの', '継ぐパーツが 6つのうちの 1つ。同じ場所のパーツは 選ばれない。せめ・まもり・うごき が そろう（種 1〜200 × 16種）', { has: true, six: true, loc: true, cat: true }, { has: allOk, six: nOk, loc: locOk, cat: catOk });
+  // 決定 21-b：はじめての 周回（few）は せめ・まもり・うごき 1つずつの 3つ。3つとも 場所が ちがう（全部 つけられる）。卵が あれば few は 無視
+  var fewN = true, fewCat = true, fewLoc = true;
+  for (var fs = 1; fs <= 300; fs++) {
+    var fi = S.startItems(S.makeRng(fs), null, true);
+    if (fi.length !== 3) fewN = false;
+    if (fi.map(function (id) { return S.PART_BY_ID[id].cat; }).join(',') !== 'atk,def,mov') fewCat = false;
+    if (new Set(fi.map(function (id) { return S.PART_BY_ID[id].loc; })).size !== 3) fewLoc = false;
+  }
+  var fewEgg = S.startItems(S.makeRng(9), 'fang', true);
+  row('はじめての 周回：始めの もちもの', 'few なら 3つ（せめ・まもり・うごき の 順に 1つずつ・場所は みな ちがう。種 1〜300）。卵（継ぐ パーツ あり）なら いつもの 6つ', { n3: true, cat: true, loc: true, egg6: true }, { n3: fewN, cat: fewCat, loc: fewLoc, egg6: fewEgg.length === 6 && fewEgg.indexOf('fang') >= 0 });
   var plain = S.startItems(S.makeRng(7)), plain2 = S.startItems(S.makeRng(7), null);
   row('卵：始めの もちもの', '継がないときは いままでと 同じ（乱数の使い方も 同じ）', true, JSON.stringify(plain) === JSON.stringify(plain2) && plain.length === 6);
   // 継いだパーツは なれ full+1 で始まり、1戦目の 最初の発動で 必ず ひらめく（by: parent）

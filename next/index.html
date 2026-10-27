@@ -6,10 +6,11 @@
 <meta name="theme-color" content="#1b1f2a">
 <title>でこもん</title>
 <script>
-// 広い窓：画面ごとに「中が スクロールしない いちばん大きい 倍率」で 見せる（版8 しさく 2026-10-27）。
-// - いちばん大きい倍率 zMax = min(幅/1366, 高さ/650)（1366×650 の 見た目を 窓いっぱいに）。1 以下・幅 900 未満（スマホ）・zoom の ない ブラウザは 1（いままでどおり）。
-// - 画面が 変わるたび（show）に zMax から 0.05 ずつ 下げて、中の箱（一覧・列）と ページが スクロールしない 倍率を 選ぶ。1 より 小さくは しない（文字は 1366×650 より 小さくならない）。
-//   例：1920×910 の タイトル・結果は 1.40、パーツを 選ぶ画面は 1.00（中の大きさ 1920×910 で 全部を 並べる）。
+// 広い窓：どの画面も 同じ 倍率で 見せる（2026-10-28 決定 17-a：画面が 急に 動く を 直す）。
+// - いちばん大きい倍率 zMax = min(幅/1366, 高さ/650)。1 以下・幅 900 未満（スマホ）・zoom の ない ブラウザは 1（いままでどおり）。
+// - そろえる倍率 zU = zMax × 0.9 を 0.05 きざみで 切り下げ（1920×910 は 1.25。もちもの 16こ で どの 説明を 出しても 入る 大きさ）。窓の 大きさで 決まり、画面が 変わっても 同じ。
+// - 同じ 画面に いる あいだは 倍率を 変えない（説明の 欄・手札が ふえても 計算しなおさない）。変えるのは 窓の 大きさが 変わったときだけ。
+// - 画面に 入ったとき zU で 入らなければ、そのときだけ 0.05 ずつ 下げる（検査では「倍率が そろわない」と 数える）。1 より 小さくは しない。
 // - zoom の中では vh も 倍になるので --vh で 打ち消す。大きさで 変わる 並び（幅 1700 以上・高さ 760 以下・広い窓）は
 //   窓の大きさではなく 倍率で割った「中の大きさ」で決める（html の class：ew1700・eshort・ewide）。
 (function () {
@@ -17,8 +18,10 @@
   var canZoom = !!(window.CSS && CSS.supports && CSS.supports('zoom', '2')); // zoom の ない ブラウザでは 大きくしない（いままでどおり）
   var BW = 1366, BH = 650;
   var zb = /[?&]zb=(\d+)x(\d+)/.exec(location.search); if (zb) { BW = +zb[1]; BH = +zb[2]; } // 試し用（tools/screens.js --zb）
+  var fitting = false; // 画面に 入った・窓が 変わった ときの 合わせ（それ以外で 倍率が 変わったら 検査で「急に 動いた」）
   function apply(z, noWide) {
     var W = window.innerWidth, H = window.innerHeight;
+    if (!fitting && window.__zoom && window.__zoom !== z) window.__zoomJumps = (window.__zoomJumps || 0) + 1;
     window.__zoom = z;
     de.style.zoom = z === 1 ? '' : String(z);
     if (z === 1) de.style.removeProperty('--vh'); else de.style.setProperty('--vh', (H / z / 100) + 'px');
@@ -39,17 +42,27 @@
     }
     return '';
   }
-  // onlyShrink：画面の中で 中身が ふえたとき（下げるだけ。上げると 文字が 急に 大きくなるので しない）
-  function fit(onlyShrink) {
+  var ZU_K = 0.9;
+  function zUniform() {
     var W = window.innerWidth, H = window.innerHeight;
     var zMax = (canZoom && W >= 900) ? Math.min(W / BW, H / BH) : 1;
-    if (!(zMax > 1.02)) zMax = 1;
-    var z = onlyShrink ? Math.min(window.__zoom || zMax, zMax) : zMax;
+    if (!(zMax > 1.02)) return 1;
+    return Math.max(1, Math.floor(zMax * ZU_K * 20 + 1e-6) / 20);
+  }
+  // inScreen：同じ 画面の 中で 中身が かわった（倍率は 変えない。17-a）。false：画面に 入った・窓の 大きさが 変わった
+  function fit(inScreen) {
+    if (inScreen && window.__zoom) return;
+    fitting = !inScreen;
+    var z = zUniform();
+    window.__zoomU = z;
     apply(z);
     while (z > 1 && document.body && overflows()) { z = Math.max(1, Math.round((z - 0.05) * 100) / 100); apply(z); }
+    // 倍率 1 まで 下げても 入らない 長い 一覧（図鑑・殿堂）は 下げても 意味が ないので、そろえる 倍率に もどす（中で スクロール）
+    if (z !== window.__zoomU && document.body && overflows()) { z = window.__zoomU; apply(z); }
     // 倍率 1 でも 入らないとき（中身が とても 多い・zoom の ない ブラウザ）は 広い並びを やめて、いままでの 2列（中で スクロールできる）に もどす
     var why = document.body && de.classList.contains('ewide') && overflows();
     if (why) { apply(z, true); if (/[?&]auto=1/.test(location.search)) console.warn('[でこもん 検査] 広い並びを やめた：' + why); }
+    fitting = false;
   }
   window.__fitZoom = fit;
   fit();
@@ -982,6 +995,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-line b { color: var(--accent); }
 .kv-line:empty { display: none; }
 .kv-note { color: var(--accent); font-weight: 700; grid-column: 1 / -1; }
+/* 決定 17-a：スマホは つけた パーツの 文（#note）を もちものの 下へ 移す（showPre）。行の 数で もちものが 上下に 動かないように */
+#pre .kv-handcol > #note { margin-top: 8px; }
+@media (max-width: 899px) { #pre #firstTxt { min-height: calc(2.9em + 1px); } } /* 「さきに うごく」は つけた パーツで 1行／2行 に かわる */
 .kv-reward { grid-column: 1 / -1; }
 .kv-handcol { display: flex; flex-direction: column; gap: 5px; min-height: 0; }
 .kv-handhead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; }
@@ -1681,14 +1697,15 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     document.body.classList.toggle('battle-on', id === 'battle'); // とどめの揺れ（transform）で ページが 数px 伸びないように
     $('menuPop').classList.remove('on'); $('bossPop').classList.remove('on'); $('partPop').classList.remove('on');
     if (id === 'start' || id === 'boss' || id === 'fork' || id === 'summit' || id === 'pre' || id === 'win' || id === 'grow') saveRun(id);
-    window.__fitZoom(false); // 広い窓：この画面が スクロールしない 倍率に
+    window.__fitZoom(false); // 広い窓：そろえる 倍率（入らなければ この画面だけ 下げる）。この画面に いる あいだは 変えない
+    if (OPT.auto && window.__zoom !== window.__zoomU) { G.auto.zoomOdd[id] = (G.auto.zoomOdd[id] || 0) + 1; console.warn('[でこもん 検査] 倍率が そろわない：' + id + '：' + window.__zoom + '（そろえる 倍率 ' + window.__zoomU + '）'); }
   }
 
   // ---------- ゲームの状態 ----------
   var G = { screen: 'title', firstRun: true, rng: null, run: null, owned: [], attached: [], lastParts: null, battle: 0, wins: 0, lv2: [], pity: 0, sparked: [], history: [], lastSummary: null, picked: null,
     egg: null, gen: 1, color: null, // 版8：egg = { parentId, parentName, part }（たまごから 始めたとき）。gen：○だいめ。color：体の色
     nare: {}, grow: S.emptyGrow(), growHist: [], acc: { received: 0, landed: 0, first: 0 }, rewards: [], forkFor: -1, pendingGrow: null, backTo: 'title',
-    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, sparkParent: 0, eggRuns: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, picked: 0, nareR: 0, pageScroll: {}, innerScroll: {}, screens: {}, doubleFlash: 0, species: {}, waza: {} }, brightChanges: 0 };
+    auto: { runs: 0, clears: 0, battles: 0, mismatches: 0, wins: 0, synergies: {}, sparks: 0, sparkNare: 0, sparkParent: 0, eggRuns: 0, grows: { tough: 0, strong: 0, quick: 0 }, lv2Used: {}, overlaps: 0, seeThrough: 0, hardB: 0, hardW: 0, bossB: 0, bossW: 0, picked: 0, nareR: 0, pageScroll: {}, innerScroll: {}, screens: {}, doubleFlash: 0, species: {}, waza: {}, jumps: {}, zoomOdd: {} }, brightChanges: 0 };
   var seed = OPT.seed ? parseInt(OPT.seed, 10) : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0;
   G.rng = S.makeRng(seed);
 
@@ -2419,6 +2436,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     renderPlist();
     $('kvHow').textContent = howText();
     infoEmpty('preInfo', (canHover() && !narrow() ? 'もちものに マウスを あわせると せつめい。クリックで つける（つけた ものを クリックで はずす）' : 'もちものを タップで つける（もう 1かいで はずす）。ながおしで せつめい') + '。した の 線は なれ（たまると ひらめく）');
+    // 決定 17-a：スマホ（せまい）は 効き目の 文を もちものの 下に。文が 1〜3行 かわっても もちものが 動かない
+    var noteEl = $('note'), noteHome = narrow() ? document.querySelector('#pre .kv-handcol') : document.querySelector('#pre .kv-lines');
+    if (noteEl.parentNode !== noteHome) noteHome.appendChild(noteEl);
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {
@@ -3066,7 +3086,36 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     }
     A.zooms = A.zooms || {}; A.zooms[sc] = A.zooms[sc] || {}; var zk = (window.__zoom || 1).toFixed(2); A.zooms[sc][zk] = (A.zooms[sc][zk] || 0) + 1; // 画面ごとの 倍率（広い窓）
   }
-  if (OPT.auto) setInterval(function () { try { checkOverlap(); checkScroll(); } catch (e) { console.error('[でこもん 検査] ' + e.message); } }, 100);
+  // 決定 17-a：同じ 画面の 中で 大きさ・位置が 急に 変わった 回数（倍率・並びの class・大きな 箱の 位置と 大きさ）。0 が 合格
+  var JUMP_SEL = '.screen.on .kv-stage, .screen.on .kv-handcol, .screen.on .kv-side, .screen.on .dr-door, .screen.on .pcbody, .screen.on h2, #battle.on #arena';
+  var jumpPrev = null;
+  function checkJump() {
+    var sc = G.screen, A = G.auto, de = document.documentElement;
+    var cur = { sc: sc, z: (window.__zoom || 1).toFixed(2), cls: ['ew1700', 'eshort', 'ewide'].filter(function (c) { return de.classList.contains(c); }).join(' '), boxes: [] };
+    var bs = document.querySelectorAll(JUMP_SEL);
+    for (var i = 0; i < bs.length; i++) { var b = bs[i]; if (!b.offsetParent && b.id !== 'arena') continue; cur.boxes.push([b.id || b.className.split(' ')[0], b.offsetLeft, b.offsetTop, b.offsetWidth]); }
+    // くらべる 相手は その画面に 入って 最初の 様子（少しずつ 動いても 合わせて 数える）。画面が 変わったら 取りなおす
+    var p = jumpPrev; if (!p || p.sc !== sc) jumpPrev = cur;
+    var zj = window.__zoomJumps || 0; window.__zoomJumps = 0;
+    var why = zj ? '倍率を 画面の 中で 計算しなおした ' + zj + '回' : '';
+    if (!why && (!p || p.sc !== sc || $('menuPop').classList.contains('on'))) return;
+    if (why) { /* 上で 決まった */ }
+    else if (p.z !== cur.z) why = '倍率 ' + p.z + '→' + cur.z;
+    else if (p.cls !== cur.cls) why = '並び ' + (p.cls || '-') + '→' + (cur.cls || '-');
+    else if (p.boxes.length === cur.boxes.length) {
+      for (var k = 0; k < cur.boxes.length && !why; k++) {
+        var a = p.boxes[k], c = cur.boxes[k];
+        if (a[0] !== c[0]) break;
+        if (Math.abs(a[1] - c[1]) > 24 || Math.abs(a[2] - c[2]) > 24 || Math.abs(a[3] - c[3]) > 24) why = c[0] + ' ' + a.slice(1).join(',') + '→' + c.slice(1).join(',');
+      }
+    }
+    if (why) {
+      jumpPrev = cur; // 1回 動いたら そこから また くらべる（同じ ずれを 何度も 数えない）
+      A.jumps = A.jumps || {}; if (!A.jumps[sc]) console.warn('[でこもん 検査] 画面が 急に 動いた：' + sc + '：' + why);
+      A.jumps[sc] = (A.jumps[sc] || 0) + 1; A.jumpEx = A.jumpEx || {}; A.jumpEx[sc] = why;
+    }
+  }
+  if (OPT.auto) setInterval(function () { try { checkOverlap(); checkScroll(); checkJump(); } catch (e) { console.error('[でこもん 検査] ' + e.message); } }, 100);
 
   function hitText(ev) {
     var labels = ev.parts.filter(function (p) { return p !== 'weight' || ev.parts.length === 1; }).map(function (p) { return S.PART_BY_ID[p].short; });

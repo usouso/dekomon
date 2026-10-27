@@ -70,12 +70,12 @@ function fmtObj(o) { var ks = Object.keys(o || {}); return ks.length ? ks.map(fu
     await browser.close();
     sv.kill();
   }
-  console.log('| 画面 | 大きさ（窓の内側） | 周回 | 戦い | 10連勝 | たまご周回 | おやの ひらめき | ずれ | 重なり・はみ出し | 透け | 1手に2回の明るさ | ページがスクロールした画面 | 中でスクロールした画面（回数） |');
-  console.log('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  console.log('| 画面 | 大きさ（窓の内側） | 周回 | 戦い | 10連勝 | たまご周回 | おやの ひらめき | ずれ | 重なり・はみ出し | 透け | 1手に2回の明るさ | ページがスクロールした画面 | 中でスクロールした画面（回数） | 同じ画面で急に動いた（回数） | 倍率がそろわない画面 |');
+  console.log('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   rows.forEach(function (r) {
     var A = r.a.auto;
     var kind = r.size.w >= 900 ? 'PC' : 'スマホ';
-    console.log('| ' + kind + ' ' + r.size.w + '×' + r.size.h + '（seed ' + r.seed + '〜） | ' + r.a.inner + ' | ' + A.runs + ' | ' + A.battles + ' | ' + A.clears + ' | ' + A.eggRuns + ' | ' + A.sparkParent + ' | ' + A.mismatches + ' | ' + A.overlaps + ' | ' + A.seeThrough + ' | ' + A.doubleFlash + ' | ' + fmtObj(A.pageScroll) + ' | ' + fmtObj(A.innerScroll) + ' |');
+    console.log('| ' + kind + ' ' + r.size.w + '×' + r.size.h + '（seed ' + r.seed + '〜） | ' + r.a.inner + ' | ' + A.runs + ' | ' + A.battles + ' | ' + A.clears + ' | ' + A.eggRuns + ' | ' + A.sparkParent + ' | ' + A.mismatches + ' | ' + A.overlaps + ' | ' + A.seeThrough + ' | ' + A.doubleFlash + ' | ' + fmtObj(A.pageScroll) + ' | ' + fmtObj(A.innerScroll) + ' | ' + fmtObj(A.jumps) + ' | ' + fmtObj(A.zoomOdd) + ' |');
   });
   console.log('');
   rows.forEach(function (r) {
@@ -101,6 +101,13 @@ function fmtObj(o) { var ks = Object.keys(o || {}); return ks.length ? ks.map(fu
     var key = r.size.w + 'x' + r.size.h; if (INNER0.indexOf(key) < 0) return;
     var n = Object.keys(r.a.auto.innerScroll).reduce(function (a, k) { return a + r.a.auto.innerScroll[k]; }, 0);
     console.log('判定 ' + key + '：中のスクロール ' + n + ' → ' + (n === 0 ? '合格' : '不合格（' + fmtObj(r.a.auto.innerScroll) + '）'));
+    if (n) fail++;
+  });
+  // 決定 17-a：同じ 画面の 中で 急に 動いた 回数は どの大きさも 0 が 合格
+  rows.forEach(function (r) {
+    var key = r.size.w + 'x' + r.size.h, J = r.a.auto.jumps || {};
+    var n = Object.keys(J).reduce(function (a, k) { return a + J[k]; }, 0);
+    console.log('判定 ' + key + '：同じ画面で 急に 動いた ' + n + ' → ' + (n === 0 ? '合格' : '不合格（' + fmtObj(J) + '。例：' + fmtObj(r.a.auto.jumpEx) + '）'));
     if (n) fail++;
   });
   if (fail) process.exitCode = 1;

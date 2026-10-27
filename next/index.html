@@ -1830,6 +1830,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     G.rng = S.makeRng(0, d.rngState);
     G.run = { steps: d.run.steps, boss: d.run.boss, name: d.run.name, choices: d.run.choices || [], species: d.run.species || null, waza: d.run.waza || null, wazaOn: d.run.wazaOn }; // 決定 13：種類が 無い 保存は ころん として 読む
     setWazaOn(d.run.wazaOn === undefined ? WAZA_PREF : d.run.wazaOn); // わざ あり／なしは 保存した 周回の まま（古い 保存は いまの 設定）
+    G.run.wazaOn = wazaOn(); // 古い 保存でも 補った 設定を 周回に 入れて 保存し直す（Codex PR #10）
     G.egg = d.egg || null; G.gen = d.gen || 1; G.color = d.color || colorForName(d.run.name);
     G.owned = d.owned.slice(); G.attached = []; G.lastParts = null; G.battle = d.battle; G.wins = d.wins; G.lv2 = d.lv2.slice(); G.pity = d.pity; G.sparked = d.sparked.slice();
     G.nare = d.nare || {}; G.grow = d.grow || S.emptyGrow(); G.growHist = d.growHist || []; G.acc = d.acc || { received: 0, landed: 0, first: 0 }; G.rewards = d.rewards || []; G.forkFor = (d.forkFor === undefined) ? -1 : d.forkFor; G.picked = d.picked || []; G.pendingGrow = d.pendingGrow || null; G.firstRun = !!d.firstRun;
@@ -1970,7 +1971,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     if (G.screen === 'battle') return;
     WAZA_PREF = !WAZA_PREF; save(WAZA_KEY, WAZA_PREF);
     $('mWaza').textContent = WAZA_PREF ? 'わざ あり（おすと なし）' : 'わざ なし（おすと あり）';
-    if (inRun()) { $('menuNote').textContent = 'つぎの しゅうかいから わざ ' + (WAZA_PREF ? 'あり' : 'なし'); return; } // いまの 周回は そのまま
+    // 周回の 外（タイトル・たまごの 2択・親を 選ぶ・種類を 選ぶ）の ときだけ すぐ 変える。ずかん・でんどう・おわりの 画面からも つぎの 周回から（Codex PR #10）
+    if (['title', 'eggq', 'egg', 'shu'].indexOf(G.screen) < 0) { $('menuNote').textContent = 'つぎの しゅうかいから わざ ' + (WAZA_PREF ? 'あり' : 'なし'); return; } // いまの 周回は そのまま
     $('menuPop').classList.remove('on');
     if (G.screen === 'shu') { renderTitle(); show('title'); return; } // 選ぶ画面なら タイトルへ（すぐ 始めない）
     setWazaOn(WAZA_PREF);

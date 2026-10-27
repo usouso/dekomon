@@ -18,10 +18,10 @@ foreach($docName in $names){
 }
 New-Item -ItemType Directory -Path $docDir -Force | Out-Null
 foreach($docName in $names){Copy-Item -LiteralPath (Join-Path $canonicalRoot $docName) -Destination (Join-Path $docDir $docName) -Force}
-$marker='## Game development standard entry v1.1'
+$marker='## Game development standard entry v1.2'
 $block=@'
 
-## Game development standard entry v1.1
+## Game development standard entry v1.2
 ゲーム作業の最初に [全ゲーム共通標準](docs/game-development/GAME-DEVELOPMENT-STANDARD.md) を読む。
 [独立レビュー手順](docs/game-development/REVIEW-PROCEDURE.md) と [引継ぎ書式](docs/game-development/HANDOFF-TEMPLATE.md) を使う。
 dot が制作担当と異なる独立担当を指定する。独立担当が未確保なら完了にしない。担当は読んだ版・パス・時刻を返す。
@@ -32,4 +32,4 @@ foreach($entryName in @('AGENTS.md','CLAUDE.md')){
  $before=if(Test-Path -LiteralPath $entryPath){[IO.File]::ReadAllText($entryPath)}else{''}
  if(-not $before.Contains($marker)){[IO.File]::WriteAllText($entryPath,$before+$block,$utf8)}
 }
-[pscustomobject]@{ProjectPath=$projectRoot;CanonicalRoot=$canonicalRoot;Version='1.1';Docs=$names;EntryPoints=@('AGENTS.md','CLAUDE.md')} | ConvertTo-Json -Depth 3
+[pscustomobject]@{ProjectPath=$projectRoot;CanonicalRoot=$canonicalRoot;Version='1.2';Docs=$names;EntryPoints=@('AGENTS.md','CLAUDE.md')} | ConvertTo-Json -Depth 3

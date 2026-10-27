@@ -857,8 +857,9 @@
     var loc = PART_BY_ID[partId].loc;
     return attached.filter(function (a) { return PART_BY_ID[a].loc !== loc; }).concat([partId]);
   }
-  function partHints(partId, enemyDef, fieldId, attached, lv2, grow) {
-    var p = makeFighter('p', playerDef(grow || null), withPart(attached || [], partId), 1, lv2 || []);
+  // mon（決定 13）：いまの 子の 種類と 技（はやさが 種類で ちがう）。省くと いままでの 1種
+  function partHints(partId, enemyDef, fieldId, attached, lv2, grow, mon) {
+    var p = makeFighter('p', playerDef(grow || null, null, mon || null), withPart(attached || [], partId), 1, lv2 || []);
     var e = makeFighter('e', enemyDef, enemyDef.parts, 1);
     var ctx = {
       e: enemyDef, f: fieldId, eT: e.T, eA: e.active, pA: p.active,

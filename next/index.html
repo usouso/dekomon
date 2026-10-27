@@ -1935,8 +1935,12 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       var isBest = h === best;
       var eggTag = canBeParent(h) ? '<span class="eggmark">たまご</span>' : (h.eggUsed ? '<span class="eggused">おや → ' + esc(h.eggUsed) + '</span>' : '');
       var inh = h.inherited && S.PART_BY_ID[h.inherited] ? '<small>おやの ' + esc(h.parentName || '') + ' から 継いだ：' + esc(S.PART_BY_ID[h.inherited].name) + ' Lv2「' + esc(S.PART_BY_ID[h.inherited].lv2name) + '」</small>' : '';
+      // 決定 13：種類と 技（わざ なしの 周回の 子は「わざ：なし」。種類の ない 古い 子は 書かない）
+      var spH = h.species && S.SPECIES_BY_ID[h.species];
+      var wzH = (h.waza || []).filter(function (w) { return !!S.WAZA_BY_ID[w]; });
+      var shuLine = spH ? '<small>しゅるい：' + esc(spH.name) + '　<span style="display:inline-block">わざ：' + (wzH.length ? wzH.map(function (w) { return esc(S.WAZA_BY_ID[w].name); }).join('・') : 'なし') + '</span></small>' : '';
       return el('div', 'hall' + (isBest ? ' best' : ''), '<div>' + monsterSVG('player', h.parts, 'r', [], h.lv2, h.grow, false, h.color, shuShape(h.species)) + '</div><div class="t"><div class="n">' + (isBest ? '<span class="crown">👑</span>' : '') + esc(h.name) + '<span class="gen' + ((h.gen || 1) === 1 ? ' g1' : '') + '">' + genText(h.gen) + '</span></div>' +
-        '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + eggTag + '　<span class="sub">' + esc(h.date) + '</span></div>' + inh +
+        '<div><b>' + h.wins + 'れんしょう</b>' + (h.boss ? '　<span class="bossmark">ぬしを たおした</span>' : '') + eggTag + '　<span class="sub">' + esc(h.date) + '</span></div>' + shuLine + inh +
         '<small>さいだいの いちげき：' + esc(maxHitText(h.maxHit)) + '</small><small>そだち：<span class="growhist">' + esc(growHistText(h.growHist)) + '</span></small><small>Lv2：' + names(h.lv2) + '</small><small>さいごの パーツ：' + names(h.parts) + '</small><small>みつけた かみあい：' + syn + '</small></div>');
     }
     var kidsOf = {}; STORE.hall.forEach(function (h) { if (h.parent && hallById(h.parent)) { (kidsOf[h.parent] = kidsOf[h.parent] || []).push(h); } });
@@ -2456,7 +2460,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   var preSel = null;
   function handHints(id) {
     var e = curEnemyDef();
-    return metCount(e.id) > 0 ? S.partHints(id, e, curField().id, G.attached, G.lv2, G.grow) : null;
+    return metCount(e.id) > 0 ? S.partHints(id, e, curField().id, G.attached, G.lv2, G.grow, monOf()) : null;
   }
   function renderPlist() {
     var list = $('plist'); list.innerHTML = '';
@@ -2784,6 +2788,11 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       var c = el('span', 'stchip cd fx-wzcd' + (cw[wid] === 0 ? ' now' : ''), esc(S.WAZA_BY_ID[wid].name) + (cw[wid] === 0 ? '！' : ' あと' + cw[wid]));
       c.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(c);
     });
+    // ふんばりの 光の 意味（体が 光っている あいだ）：つぎの 自分の手に ×2（札「ふんばり つぎの手 ×2」）
+    if (KIAI[side] && HP[side] > 0 && HP[side] < MAX[side] / 2) {
+      var kc = el('span', 'stchip cd fx-wzcd now', esc(S.WAZA_BY_ID.kiai.name) + ' つぎの手 ×' + S.CFG.waza.kiaiMult);
+      kc.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(kc);
+    }
     if (SPDMOD[side]) bar.appendChild(el('span', 'stchip spd', 'はやさ ' + SPDMOD[side]));
   }
   var SPDMOD = { p: 0, e: 0 }, SPDBASE = { p: 0, e: 0 };
@@ -2813,13 +2822,18 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       b.innerHTML = '<span class="fx-wazaname" style="background:' + col + '">' + esc(ev.name) + '！</span>' + (center ? '' : '<br><span class="sm">わざ　' + esc(wazaSub(ev)) + '</span>');
     }
     var c = bodyPt(side); var r = spawn('ring fx-wazaring', c.x, c.y); r.style.setProperty('--wzc', col); removeLater(r, 900);
-    if (ev.id === 'kiai') { KIAI[side] = false; wazaGlow(side, false); }
+    if (ev.id === 'kiai') { KIAI[side] = false; wazaGlow(side, false); kiaiGlow(side); }
     if (ev.id === 'ikari') wazaGlow(side, !!ev.ready);
     if (!quiet) sfx(ev.id === 'kamitsuki' ? 'fang' : (S.WAZA_BY_ID[ev.id].kind === 'kokozo' ? 'eye' : 'pick'));
     if (OPT.auto && side === 'p' && !ev.use) G.auto.waza[ev.id] = (G.auto.waza[ev.id] || 0) + 1;
   }
   // ふんばり：たいりょくが 半分より すくないと（まだ 出ていなければ）体が 光る＝つぎの 自分の手に 出る
-  function kiaiGlow(side) { if (KIAI[side]) wazaGlow(side, HP[side] > 0 && HP[side] < MAX[side] / 2); }
+  var KIAI_SHOWN = { p: false, e: false };
+  function kiaiGlow(side) {
+    var on = !!KIAI[side] && HP[side] > 0 && HP[side] < MAX[side] / 2;
+    if (KIAI[side] || KIAI_SHOWN[side]) wazaGlow(side, on);
+    if (on !== KIAI_SHOWN[side]) { KIAI_SHOWN[side] = on; renderStatus(side); } // 札「ふんばり つぎ ×2」を 出す／消す
+  }
   function flashChip(side, st) {
     var bar = $(side === 'p' ? 'stP' : 'stE');
     Array.prototype.forEach.call(bar.querySelectorAll('.stchip.' + st), function (c) { c.classList.remove('up'); void c.offsetWidth; c.classList.add('up'); });
@@ -3087,7 +3101,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('animP').innerHTML = monsterSVG('player', G.attached, 'r', [], lv2Before, G.grow);
     $('animE').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits, [], null, true);
     SPDMOD = { p: 0, e: 0 }; NARE_NOW = {}; $('nareLayer').innerHTML = '';
-    var csp = curSpecies(); WZC = { p: csp ? csp.color : null, e: null }; KIAI = { p: p.waza && p.waza.kiai ? true : false, e: false }; // 決定 13
+    var csp = curSpecies(); WZC = { p: csp ? csp.color : null, e: null }; KIAI = { p: p.waza && p.waza.kiai ? true : false, e: false }; KIAI_SHOWN = { p: false, e: false }; // 決定 13
     $('bResult').className = 'result'; $('bResult').textContent = '';
     $('synpop').className = 'synpop'; $('sparkpop').className = 'sparkpop'; $('found').className = 'found'; $('zkicon').classList.remove('lit');
     $('battle').classList.remove('shake');

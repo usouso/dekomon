@@ -849,6 +849,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .tag.gold { background: var(--gold-bg); color: var(--gold); }
 /* 押せる 札（ボタン）の 共通：ふちと 少し 明るい 地。押すと 少し 沈む */
 .kv-chip, .kv-rwb, .kv-field, .kv-st, .kv-card, .kv-slot.on, .dr-it { font: inherit; color: var(--text); cursor: pointer; -webkit-appearance: none; appearance: none; }
+.kv-chip, .kv-rwb, .kv-field, .kv-st, .kv-card, .kv-slot, .dr-it, .dr-nx2 { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; } /* 長押しで 文（決定 16）：文字の 選択や メニューを 出さない */
 .kv-chip:active, .kv-rwb:active, .kv-field:active, .kv-st:active, .kv-card:active, .kv-slot.on:active, .dr-it:active { transform: translateY(1px); }
 /* 強さ：アイコンと 数字 */
 .kv-stats { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1186,7 +1187,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       </div>
     </div>
     <div class="kv-handcol">
-      <div class="kv-handhead"><b id="handTitle">もちもの</b><span class="kv-how">1かい おすと せつめい・2かい で つける</span><span id="hintWrap"></span></div>
+      <div class="kv-handhead"><b id="handTitle">もちもの</b><span class="kv-how" id="kvHow">タップで つける・ながおしで せつめい</span><span id="hintWrap"></span></div>
       <div class="kv-hand" id="plist"></div>
       <div class="kv-info" id="preInfo"></div>
     </div>
@@ -1924,6 +1925,34 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   // ---------- 文の欄：押した札（パーツ・性質・ばしょ・もらえるもの・強さ）の くわしい文 ----------
   // 広い画面は 横の欄（バトル前 #preInfo・わかれみち #forkInfo）、スマホ（中の幅 900 未満）は 重ねて出す（タップで とじる）
   function narrow() { return window.innerWidth / (window.__zoom || 1) < 900; }
+  // 決定 16（2026-10-27 ぼくくん）：押し方を そろえる。
+  // - マウス（広い画面）：カーソルを 合わせると 横の欄に くわしい文（離しても 最後の 文が 残る）。クリックは「する」こと（つける／はずす）。することが ない札は 文を出す。
+  // - タッチ（と 狭い画面の マウス）：タップは「する」こと（ない札は 文）。長押し（0.4秒）で くわしい文。長押しの あとの クリックは 捨てる。
+  var LONG_MS = 400, swallowUntil = 0;
+  // 長押しで 重ねた 文（スマホ）を、指を はなした ときの クリックで すぐ とじない
+  document.addEventListener('click', function (ev) { if (Date.now() < swallowUntil) { swallowUntil = 0; ev.preventDefault(); ev.stopPropagation(); } }, true);
+  document.addEventListener('pointerup', function () { if (swallowUntil === Infinity) swallowUntil = Date.now() + 500; }, true); // 札の 外で 指を はなしたときも
+  function canHover() { return !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches); }
+  function infoTap(b, showFn, actFn) {
+    var timer = null, longDone = false, sx = 0, sy = 0;
+    function clear() { if (timer) { clearTimeout(timer); timer = null; } }
+    b.addEventListener('pointerenter', function (ev) { if (ev.pointerType === 'mouse' && !narrow()) showFn(true); });
+    b.addEventListener('pointerdown', function (ev) {
+      longDone = false; clear(); sx = ev.clientX; sy = ev.clientY;
+      if (ev.pointerType === 'mouse' && (ev.button !== 0 || !narrow())) return; // 広い画面の マウスは 合わせるだけで 文が 出る
+      timer = setTimeout(function () { timer = null; longDone = true; swallowUntil = Infinity; showFn(false); }, LONG_MS);
+    });
+    function up() { clear(); if (longDone && swallowUntil === Infinity) swallowUntil = Date.now() + 500; }
+    b.addEventListener('pointermove', function (ev) { if (timer && (Math.abs(ev.clientX - sx) > 10 || Math.abs(ev.clientY - sy) > 10)) clear(); });
+    b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', function () { if (!longDone) clear(); });
+    b.addEventListener('contextmenu', function (ev) { if (longDone || timer) ev.preventDefault(); });
+    b.addEventListener('click', function (ev) {
+      if (longDone) { longDone = false; return; }
+      if (actFn) actFn(); else showFn(false);
+    });
+    return b;
+  }
+  function howText() { return canHover() && !narrow() ? 'あわせると せつめい・クリックで つける' : 'タップで つける・ながおしで せつめい'; }
   function showInfo(boxId, html, btn) {
     var pop = narrow(), box = pop ? $('partPopBox') : $(boxId);
     box.innerHTML = html;
@@ -1985,6 +2014,12 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
       return '<button type="button" class="kv-st" data-st="' + k + '" title="' + STAT_NAME[k] + '">' + STAT_ICON[k] + '<b class="' + (v[k + 'Cls'] || '') + '">' + v[k] + '</b></button>';
     }).join('') + '</div>';
   }
+  document.addEventListener('pointerover', function (ev) { // 強さも マウスを 合わせると 文（決定 16）
+    if (ev.pointerType !== 'mouse' || narrow()) return;
+    var b = ev.target && ev.target.closest ? ev.target.closest('.kv-st') : null;
+    if (!b || b.contains(ev.relatedTarget) || (G.screen !== 'pre' && G.screen !== 'fork')) return;
+    showInfo(G.screen === 'pre' ? 'preInfo' : 'forkInfo', infoStatHTML(b.dataset.st, b.parentNode.dataset.side));
+  });
   document.addEventListener('click', function (ev) {
     var b = ev.target && ev.target.closest ? ev.target.closest('.kv-st') : null;
     if (!b || (G.screen !== 'pre' && G.screen !== 'fork')) return;
@@ -1994,8 +2029,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
   // 小さな札（相手の 性質・パーツ）。押すと 文
   function chipEl(kind, id, boxId) {
     var b = el('button', 'kv-chip ' + kind); b.type = 'button';
-    if (kind === 'trait') { b.innerHTML = '<span class="ticon">' + TRAIT_ICON[id] + '</span>' + esc(S.TRAITS[id].name); b.addEventListener('click', function () { showInfo(boxId, infoTraitHTML(id)); }); }
-    else { b.innerHTML = partIcon(id) + esc(S.PART_BY_ID[id].short); b.dataset.id = id; b.addEventListener('click', function () { showInfo(boxId, infoPartHTML(id, { foe: true })); }); }
+    if (kind === 'trait') { b.innerHTML = '<span class="ticon">' + TRAIT_ICON[id] + '</span>' + esc(S.TRAITS[id].name); infoTap(b, function () { showInfo(boxId, infoTraitHTML(id)); }); }
+    else { b.innerHTML = partIcon(id) + esc(S.PART_BY_ID[id].short); b.dataset.id = id; infoTap(b, function () { showInfo(boxId, infoPartHTML(id, { foe: true })); }); }
     return b;
   }
   // かてば もらえる：アイコン＋名前（なれ +10 は 印）。押すと 文（道は 決まらない）
@@ -2006,7 +2041,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     rewards.forEach(function (r) {
       var p = S.PART_BY_ID[r.part];
       var b = el('button', 'kv-rwb', partIcon(r.part) + '<b>' + esc(p.short) + '</b>' + (r.kind === 'nare' ? '<span class="naretag">なれ +' + r.amt + '</span>' : '')); b.type = 'button';
-      b.addEventListener('click', function () { showInfo(boxId, infoPartHTML(r.part, { reward: r, mine: G.owned.indexOf(r.part) >= 0 })); });
+      infoTap(b, function () { showInfo(boxId, infoPartHTML(r.part, { reward: r, mine: G.owned.indexOf(r.part) >= 0 })); });
       row.appendChild(b);
     });
     return row;
@@ -2125,7 +2160,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         var isLv2 = G.lv2.indexOf(id) >= 0, last = (G.lastParts || []).indexOf(id) >= 0;
         var b = el('button', 'dr-it' + (isLv2 ? ' lv2' : '') + (last ? ' last' : ''), partIcon(id) + '<span class="kv-nm' + (S.PART_BY_ID[id].short.length >= 5 ? ' long' : '') + '">' + esc(S.PART_BY_ID[id].short) + '</span>' + (isLv2 ? '<span class="kv-lv2">Lv2</span>' : ''));
         b.type = 'button'; b.dataset.id = id;
-        b.addEventListener('click', function () { showInfo('forkInfo', infoPartHTML(id, { mine: true })); });
+        infoTap(b, function () { showInfo('forkInfo', infoPartHTML(id, { mine: true })); });
         grid.appendChild(b);
       });
     });
@@ -2154,13 +2189,13 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, fld.id), hpCls: path.hard ? 'hard' : '', atkCls: path.hard ? 'hard' : '' }, 'e') +
         '<div class="dr-mon">' + monsterSVG(def.id, def.parts, 'l', def.traits) + '</div></div>';
       var nxb = d.querySelector('.dr-nx2');
-      if (nxb) nxb.addEventListener('click', function () { showInfo('forkInfo', '<div class="info"><div class="if-name">なれ ×' + S.CFG.hard.nareMul + '（てごわい）</div><div class="if-eff">この たたかいでは、パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'); });
+      if (nxb) infoTap(nxb, function () { showInfo('forkInfo', '<div class="info"><div class="if-name">なれ ×' + S.CFG.hard.nareMul + '（てごわい）</div><div class="if-eff">この たたかいでは、パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'); });
       var chips = el('div', 'kv-chips');
       def.traits.forEach(function (t) { chips.appendChild(chipEl('trait', t, 'forkInfo')); });
       def.parts.forEach(function (pid) { chips.appendChild(chipEl('part', pid, 'forkInfo')); });
       d.appendChild(chips);
       var fb = el('button', 'kv-field dr-field', '' + fieldIcon(fld.color) + '<b>ばしょ：' + esc(fld.name) + '</b>'); fb.type = 'button';
-      fb.addEventListener('click', function () { showInfo('forkInfo', infoFieldHTML(fld)); });
+      infoTap(fb, function () { showInfo('forkInfo', infoFieldHTML(fld)); });
       d.appendChild(fb);
       d.appendChild(rewardRow(path.rewards, 'forkInfo', 'dr-rw'));
       var go = el('button', 'btn dr-go' + (path.hard ? ' hardbtn' : ''), k === 0 ? 'ひだりへ' : 'みぎへ'); go.type = 'button';
@@ -2237,7 +2272,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     renderGrowRow();
     renderMe();
     renderPlist();
-    infoEmpty('preInfo', 'もちものを 1かい おすと せつめい、もう 1かい おすと つける（つけた ものを 2かい おすと はずす）。した の 線は なれ（たまると ひらめく）');
+    $('kvHow').textContent = howText();
+    infoEmpty('preInfo', (canHover() && !narrow() ? 'もちものに マウスを あわせると せつめい。クリックで つける（つけた ものを クリックで はずす）' : 'もちものを タップで つける（もう 1かいで はずす）。ながおしで せつめい') + '。した の 線は なれ（たまると ひらめく）');
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {
@@ -2268,9 +2304,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     $('pStats').innerHTML = statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(ps), spdCls: ps !== S.CFG.playerSpd ? 'chg' : '' }, 'p');
     var sl = $('slots'); sl.innerHTML = '';
     for (var i = 0; i < 3; i++) (function (id, n) {
-      if (!id) { var eb = el('button', 'kv-slot empty', '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを えらんで、もう 1かい おすと ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
+      if (!id) { var eb = el('button', 'kv-slot empty', '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを ' + (canHover() && !narrow() ? 'クリック' : 'タップ') + 'すると ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
       var b = el('button', 'kv-slot on' + (G.lv2.indexOf(id) >= 0 ? ' lv2' : ''), partIcon(id) + '<span class="kv-nm' + (S.PART_BY_ID[id].short.length >= 5 ? ' long' : '') + '">' + esc(S.PART_BY_ID[id].short) + '</span>'); b.type = 'button';
-      b.addEventListener('click', function () { selectPart(id); });
+      infoTap(b, function (hov) { previewPart(id, hov); }, function () { togglePart(id); });
       sl.appendChild(b);
     })(G.attached[i], i + 1);
     var first = ps >= es ? G.run.name : 'あいて';
@@ -2297,7 +2333,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
           (isLv2 ? '' : '<i class="kv-nare' + (soon ? ' full' : '') + '" style="width:' + Math.round(Math.min(1, nare / full) * 100) + '%"></i>'));
         c.type = 'button'; c.dataset.id = id;
         if (swapFlash === id) c.classList.add('swapped');
-        c.addEventListener('click', function () { if (preSel === id) togglePart(id); else selectPart(id); });
+        infoTap(c, function (hov) { previewPart(id, hov); }, function () { togglePart(id); });
         list.appendChild(c);
       });
     });
@@ -2305,6 +2341,13 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     var hw = $('hintWrap'); hw.innerHTML = '';
     if (G.firstRun && G.battle === 0 && G.attached.length === 0) hw.appendChild(el('span', 'hint', 'えらぶ ↓'));
     if (G.screen === 'pre') window.__fitZoom(true);
+  }
+  // 合わせた／長押しした 札：作り直さずに 印（sel）だけ 動かして 文を出す（作り直すと カーソルの 下の 札が かわって また 合わせた ことに なる）
+  function previewPart(id, hov) {
+    preSel = id;
+    Array.prototype.forEach.call(document.querySelectorAll('#plist .kv-card'), function (c) { c.classList.toggle('sel', c.dataset.id === id); });
+    var on = G.attached.indexOf(id) >= 0;
+    showInfo('preInfo', infoPartHTML(id, { mine: true, on: on, hints: handHints(id) }), { label: on ? 'はずす' : 'つける', off: on, fn: function () { togglePart(id); } });
   }
   // 札を えらぶ：文の欄に くわしい文と「つける／はずす」
   function selectPart(id) {
@@ -2314,7 +2357,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
     showInfo('preInfo', infoPartHTML(id, { mine: true, on: on, hints: handHints(id) }), { label: on ? 'はずす' : 'つける', off: on, fn: function () { togglePart(id); } });
   }
   function togglePart(id) {
-    var note = '';
+    var note = '', quiet = false;
     var i = G.attached.indexOf(id);
     if (i >= 0) { G.attached.splice(i, 1); }
     else {
@@ -2326,11 +2369,11 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
         swapFlash = same[0];
         G.attached.push(id);
       } else if (G.attached.length >= 3) { note = 'わくは 3つまで。どれかを はずす'; }
-      else G.attached.push(id);
+      else { G.attached.push(id); if (narrow()) { note = p.short + '：' + p.effect; quiet = true; } } // スマホ：長押しを 知らなくても 効き目が 見える（確認役 1）
     }
     $('note').textContent = note;
     renderMe();
-    if (narrow()) { preSel = id; renderPlist(); if (note) showInfo('preInfo', '<div class="info"><div class="if-eff kv-note">' + esc(note) + '</div></div>'); } else selectPart(id); // 文の欄の「つける／はずす」を いまの 状態に
+    if (narrow()) { preSel = id; renderPlist(); if (note && !quiet) showInfo('preInfo', '<div class="info"><div class="if-eff kv-note">' + esc(note) + '</div></div>'); } else selectPart(id); // 文の欄の「つける／はずす」を いまの 状態に
     window.__fitZoom(true); // 広い窓：文が ふえて はみ出したら 倍率を 下げる
   }
   $('fightBtn').addEventListener('click', function () { initAudio(); startBattle(); });

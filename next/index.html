@@ -2400,6 +2400,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 
   // ---------- バトル前 ----------
   function metCount(enemyId) { return STORE.met[enemyId] || 0; }
+  function firstEver() { return STORE.hall.length === 0; } // はじめての 周回（殿堂に まだ だれも いない。途中セーブから 戻っても 同じ）
   var swapFlash = null;
   function showPre() {
     var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
@@ -2482,7 +2483,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   var preSel = null;
   function handHints(id) {
     var e = curEnemyDef();
-    return metCount(e.id) > 0 ? S.partHints(id, e, curField().id, G.attached, G.lv2, G.grow, monOf()) : null;
+    // 決定 21-c：はじめての 周回（殿堂 0体）は ◎✕ を 全部の 相手に。2周目からは「一度 会った 相手だけ」
+    return (metCount(e.id) > 0 || firstEver()) ? S.partHints(id, e, curField().id, G.attached, G.lv2, G.grow, monOf()) : null;
   }
   function renderPlist() {
     var list = $('plist'); list.innerHTML = '';

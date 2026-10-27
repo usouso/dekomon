@@ -132,7 +132,10 @@ async function openScreens(browser, size, shots) {
   // バトル前（1戦目）
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await snap('バトル前（1戦目）', 'pre' + sfx + '.png');
-  await page.evaluate(function () { var c = document.querySelector('#plist .kv-card[data-id="claw"]') || document.querySelector('#plist .kv-card'); if (c) c.click(); });
+  // 決定 16：長押し（0.4秒）で 文（クリックは つける）。タッチの 長押しを まねる
+  await page.evaluate(function () { var c = document.querySelector('#plist .kv-card[data-id="claw"]') || document.querySelector('#plist .kv-card'); if (c) c.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true, clientX: 5, clientY: 5 })); window.__lp = c; });
+  await page.waitForTimeout(550);
+  await page.evaluate(function () { if (window.__lp) window.__lp.dispatchEvent(new PointerEvent('pointerup', { pointerType: 'touch', bubbles: true })); });
   await snap('バトル前（パーツの文を 開いた）', 'pre_info' + sfx + '.png');
   await page.evaluate(function () { document.getElementById('partPop').classList.remove('on'); });
   // メニュー（≡）を開いた ところ
@@ -157,10 +160,10 @@ async function openScreens(browser, size, shots) {
   await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; G.run.choices[G.battle] = 0; S.forkRewards(G.run, G.battle, G.owned, G.lv2, G.rng); G.forkFor = G.battle; G.rewards = (S.pathOf(G.run, G.battle, 0).rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await snap('バトル前（9戦目。' + owned9 + '）', 'pre9' + sfx + '.png');
   // いちばん 多いとき：16こ 全部・Lv2 8つ・3つ つけた（札の文が いちばん 長い）。見たあと もとに もどす
-  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; window.__keep = { owned: G.owned.slice(), lv2: G.lv2.slice() }; G.owned = S.PART_IDS.slice(); G.lv2 = ['horn', 'fang', 'claw', 'shell', 'tail', 'wing', 'spike', 'crush']; window.__dekomon.dbg.showPre(); ['claw', 'tail', 'fang'].forEach(function (id) { for (var t = 0; t < 2; t++) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); } }); });
+  await page.evaluate(function () { var G = window.__dekomon.G, S = window.DekoSim; window.__keep = { owned: G.owned.slice(), lv2: G.lv2.slice() }; G.owned = S.PART_IDS.slice(); G.lv2 = ['horn', 'fang', 'claw', 'shell', 'tail', 'wing', 'spike', 'crush']; window.__dekomon.dbg.showPre(); ['claw', 'tail', 'fang'].forEach(function (id) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); }); });
   await snap('バトル前（16こ・Lv2 8・3つ つけた）', 'pre16' + sfx + '.png');
   // いちばん 舞台が 高く なるとき：てごわい（もらえるもの 2つ）・同じ場所の つけかえ（注意の 1行）
-  await page.evaluate(function () { var G = window.__dekomon.G; G.rewards = [{ kind: 'nare', part: 'longleg', amt: 10 }, { kind: 'nare', part: 'longtail', amt: 10 }]; window.__dekomon.dbg.showPre(); ['claw', 'claw', 'crush', 'crush', 'tail', 'tail', 'longtail', 'longtail'].forEach(function (id) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); }); });
+  await page.evaluate(function () { var G = window.__dekomon.G; G.rewards = [{ kind: 'nare', part: 'longleg', amt: 10 }, { kind: 'nare', part: 'longtail', amt: 10 }]; window.__dekomon.dbg.showPre(); ['claw', 'crush', 'tail', 'longtail'].forEach(function (id) { var c = document.querySelector('#plist .kv-card[data-id="' + id + '"]'); if (c) c.click(); }); });
   await snap('バトル前（もらえる 2つ・つけかえの 注意）', null);
   await page.evaluate(function () { var G = window.__dekomon.G; G.owned = window.__keep.owned; G.lv2 = window.__keep.lv2; });
   // ちょうじょう
@@ -191,7 +194,7 @@ async function shotSpark(browser, size) {
   await page.evaluate(function () { var G = window.__dekomon.G; G.run.choices[0] = 0; window.DekoSim.forkRewards(G.run, 0, G.owned, G.lv2, G.rng); G.forkFor = 0; G.rewards = (G.run.steps[0][0].rewards || []).slice(); window.__dekomon.dbg.showPre(); });
   await page.waitForTimeout(200);
   // 継いだ キバを つけて たたかう
-  await page.evaluate(function () { for (var t = 0; t < 2; t++) { var c = document.querySelector('#plist .kv-card[data-id="claw"]'); if (c) c.click(); } });
+  await page.evaluate(function () { var c = document.querySelector('#plist .kv-card[data-id="claw"]'); if (c) c.click(); });
   await page.waitForTimeout(100);
   await page.click('#fightBtn');
   var got = false, t0 = Date.now(), text = '';

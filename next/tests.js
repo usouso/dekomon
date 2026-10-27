@@ -608,6 +608,14 @@ var P = CFG.playerAtk; // 13
     { setsumei: !!ex._setsumei && Object.keys(ex)[0] === '_setsumei', horn: ex.jisho.parts.horn, boss: ex.jisho.enemies.boss, sec: ex.runs[1].battles[0].sec, mada: ex.runs[1].secMada, kept: Array.isArray(st.runs[1].sec) && st.runs[1].battles[0].sec === undefined, file: KR.fileName(t0), at: ex.kakidashita.slice(0, 16) });
   var st2 = KR.empty(), r3 = KR.newRun(st2, { name: 'x' }, t0); KR.addTime(r3, 0, 'pre', 20); KR.addBattle(r3, Object.assign({}, b, { no: 1 })); KR.addTime(r3, 1, 'fork', 7);
   row('記録', '終わっていない 戦いの 秒も 書き出す（secMada）', [{ no: 2, sec: { fork: 7 } }], KR.exportData(st2, S, t0).runs[0].secMada);
+  // 決定 13：種類と 技を 記録に
+  var st3 = KR.empty(), r4 = KR.newRun(st3, { name: 'ぴょ', species: 'pyun', waza: ['suki', 'renda'] }, t0);
+  KR.addBattle(r4, Object.assign({}, b, { waza: KR.wazaList({ renda: 3, suki: 1 }) }));
+  var r5 = KR.newRun(st3, { name: 'な' }, t0);
+  var ex3 = KR.exportData(st3, S, t0), sm3 = KR.summarize(ex3).join('\n');
+  row('記録', '種類と 技（わざ なしの 周回には 無い）・技の 発動は [{ id, n }]・辞書と 要約に 種類と 技',
+    { sp: 'pyun', wz: ['suki', 'renda'], none: false, bw: [{ id: 'renda', n: 3 }, { id: 'suki', n: 1 }], jsp: S.SPECIES_BY_ID.pyun.name, jw: S.WAZA_BY_ID.renda.name, sum: true },
+    { sp: r4.species, wz: r4.waza, none: 'species' in r5, bw: ex3.runs[0].battles[0].waza, jsp: ex3.jisho.species.pyun, jw: ex3.jisho.waza.renda, sum: sm3.indexOf(S.SPECIES_BY_ID.pyun.name + ' 1') >= 0 && sm3.indexOf(S.WAZA_BY_ID.renda.name + ' 3') >= 0 });
   var sm = KR.summarize(ex).join('\n');
   row('記録', '要約に 勝ち数・てごわいの 割合・よく つけた パーツ・負けた 相手', { hard: true, part: true, lost: true },
     { hard: sm.indexOf('てごわいを 選んだ 割合：50%（1/2）') >= 0, part: sm.indexOf(S.PART_BY_ID.horn.name + ' 2') >= 0, lost: sm.indexOf('負けた 相手：' + S.ENEMY_BY_ID.frog.name + ' 1') >= 0 });

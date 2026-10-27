@@ -30,7 +30,9 @@ async function run(b, q) {
     await page.waitForTimeout(150);
     const ids = await page.evaluate(() => Array.from(document.querySelectorAll('#plist .kv-card')).map(c => c.dataset.id));
     for (const id of ids.slice(0, 3)) await page.click(`#plist .kv-card[data-id="${id}"]`);
-    await page.evaluate(() => window.__snd.push(['FIGHT', Math.round(performance.now())]));
+    // 決定 21-a：わくが 空いていると 1回目は「まだ つけられるよ」（戦いは 始まらない）。先に 1回 押して 2回目を はかる
+    if (await page.evaluate(() => { const G = window.__dekomon.G; return G.attached.length < 3; })) { await page.click('#fightBtn'); await page.waitForTimeout(100); }
+    await page.evaluate(() => { window.__snd.length = 0; window.__snd.push(['FIGHT', Math.round(performance.now())]); });
     await page.click('#fightBtn');
     await page.waitForTimeout(3500);
   }

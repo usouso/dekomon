@@ -988,6 +988,10 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-slot .kv-nm { white-space: nowrap; font-size: .95rem; }
 .kv-slot.empty { border: 3px dashed rgba(88,199,255,.55); color: #8fb4cc; justify-content: center; background: rgba(0,0,0,.2); font: inherit; font-weight: 800; cursor: pointer; }
 .kv-slot.empty .kv-sn { font-size: 1.2rem; font-weight: 900; color: #bfe8ff; }
+.kv-slot.empty.fx-slot-warn { border-color: var(--gold); border-style: solid; color: #ffe08a; animation: fxSlotWarn 1s ease-in-out 4; } /* 決定 21-a：つけ忘れの 警告 */
+.kv-slot.empty.fx-slot-warn .kv-sn { color: #ffe08a; }
+@keyframes fxSlotWarn { 0%,100% { box-shadow: 0 0 0 0 rgba(255,213,74,0); } 50% { box-shadow: 0 0 14px 4px rgba(255,213,74,.8); } }
+.kv-note.fx-warn { color: var(--gold); font-size: 1.2rem; }
 .kv-slot.on { background: var(--me-bg); border: 3px solid var(--me); box-shadow: 0 0 10px rgba(88,199,255,.45); }
 .kv-slot.on.lv2 { border-color: var(--gold); }
 .kv-lines { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2px 12px; }
@@ -1658,6 +1662,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     found:   function () { [1046, 1318, 1568, 2093].forEach(function (f, i) { tone(f, 0.3, 'triangle', 0.22, i * 0.09); }); },
     sparkle: function () { [784, 988, 1175].forEach(function (f, i) { tone(f, 0.22, 'sine', 0.26, i * 0.1); }); tone(2637, 0.5, 'sine', 0.14, 0.32, 3520); noise(0.3, 0.1, 0.3, 'highpass', 6000); },
     // 決定 17-e：たたかう を 押した 合図。音の 出口（PC・イヤホン）が しずかな あと 最初の 音を 落とすことが あるので、1げきめの 前に 1つ 鳴らして 起こしておく
+    warn:    function () { tone(660, 0.1, 'triangle', 0.18); tone(660, 0.12, 'triangle', 0.18, 0.16); }, // 決定 21-a：まだ つけられるよ
     go:      function () { tone(392, 0.14, 'triangle', 0.24); tone(587, 0.22, 'triangle', 0.2, 0.11); },
     pick:    function () { tone(880, 0.12, 'triangle', 0.2); tone(1320, 0.18, 'triangle', 0.18, 0.1); },
     finish:  function () { tone(70, 1.4, 'sawtooth', 0.26, 0, 38); tone(140, 1.2, 'sine', 0.2, 0, 70); tone(1046, 0.7, 'triangle', 0.14, 0.05, 523); noise(0.6, 0.3, 0, 'lowpass', 1400, 90); },
@@ -2406,6 +2411,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
     var met = metCount(e.id);
     G.attached = []; // 毎戦、装備を外した状態で始める
+    G.preWarn = false; // 決定 21-a：つけ忘れの 警告は 1戦に 1回
     preSel = null;
     $('preNo').textContent = (G.battle + 1) + 'せんめ ／ ' + S.CFG.runBattles;
     $('preWins').textContent = G.wins ? G.wins + 'れんしょうちゅう' : '';
@@ -2430,7 +2436,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var rw = $('eReward'); rw.innerHTML = '';
     if (e.boss) rw.appendChild(el('span', 'kv-rwl', 'ぬしを たおせば ちょうじょう！'));
     else rw.appendChild(rewardRow(G.rewards, 'preInfo'));
-    $('note').textContent = '';
+    $('note').textContent = ''; $('note').classList.remove('fx-warn');
     renderGrowRow();
     renderMe();
     renderPlist();
@@ -2476,6 +2482,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     })(G.attached[i], i + 1);
     var first = ps >= es ? G.run.name : 'あいて';
     var gap = Math.abs(ps - es) >= S.CFG.speedGap;
+    $('fightBtn').textContent = G.preWarn && canAttachMore() ? 'このまま たたかう' : 'たたかう';
     $('firstTxt').innerHTML = 'さきに うごく：<b>' + esc(first) + (gap ? '（さいしょに 2かい）' : '') + '</b>';
   }
   // 手札（もちもの）：小さな絵＋名前＋Lv2 の印＋◎✕（＋なれの 細い線）。1回目で 文、同じ札を もう1回で つける／はずす
@@ -2536,12 +2543,31 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       } else if (G.attached.length >= 3) { note = 'わくは 3つまで。どれかを はずす'; }
       else { G.attached.push(id); if (narrow()) { note = p.short + '：' + p.effect; quiet = true; } } // スマホ：長押しを 知らなくても 効き目が 見える（確認役 1）
     }
-    $('note').textContent = note;
+    $('note').textContent = note; $('note').classList.remove('fx-warn');
     renderMe();
     if (narrow()) { preSel = id; renderPlist(); if (note && !quiet) showInfo('preInfo', '<div class="info"><div class="if-eff kv-note">' + esc(note) + '</div></div>'); } else selectPart(id); // 文の欄の「つける／はずす」を いまの 状態に
     window.__fitZoom(true); // 広い窓：文が ふえて はみ出したら 倍率を 下げる
   }
-  $('fightBtn').addEventListener('click', function () { initAudio(); sfx('go'); startBattle(); });
+  // 決定 21-a：まだ つけられる パーツが あるか（わくが 空いていて、その 体の場所が あいている もちものが ある）
+  function canAttachMore() {
+    if (G.attached.length >= 3) return false;
+    var locs = G.attached.map(function (a) { return S.PART_BY_ID[a].loc; });
+    return G.owned.some(function (id) { return G.attached.indexOf(id) < 0 && locs.indexOf(S.PART_BY_ID[id].loc) < 0; });
+  }
+  // わくが 空いた まま「たたかう」：空いた わくが 光って「まだ つけられるよ」。戦いは 始めない。もう一度 押すと 戦える（?auto=1 は 出さない）
+  function warnEmpty() {
+    G.preWarn = true;
+    initAudio(); sfx('warn');
+    Array.prototype.forEach.call(document.querySelectorAll('#slots .kv-slot.empty'), function (b) { b.classList.add('fx-slot-warn'); });
+    // スマホ：効き目の 文の 行（もちものの 下・たたかうの すぐ上）。PC：文の欄（1366×650 では 左の 行が 下で 切れるので）
+    if (narrow()) { var n = $('note'); n.textContent = 'まだ つけられるよ！'; n.classList.add('fx-warn'); }
+    else showInfo('preInfo', '<div class="info"><div class="if-eff kv-note fx-warn">まだ つけられるよ！</div><div class="if-eff">もちものを クリックすると わくに つく。このままで よければ もういちど おす</div></div>');
+    $('fightBtn').textContent = 'このまま たたかう';
+  }
+  $('fightBtn').addEventListener('click', function () {
+    if (G.screen === 'pre' && !OPT.auto && !G.preWarn && canAttachMore()) { warnEmpty(); return; }
+    initAudio(); sfx('go'); startBattle();
+  });
 
   // ---------- 時間どおりに進める仕組み ----------
   var stopTimeline = function () {};

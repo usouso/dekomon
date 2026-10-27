@@ -724,6 +724,13 @@ var P = CFG.playerAtk; // 13
   var k1 = S.monKey({ species: 'pyun' }), k2 = S.monKey({ species: 'pyun', waza: [] }), k3 = S.monKey(null);
   CFG.waza.on = false;
   row('ボットの 覚え', '技を 省いた（その種類の 2つ）と 空（技なし）は 別の 鍵・わざ なしは 鍵なし', { a: 'Wpyun:suki,renda', b: 'Wpyun:', c: 'Wkoron:nerai,kiai', off: '' }, { a: k1, b: k2, c: k3, off: S.monKey({ species: 'pyun' }) });
+  // 手札の ◎（partHints）は いまの 子の 種類の はやさで 見る（ぴゅん 14・ころん 10、あいて 12）
+  CFG.waza.on = true;
+  var hE = dummy({ spd: 12 }), hF = S.FIELDS[0].id;
+  var hPy = S.partHints('claw', hE, hF, [], [], null, { species: 'pyun' }).good[0].on;
+  var hKo = S.partHints('claw', hE, hF, [], [], null, { species: 'koron' }).good[0].on;
+  CFG.waza.on = false;
+  row('ツメ（手札の ◎）', 'おそい あいて（3かい）：はやさは その子の 種類で 見る', { pyun: true, koron: false }, { pyun: hPy, koron: hKo });
   CFG.waza.on = on0;
 })();
 

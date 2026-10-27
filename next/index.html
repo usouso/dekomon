@@ -1662,8 +1662,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     found:   function () { [1046, 1318, 1568, 2093].forEach(function (f, i) { tone(f, 0.3, 'triangle', 0.22, i * 0.09); }); },
     sparkle: function () { [784, 988, 1175].forEach(function (f, i) { tone(f, 0.22, 'sine', 0.26, i * 0.1); }); tone(2637, 0.5, 'sine', 0.14, 0.32, 3520); noise(0.3, 0.1, 0.3, 'highpass', 6000); },
     // 決定 17-e：たたかう を 押した 合図。音の 出口（PC・イヤホン）が しずかな あと 最初の 音を 落とすことが あるので、1げきめの 前に 1つ 鳴らして 起こしておく
-    warn:    function () { tone(660, 0.1, 'triangle', 0.18); tone(660, 0.12, 'triangle', 0.18, 0.16); }, // 決定 21-a：まだ つけられるよ
     go:      function () { tone(392, 0.14, 'triangle', 0.24); tone(587, 0.22, 'triangle', 0.2, 0.11); },
+    warn:    function () { tone(660, 0.1, 'triangle', 0.18); tone(660, 0.12, 'triangle', 0.18, 0.16); }, // 決定 21-a：まだ つけられるよ
     pick:    function () { tone(880, 0.12, 'triangle', 0.2); tone(1320, 0.18, 'triangle', 0.18, 0.1); },
     finish:  function () { tone(70, 1.4, 'sawtooth', 0.26, 0, 38); tone(140, 1.2, 'sine', 0.2, 0, 70); tone(1046, 0.7, 'triangle', 0.14, 0.05, 523); noise(0.6, 0.3, 0, 'lowpass', 1400, 90); },
     win:     function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.28, 'triangle', 0.26, i * 0.13); }); },
@@ -2475,7 +2475,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('pStats').innerHTML = statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(ps), spdCls: ps !== baseStats().spd ? 'chg' : '' }, 'p');
     var sl = $('slots'); sl.innerHTML = '';
     for (var i = 0; i < 3; i++) (function (id, n) {
-      if (!id) { var eb = el('button', 'kv-slot empty', '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを ' + (canHover() && !narrow() ? 'クリック' : 'タップ') + 'すると ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
+      if (!id) { var eb = el('button', 'kv-slot empty' + (G.preWarn && canAttachMore() ? ' fx-slot-warn' : ''), '<span class="kv-sn">' + n + '</span>あき'); eb.type = 'button'; eb.addEventListener('click', function () { showInfo('preInfo', '<div class="info"><div class="if-name">わく（' + n + '）</div><div class="if-eff">もちものを ' + (canHover() && !narrow() ? 'クリック' : 'タップ') + 'すると ここに つく。わくは 3つ。同じ 体の場所には 1つだけ</div></div>'); }); sl.appendChild(eb); return; }
       var b = el('button', 'kv-slot on' + (G.lv2.indexOf(id) >= 0 ? ' lv2' : ''), partIcon(id) + '<span class="kv-nm' + (S.PART_BY_ID[id].short.length >= 5 ? ' long' : '') + '">' + esc(S.PART_BY_ID[id].short) + '</span>'); b.type = 'button';
       infoTap(b, function (hov) { previewPart(id, hov); }, function () { togglePart(id); });
       sl.appendChild(b);
@@ -2560,12 +2560,15 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     initAudio(); sfx('warn');
     Array.prototype.forEach.call(document.querySelectorAll('#slots .kv-slot.empty'), function (b) { b.classList.add('fx-slot-warn'); });
     // スマホ：効き目の 文の 行（もちものの 下・たたかうの すぐ上）。PC：文の欄（1366×650 では 左の 行が 下で 切れるので）
-    if (narrow()) { var n = $('note'); n.textContent = 'まだ つけられるよ！'; n.classList.add('fx-warn'); }
+    if (narrow()) { var n = $('note'); n.textContent = 'まだ つけられるよ！'; n.classList.add('fx-warn'); if (n.scrollIntoView) n.scrollIntoView({ block: 'nearest' }); } // もちもの 0こ だと 文の欄の 下で 画面の 外に なるので そこまで 動かす（確認役 1）
     else showInfo('preInfo', '<div class="info"><div class="if-eff kv-note fx-warn">まだ つけられるよ！</div><div class="if-eff">もちものを クリックすると わくに つく。このままで よければ もういちど おす</div></div>');
     $('fightBtn').textContent = 'このまま たたかう';
+    warnAt = Date.now();
   }
+  var warnAt = 0; // 連打で 警告が 見えない まま 戦いに 入らないように、警告の あと 0.6秒は 押しても 効かない（確認役 3）
   $('fightBtn').addEventListener('click', function () {
     if (G.screen === 'pre' && !OPT.auto && !G.preWarn && canAttachMore()) { warnEmpty(); return; }
+    if (G.screen === 'pre' && G.preWarn && Date.now() - warnAt < 600) return;
     initAudio(); sfx('go'); startBattle();
   });
 

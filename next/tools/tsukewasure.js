@@ -40,6 +40,9 @@ const URL = 'http://localhost:' + PORT + '/';
     if (!s.msgVis) ng('「まだ つけられるよ」が 画面の 中に 見えない');
     if (s.btn !== 'このまま たたかう') ng('ボタンの 文字 ' + s.btn);
     await page.click('#fightBtn'); await page.waitForTimeout(150);
+    s = await st(); if (s.screen !== 'pre') ng('警告の すぐ あとの 連打で 戦いが 始まった');
+    await page.waitForTimeout(600);
+    await page.click('#fightBtn'); await page.waitForTimeout(150);
     s = await st(); if (s.screen !== 'battle') ng('2回目で 戦いが 始まらない ' + s.screen);
     // 3：3つ つけたら 1回
     await open();
@@ -51,7 +54,12 @@ const URL = 'http://localhost:' + PORT + '/';
     s = await st(); if (s.screen !== 'battle') ng('3つ つけて 1回で 始まらない');
     // 0こ でも 警告
     await open(); await page.click('#fightBtn'); await page.waitForTimeout(150);
-    s = await st(); if (s.screen !== 'pre' || s.glow !== 3) ng('0こ で 警告が 出ない ' + JSON.stringify(s));
+    s = await st(); if (s.screen !== 'pre' || s.glow !== 3 || !s.msgVis) ng('0こ で 警告が 見えない ' + JSON.stringify(s));
+    // 警告の あと 1つ つけても のこりの わくは 光った まま（ボタンの「このまま」と 合う）
+    await page.waitForTimeout(600);
+    ids = await page.evaluate(() => Array.from(document.querySelectorAll('#plist .kv-card')).map(c => c.dataset.id));
+    await page.click(`#plist .kv-card[data-id="${ids[0]}"]`); await page.mouse.move(2, 2);
+    s = await st(); if (s.glow !== 2 || s.btn !== 'このまま たたかう') ng('1つ つけたら 光が 消えた ' + JSON.stringify(s));
     // 4：つけられる ものが ない（もちものが 1つ だけ）
     await open(['horn']); await page.click('#plist .kv-card[data-id="horn"]'); await page.mouse.move(2, 2);
     await page.click('#fightBtn'); await page.waitForTimeout(150);

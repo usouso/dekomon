@@ -377,8 +377,8 @@ S.PART_IDS.forEach(function (p) {
     S.ENEMIES.forEach(function (e) {
       S.FIELDS.forEach(function (f) {
         for (var t = 0; t < 4; t++) {
-          if (S.runBattle(combo, e.index, 5, f.id, { rng: rng }).winner === 'p') w1++;
-          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, lv2: [p], grow: p === 'leech' ? { tough: 0, strong: 0, quick: 0, oogui: OOGUI5 } : null });
+          if (S.runBattle(combo, e.index, 5, f.id, { rng: rng, mon: CUR_MON }).winner === 'p') w1++;
+          var r2 = S.runBattle(combo, e.index, 5, f.id, { rng: rng, mon: CUR_MON, lv2: [p], grow: p === 'leech' ? { tough: 0, strong: 0, quick: 0, oogui: OOGUI5 } : null });
           if (r2.winner === 'p') w2++;
           if (r2.summary.lv2Used[p]) used++;
           n++;
@@ -433,10 +433,10 @@ S.ENEMIES.concat([S.BOSS]).forEach(function (e) {
     var sum = 0;
     var fields = e.boss ? [S.SUMMIT] : S.FIELDS;
     fields.forEach(function (f) {
-      var best = S.bestLoadout(S.PART_IDS, e.index, s, f.id, g, []);
+      var best = S.bestLoadout(S.PART_IDS, e.index, s, f.id, g, [], false, CUR_MON);
       if (s === 10 && (f.id === 'plain' || e.boss)) best10 = best;
       var w = 0;
-      for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(best.parts, e.index, s, f.id, { rng: rng, grow: g }).winner === 'p') w++; }
+      for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(best.parts, e.index, s, f.id, { rng: rng, grow: g, mon: CUR_MON }).winner === 'p') w++; }
       sum += w / TABLE_TRIALS;
     });
     var r = sum / fields.length;
@@ -452,8 +452,8 @@ var bossLv2 = Object.keys(stM.bossLv2).sort(function (a, b) { return stM.bossLv2
 var bossTableLv2 = 0, bossBest = null;
 (function () {
   var g = meanGrowAt(9), w = 0;
-  bossBest = S.bestLoadout(S.PART_IDS, 'boss', 10, S.SUMMIT.id, g, bossLv2);
-  for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(bossBest.parts, 'boss', 10, S.SUMMIT.id, { rng: rng, grow: g, lv2: bossLv2 }).winner === 'p') w++; }
+  bossBest = S.bestLoadout(S.PART_IDS, 'boss', 10, S.SUMMIT.id, g, bossLv2, false, CUR_MON);
+  for (var t = 0; t < TABLE_TRIALS; t++) { if (S.runBattle(bossBest.parts, 'boss', 10, S.SUMMIT.id, { rng: rng, grow: g, lv2: bossLv2, mon: CUR_MON }).winner === 'p') w++; }
   bossTableLv2 = w / TABLE_TRIALS;
 })();
 console.log('| やまの ぬし（参考：段10・育ちあり・Lv2 ' + bossLv2.length + 'つ：' + bossLv2.map(function (p) { return S.PART_BY_ID[p].lv2name; }).join('・') + '） | - | - | ' + pct(bossTableLv2) + ' | ' + cname(bossBest.parts) + ' |');

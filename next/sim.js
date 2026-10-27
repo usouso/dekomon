@@ -978,7 +978,7 @@
   function clearMemo() { memo = {}; }
   // mon（決定 13）：{ species, waza }。CFG.waza.on が false なら 無視される
   // わざ ありなら 'W種類:技' を 返す（mon が 無くても ころんとして 'W' つき＝あり／なしで 覚えが まざらない）
-  function monKey(mon) { return CFG.waza.on ? 'W' + ((mon && mon.species) || 'koron') + ':' + ((mon && mon.waza) || []).join(',') : ''; }
+  function monKey(mon) { if (!CFG.waza.on) return ''; var d = playerDef(null, null, mon); return 'W' + d.species + ':' + d.waza.join(','); } // 実際に 使う 技で（省略＝その種類の 2つ、[]＝技なし は 別）
   function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon) {
     var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
     if (memo[key]) return memo[key];

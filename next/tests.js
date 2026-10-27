@@ -699,6 +699,10 @@ var P = CFG.playerAtk; // 13
   var r7d = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.1 });
   row('いかり', 'summary.waza は ためた 回数（使った ときは 数えない）', wazaEvs(r7d, 'ikari').filter(function (x) { return x.ready; }).length, r7d.summary.waza.ikari);
   row('わざ あり', '技の 回数は summary.waza（記録・ボット用）', { kiai: 1 }, r2.summary.waza);
+  CFG.waza.on = true;
+  var k1 = S.monKey({ species: 'pyun' }), k2 = S.monKey({ species: 'pyun', waza: [] }), k3 = S.monKey(null);
+  CFG.waza.on = false;
+  row('ボットの 覚え', '技を 省いた（その種類の 2つ）と 空（技なし）は 別の 鍵・わざ なしは 鍵なし', { a: 'Wpyun:suki,renda', b: 'Wpyun:', c: 'Wkoron:nerai,kiai', off: '' }, { a: k1, b: k2, c: k3, off: S.monKey({ species: 'pyun' }) });
   CFG.waza.on = on0;
 })();
 

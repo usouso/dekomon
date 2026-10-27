@@ -11,6 +11,7 @@
   var CFG = {
     playerHp: 115, playerAtk: 13, playerSpd: 10,
     runBattles: 10,        // 1周回は10戦
+    firstFew: true,        // 決定 21-b：はじめての 周回（殿堂 0体）は 始めの もちもの 3つ（false で いつもの 6つ。比べる ための キー）
     maxHands: 16,
     speedGap: 8,
     // パーツ（Lv1）
@@ -898,7 +899,7 @@
   // 決定 21-b：few＝はじめての 周回（殿堂 0体）。せめ・まもり・うごき 1つずつの 3つだけ（同じ場所の パーツは 選ばない＝3つとも つけられる）
   function startItems(rng, inherit, few) {
     var picked = [];
-    if (few && !inherit) {
+    if (few && !inherit && CFG.firstFew) {
       CATS.forEach(function (c) {
         var cands = PARTS.filter(function (p) { return p.cat === c.id && !picked.some(function (id) { return PART_BY_ID[id].loc === p.loc; }); });
         picked.push(cands[randInt(rng, cands.length)].id);

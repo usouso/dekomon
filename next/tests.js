@@ -693,7 +693,11 @@ var P = CFG.playerAtk; // 13
   // わざ なし なら 種類を 渡しても 前と 同じ 戦い（乱数の 順番も 同じ）
   var a1 = S.runBattle(['fang', 'claw'], 3, 4, 'plain', { rng: S.makeRng(7) });
   var a2 = S.runBattle(['fang', 'claw'], 3, 4, 'plain', { rng: S.makeRng(7), mon: { species: 'gotsun' } });
-  row('わざ なし', 'CFG.waza.on = false なら mon を 渡しても 同じ 結果・技の 出来事なし', true, JSON.stringify(a1) === JSON.stringify(a2) && JSON.stringify(a2).indexOf('"waza"') === JSON.stringify(a1).indexOf('"waza"'));
+  row('わざ なし', 'CFG.waza.on = false なら mon を 渡しても 同じ 結果・技の 出来事なし（前の版との 同じさは bot で 確かめる）', { same: true, ev: 0 }, { same: JSON.stringify(a1) === JSON.stringify(a2), ev: evs(a2, function (ev) { return ev.t === 'waza'; }).length });
+  var r3d = fightW({ species: 'gotsun' }, { parts: ['scale'], lv2: ['scale'] }, dummy({ atk: 5 }), { rngV: 0.1 });
+  row('かみつきかえし', '0 に はじいた 1げきでも「うけた」ので 出る（トゲと 同じ）', true, countersBy(r3d, 'p').length > 0 && hitsBy(r3d, 'e').every(function (x) { return x.dmg === 0; }));
+  var r7d = fightW({ species: 'doshin' }, { parts: [] }, dummy(), { rngV: 0.1 });
+  row('いかり', 'summary.waza は ためた 回数（使った ときは 数えない）', wazaEvs(r7d, 'ikari').filter(function (x) { return x.ready; }).length, r7d.summary.waza.ikari);
   row('わざ あり', '技の 回数は summary.waza（記録・ボット用）', { kiai: 1 }, r2.summary.waza);
   CFG.waza.on = on0;
 })();

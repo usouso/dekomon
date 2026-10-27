@@ -89,16 +89,16 @@
 
   // ---------- モンスターの 技（決定 13）----------
   // kind：'sotto'（そっと効く技＝ずっと 効いている）／'kokozo'（ここぞの技＝条件が そろうと 出る）。札の文は 文字どおり（tests.js で 守る）。
-  // 条件の 語彙は 4つだけ：「○手ごとに」「1げきが あたったとき ○%」「○の あいてへの 1げき」「たいりょくが 半分より すくない 最初の手」
+  // 条件の 語彙は 4つだけ：「○手ごとに」「1げき うけたとき ○%」「○の あいてへの 1げき」「たいりょくが 半分より すくない 最初の手」
   var W = function () { return CFG.waza; };
   var WAZA = [
     { id: 'nerai',     name: 'ねらいうち',     kind: 'sotto',  text: function () { return 'じょうたいの あいてへの 1げきが +' + W().nerai; } },
-    { id: 'kiai',      name: 'ふんばり',       kind: 'kokozo', text: function () { return 'たいりょくが 半分より すくない 最初の手、こうげきが ×' + W().kiaiMult; } },
-    { id: 'kamitsuki', name: 'かみつきかえし', kind: 'sotto',  text: function () { return '1げきが あたったとき ' + Math.round(W().kamitsukiRate * 100) + '% で はんげき（じぶんの こうげき ×' + W().kamitsukiRatio + '）'; } },
+    { id: 'kiai',      name: 'ふんばり',       kind: 'kokozo', text: function () { return 'たいりょくが 半分より すくない 最初の手、その手の こうげき ぜんぶ ×' + W().kiaiMult; } },
+    { id: 'kamitsuki', name: 'かみつきかえし', kind: 'sotto',  text: function () { return 'ちかくから 1げき うけたとき ' + Math.round(W().kamitsukiRate * 100) + '% で はんげき（じぶんの こうげき ×' + W().kamitsukiRatio + '）'; } },
     { id: 'hitoiki',   name: 'ひといき',       kind: 'kokozo', text: function () { return W().hitoikiEvery + '手ごとに、じぶんの手の はじめに たいりょく +' + W().hitoikiHeal; } },
     { id: 'suki',      name: 'すきをつく',     kind: 'sotto',  text: function () { return 'よろけの あいてへの 1げきが ×' + W().sukiMult; } },
     { id: 'renda',     name: 'れんだ',         kind: 'kokozo', text: function () { return W().rendaEvery + '手ごとに、こうげきを もう1かい する'; } },
-    { id: 'ikari',     name: 'いかり',         kind: 'sotto',  text: function () { return '1げきが あたったとき ' + Math.round(W().ikariRate * 100) + '% で、つぎの こうげきが ×' + W().ikariMult; } },
+    { id: 'ikari',     name: 'いかり',         kind: 'sotto',  text: function () { return '1げき うけたとき ' + Math.round(W().ikariRate * 100) + '% で、つぎの こうげきが ×' + W().ikariMult; } },
     { id: 'oonaguri',  name: 'おおなぐり',     kind: 'kokozo', text: function () { return W().oonaguriEvery + '手ごとに、こうげきの 1げきめが ×' + W().oonaguriMult; } }
   ];
   var WAZA_BY_ID = {}; WAZA.forEach(function (w, i) { w.index = i; WAZA_BY_ID[w.id] = w; });
@@ -108,7 +108,7 @@
   function wazaEvery(id) { return id === 'hitoiki' ? CFG.waza.hitoikiEvery : id === 'renda' ? CFG.waza.rendaEvery : id === 'oonaguri' ? CFG.waza.oonaguriEvery : 0; }
 
   // ---------- モンスターの 種類（決定 13。まず 4種）----------
-  // koron が いままでの 1種（115／13／10）。古い 保存・殿堂の子は koron として 読む。
+  // koron が いままでの 1種（わざ なしの ときは 115／13／10 のまま。わざ ありでは 技の ぶん たいりょく 100）。古い 保存・殿堂の子は koron として 読む。
   var SPECIES = [
     { id: 'koron', name: 'ころん', hp: 100, atk: 13, spd: 10, waza: ['nerai', 'kiai'],      color: '#e8a33c', shape: 'round' },
     { id: 'gotsun', name: 'ごつん', hp: 115, atk: 11, spd: 8,  waza: ['kamitsuki', 'hitoiki'], color: '#7d8a96', shape: 'block' },
@@ -470,7 +470,7 @@
       var e2 = { t: 'waza', side: f.side, id: id, name: WAZA_BY_ID[id].name };
       if (extra) Object.keys(extra).forEach(function (k) { e2[k] = extra[k]; });
       events.push(e2);
-      if (f.side === 'p') wazaUsed[id] = (wazaUsed[id] || 0) + 1;
+      if (f.side === 'p' && !(extra && extra.use)) wazaUsed[id] = (wazaUsed[id] || 0) + 1; // いかりは ためたとき だけ 数える
     }
 
     function addDealt(side, label, dmg) { dealt[side][label] = (dealt[side][label] || 0) + dmg; }
@@ -586,7 +586,7 @@
           // ずしん：おそいほど つよい
           if (a.lv2.weight && spd[d.side] > spd[a.side]) { zushin = Math.min(CFG.lv2.zushinMax, spd[d.side] - spd[a.side]); flat += zushin; usedLv2('weight'); }
         }
-        // ねらいうち：じょうたいの あいてへの 1げきが +3（倍率に のらない。もろいの ×1.6 には のる＝おもしと 同じ）
+        // ねらいうち：じょうたいの あいてへの 1げきが +CFG.waza.nerai（倍率に のらない。もろいの ×1.6 には のる＝おもしと 同じ）
         if (a.waza.nerai && hasStatus(d)) { flat += CFG.waza.nerai; wz.push('nerai'); if (!neraiShown) { neraiShown = true; wazaEv(a, 'nerai', events); } }
         var brittleNow = !!d.status.brittle;
         var dmg = vary(effAtk(a) * mult) + flat;
@@ -663,8 +663,8 @@
           if (deflect) fireSyn(d.side, 9, events); // 噛み合い9：0 に はじいた 1げきにも はんげき
           if (a.hp <= 0) break;
         }
-        // 決定 13：うけた側の 技。かみつきかえし（あたったとき 40% で はんげき。とおくからの あいてには とどかない）
-        if (dmg > 0 && d.hp > 0 && d.waza.kamitsuki && !ranged && rng() < CFG.waza.kamitsukiRate) {
+        // 決定 13：うけた側の 技。かみつきかえし（ちかくから 1げき うけたとき＝0 でも。トゲと 同じ。とおくからの あいてには とどかない）
+        if (d.hp > 0 && d.waza.kamitsuki && !ranged && rng() < CFG.waza.kamitsukiRate) {
           var kc = vary(effAtk(d) * CFG.waza.kamitsukiRatio);
           if (a.active.shell) { trySpark(a, 'shell', events); kc *= (1 - CFG.shellReduce); shellBlocks[a.side]++; }
           if (isHard(a)) { if (a.active.scale) trySpark(a, 'scale', events); kc -= hardFlat(a); }
@@ -679,8 +679,8 @@
           noteHit(d.side, 'かみつき', kc);
           if (a.hp <= 0) break;
         }
-        // いかり：あたったとき 30% で つぎの こうげきが ×1.5（ためているあいだは ふえない）
-        if (dmg > 0 && d.hp > 0 && d.waza.ikari && !d.rage && rng() < CFG.waza.ikariRate) {
+        // いかり：1げき うけたとき（0 でも）ikariRate で つぎの こうげきが ×ikariMult（ためているあいだは ふえない）
+        if (d.hp > 0 && d.waza.ikari && !d.rage && rng() < CFG.waza.ikariRate) {
           d.rage = true; wazaEv(d, 'ikari', events, { ready: true });
         }
       }
@@ -977,7 +977,8 @@
   var memo = {};
   function clearMemo() { memo = {}; }
   // mon（決定 13）：{ species, waza }。CFG.waza.on が false なら 無視される
-  function monKey(mon) { return (CFG.waza.on && mon) ? (mon.species || '') + ':' + (mon.waza || []).join(',') : ''; }
+  // わざ ありなら 'W種類:技' を 返す（mon が 無くても ころんとして 'W' つき＝あり／なしで 覚えが まざらない）
+  function monKey(mon) { return CFG.waza.on ? 'W' + ((mon && mon.species) || 'koron') + ':' + ((mon && mon.waza) || []).join(',') : ''; }
   function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon) {
     var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
     if (memo[key]) return memo[key];

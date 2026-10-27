@@ -29,7 +29,11 @@ const SIZES = (process.argv[3] || '1366x650,1920x910,375x812').split(',').map(s 
       try {
         await press('#startBtn'); path.push(await scr());
         if ((await scr()) === 'shu') { await press('#shuList .shucard'); await press('#shuGo'); path.push(await scr()); }
-        if ((await scr()) === 'start') { await press('#startGo'); path.push(await scr()); }
+        if ((await scr()) === 'start') {
+          const sc = await page.evaluate(() => ({ t: document.getElementById('startCount').textContent, n: window.__dekomon.G.owned.length }));
+          if (sc.t !== 'もちもの（' + sc.n + 'つ）') ng(w + 'x' + h + ' 始まりの 見出しが もちものの 数と ちがう：' + sc.t + '／' + sc.n);
+          await press('#startGo'); path.push(await scr());
+        }
         if ((await scr()) === 'boss') { await press('#bossGo'); path.push(await scr()); }
         if ((await scr()) === 'fork') { await press('#forkPaths .dr-go'); path.push(await scr()); }
         if ((await scr()) !== 'pre') throw new Error('バトル前に 着かない（' + (await scr()) + '）');

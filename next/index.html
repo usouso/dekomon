@@ -1190,7 +1190,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   <div class="topbar"><span class="sub" id="startHead">あたらしい なかま</span></div>
   <div class="pcbody cols2 start-cols">
     <div class="col"><div class="row"><div><div class="namebig" id="startName"></div><div class="gen" id="startGen"></div><div class="sub">たいりょく <span id="startHp"></span> ／ こうげき <span id="startAtk"></span> ／ はやさ <span id="startSpd"></span></div><div class="start-shu" id="startShu" style="display:none"></div></div><div id="startMon"></div></div><div class="egg-note" id="startEgg" style="display:none"></div></div>
-    <div class="col"><div class="label">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
+    <div class="col"><div class="label" id="startCount">もちもの（6つ）</div><div class="plist" id="startList"></div></div>
   </div>
   <div class="end-btns"><button class="btn" id="startGo">すすむ</button></div>
 </div>
@@ -2025,6 +2025,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var d = myDef();
     $('startHead').textContent = G.egg ? 'たまごから うまれた なかま' : 'あたらしい なかま';
     $('startName').textContent = G.run.name;
+    $('startCount').textContent = 'もちもの（' + G.owned.length + 'つ）'; // 21-b：はじめての 周回は 3つ（Codex PR #18）
     var g = $('startGen'); g.textContent = genText(G.gen); g.className = 'gen' + (G.gen === 1 ? ' g1' : '');
     $('startHp').textContent = fmt(d.hp); $('startAtk').textContent = fmt(d.atk); $('startSpd').textContent = fmt(d.spd);
     $('startMon').innerHTML = '<div style="width:120px;height:120px">' + monsterSVG('player', [], 'r', [], [], G.grow) + '</div>';

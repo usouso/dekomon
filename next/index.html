@@ -2789,7 +2789,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       c.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(c);
     });
     // ふんばりの 光の 意味（体が 光っている あいだ）：つぎの 自分の手に ×2（札「ふんばり つぎの手 ×2」）
-    if (KIAI[side] && HP[side] > 0 && HP[side] < MAX[side] / 2) {
+    if (KIAI_SHOWN[side]) { // kiaiGlow が 決める（戦いの 始めは false。前の 戦いの 体力で 出さない。Codex PR #12）
       var kc = el('span', 'stchip cd fx-wzcd now', esc(S.WAZA_BY_ID.kiai.name) + ' つぎの手 ×' + S.CFG.waza.kiaiMult);
       kc.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(kc);
     }

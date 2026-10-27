@@ -995,8 +995,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-line b { color: var(--accent); }
 .kv-line:empty { display: none; }
 .kv-note { color: var(--accent); font-weight: 700; grid-column: 1 / -1; }
-/* 決定 17-a：スマホは つけた パーツの 文が ここに 出る（1〜3行）。行の 数で 下の もちものが 上下に 動かないように 3行ぶん とっておく */
-@media (max-width: 899px) { #pre .kv-note, #pre .kv-note:empty { display: block; min-height: calc(4.35em + 2px); } }
+/* 決定 17-a：スマホは つけた パーツの 文（#note）を もちものの 下へ 移す（showPre）。行の 数で もちものが 上下に 動かないように */
+#pre .kv-handcol > #note { margin-top: 8px; }
 @media (max-width: 899px) { #pre #firstTxt { min-height: calc(2.9em + 1px); } } /* 「さきに うごく」は つけた パーツで 1行／2行 に かわる */
 .kv-reward { grid-column: 1 / -1; }
 .kv-handcol { display: flex; flex-direction: column; gap: 5px; min-height: 0; }
@@ -2434,6 +2434,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     renderPlist();
     $('kvHow').textContent = howText();
     infoEmpty('preInfo', (canHover() && !narrow() ? 'もちものに マウスを あわせると せつめい。クリックで つける（つけた ものを クリックで はずす）' : 'もちものを タップで つける（もう 1かいで はずす）。ながおしで せつめい') + '。した の 線は なれ（たまると ひらめく）');
+    // 決定 17-a：スマホ（せまい）は 効き目の 文を もちものの 下に。文が 1〜3行 かわっても もちものが 動かない
+    var noteEl = $('note'), noteHome = narrow() ? document.querySelector('#pre .kv-handcol') : document.querySelector('#pre .kv-lines');
+    if (noteEl.parentNode !== noteHome) noteHome.appendChild(noteEl);
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {

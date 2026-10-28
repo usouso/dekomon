@@ -988,6 +988,10 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-stats[data-side="e"] .kv-st b.hard { color: var(--e); }
 .kv-stats[data-side="p"] .kv-st b.chg { color: var(--accent); }
 span.kv-st { cursor: inherit; }
+span.kv-st:active { transform: none; }
+.kv-nopart { font-size: .95rem; font-weight: 800; color: #1b1f2a; background: #bfe8ff; border-radius: 8px; padding: 0 6px; align-self: center; }
+@media (min-width: 900px) and (max-height: 700px) { #pre .kv-st b { font-size: 1.3rem; line-height: 1.1; } }
+.shu-leg { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; margin-right: 10px; } .shu-leg svg { display: inline-block; width: 1em; height: 1em; flex: 0 0 1em; }
 /* 小さな札（相手の 性質・パーツ） */
 .kv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 /* 2026-10-29（判断待ち 4 の 答え A）：強さは アイコン＋数字に 戻した（5つの 目もりは やめた）。自分も 相手も 同じ 形 */
@@ -1900,7 +1904,7 @@ span.kv-st { cursor: inherit; }
   var SHU_SEL = null;
   function showShu() {
     SHU_SEL = null; $('shuGo').disabled = true;
-    $('shuHow').textContent = (canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる';
+    $('shuHow').innerHTML = ['hp', 'atk', 'spd'].map(function (k) { return '<span class="shu-leg">' + STAT_ICON[k] + ' ' + STAT_NAME[k] + '</span>'; }).join('') + esc((canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる'); // 確認役：強さの アイコンの 見方
     var list = $('shuList'); list.innerHTML = '';
     S.SPECIES.forEach(function (sp) {
       var c = el('button', 'shucard'); c.type = 'button'; c.setAttribute('data-sp', sp.id); c.style.setProperty('--sc', sp.color);
@@ -2445,7 +2449,7 @@ span.kv-st { cursor: inherit; }
   function itemsPanel() {
     var d = myDef();
     var box = el('div', 'dr-items'); box.id = 'forkItems';
-    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p');
+    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p').replace(/<\/div>$/, '<span class="kv-nopart" title="パーツと ばしょで かわる。バトル前で つけると きまる">パーツなし</span></div>'); // 確認役：わかれみちの 自分は パーツなし・ばしょなしの 数（バトル前で かわる）
     var grid = el('div', 'dr-igrid');
     S.LOCS.forEach(function (loc) {
       G.owned.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; }).forEach(function (id) {

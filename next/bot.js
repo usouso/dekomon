@@ -13,7 +13,7 @@ var SEED = 20261026;
 var CUR_MON = null;
 var FEW = process.env.DEKO_FEW === '1'; if (FEW) console.log('DEKO_FEW=1：はじめての 周回（始めの もちもの 3つ）');
 // 決定 21-d：はじめの うち（殿堂の だれも 3勝に 届いて いない）は 1・2戦目の 相手が やさしい。DEKO_FEW=1 なら そう（殿堂 0体）。DEKO_EASY=1 でも 入る
-var EASY = process.env.DEKO_EASY === '0' ? false : (FEW || process.env.DEKO_EASY === '1'); // DEKO_EASY=0 で はじめての 周回でも 切る（前と 比べる）
+var EASY = (process.env.DEKO_EASY === '0' || !(S.CFG.earlyUntil > 0)) ? false : (FEW || process.env.DEKO_EASY === '1'); // CFG.earlyUntil が 0 なら 画面の easyStart() と 同じく だれにも かけない // DEKO_EASY=0 で はじめての 周回でも 切る（前と 比べる）
 if (EASY) console.log('はじめの うち：1・2戦目の 相手 ×' + S.CFG.early.join('・×'));
 if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);

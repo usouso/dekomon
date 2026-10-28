@@ -1444,7 +1444,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   // タイトルに 出たら、つぎに 周回の 画面に もどるまで（タイトルから 開いた ずかん・でんどう も）数えない
   function kTick(id) { if (!kOn()) return; kFlush(); KT.screen = id; KT.battle = G.battle; if (id === 'title') KT.off = true; else if (KIROKU_SCREENS[id] && id !== 'zukan' && id !== 'dendo') KT.off = false; if (KREC) kSave(); }
   function kInfo(extra) { var o = { ver: GAME_VER, auto: OPT.auto || undefined, name: G.run.name, gen: G.gen, egg: G.egg ? { parentName: G.egg.parentName, part: G.egg.part } : null,
-    species: wazaOn() && G.run ? (G.run.species || 'koron') : null, waza: wazaOn() && G.run ? S.playerDef(null, null, monOf()).waza : null }; Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
+    species: wazaOn() && G.run ? (G.run.species || 'koron') : null, waza: wazaOn() && G.run ? S.playerDef(null, null, monOf()).waza : null, easy: easyStart() || undefined }; /* easy：決定 21-d の はじめの うち（1・2戦目が やさしい） */ Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
   function kEnd(lostTo) {
     if (!kOn() || !KREC) return;
     kFlush();

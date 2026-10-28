@@ -3773,6 +3773,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('growNum').dataset.from = pair[1]; $('growNum').dataset.to = pair[2];
     RINFO[$('growNum').querySelector('.gb').dataset.r] = rInfoHTML(esc(pair[0]), fmt(pair[1]) + ' → ' + fmt(pair[2]) + '（' + esc(gdef.desc) + '）');
     bindRInfo($('growNum'));
+    $('growNum').querySelector('.gb').addEventListener('click', function (ev) { ev.stopPropagation(); }); // 文を 開く タップで #grow の「つぎへ」に 進まない（Codex P2）
     $('growDesc').textContent = descs[dir] + '　（これまで：' + growHistText(G.growHist) + '）';
     var ga = $('growArena'); ga.classList.remove('go'); void ga.offsetWidth;
     $('growTap').classList.remove('on');

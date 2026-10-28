@@ -305,7 +305,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .bw.ready .bw-h, .bw.ready .bw-cd { color: #1a1208; }
 .bw.fx-bwfire { animation: bwfire calc(.5s * var(--spd)) ease-out; }
 @keyframes bwfire { 0% { background: var(--sc, #fff); box-shadow: 0 0 16px var(--sc, #fff); filter: brightness(1.4); } 100% { box-shadow: none; filter: none; } } /* 大きさは 変えない（となりの 札と 重ならない） */
-@media (min-width: 900px) { /* 低い PC（1366×650 など）：技の 札は 名前の 行に 入れて 戦いの 場を ひくく しない（ひとことは 合わせる 文で） */
+@media (max-width: 1099px) { .bw .bw-h { display: none; } .b-waza { flex-wrap: wrap; } } /* せまい 窓：札は 名前だけ（ひとことは 合わせる 文）。はみ出さない */
+@media (min-width: 1100px) { /* 低い PC（1366×650 など）：技の 札は 名前の 行に 入れて 戦いの 場を ひくく しない（ひとことは 合わせる 文で）。幅 1100 未満は 札が 名前・数と 重なるので 別の 段（Codex PR #24） */
   :where(html.eshort) .hpBox.p { position: relative; }
   :where(html.eshort) .b-waza { position: absolute; top: 0; left: 7.5rem; right: 6.5rem; margin: 0; min-height: 0; justify-content: center; }
   :where(html.eshort) .bw .bw-h { display: none; }

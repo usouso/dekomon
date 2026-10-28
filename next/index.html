@@ -2371,8 +2371,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     infoEmpty('forkInfo', 'みちを きめるのは「ひだりへ」「みぎへ」の ボタン。ほかの 札は おすと せつめい。青い わくは まえの たたかいで つけていた パーツ');
     show('fork');
     if (OPT.auto) setTimeout(function () {
-      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf()).score;
-      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard, monOf()).score;
+      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf(), easyStart()).score;
+      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard, monOf(), easyStart()).score;
       chooseFork(s1 > s0 ? 1 : 0);
     }, 300 / OPT.speed);
   }
@@ -2449,7 +2449,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {
-        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard, monOf());
+        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard, monOf(), easyStart());
         G.attached = best.parts.slice();
         renderMe(); renderPlist();
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);

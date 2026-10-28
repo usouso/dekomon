@@ -1007,16 +1007,16 @@
   // mon（決定 13）：{ species, waza }。CFG.waza.on が false なら 無視される
   // わざ ありなら 'W種類:技' を 返す（mon が 無くても ころんとして 'W' つき＝あり／なしで 覚えが まざらない）
   function monKey(mon) { if (!CFG.waza.on) return ''; var d = playerDef(null, null, mon); return 'W' + d.species + ':' + d.waza.join(','); } // 実際に 使う 技で（省略＝その種類の 2つ、[]＝技なし は 別）
-  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon) {
-    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
+  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon, easy) { // easy：決定 21-d の はじめの うち（覚えの 鍵にも 入れる）
+    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (easy ? 'E' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
     if (memo[key]) return memo[key];
     var best = null;
     // 乱れなし1回 ＋ 種を固定した乱れあり2回 の平均で選ぶ（乱れなしだけだと、1点差の きわどい組み合わせを選んでしまう）
     var h = 0; for (var ci = 0; ci < key.length; ci++) h = (h * 31 + key.charCodeAt(ci)) >>> 0;
     loadouts(owned).forEach(function (combo) {
-      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null });
+      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard, easy: !!easy, mon: mon || null });
       var s = score(res);
-      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null }));
+      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard, easy: !!easy, mon: mon || null }));
       s /= 3;
       if (!best || s > best.score + 1e-9) best = { parts: combo, score: s, win: res.winner === 'p', nHands: res.nHands };
     });

@@ -13,7 +13,8 @@ var SEED = 20261026;
 var CUR_MON = null;
 var FEW = process.env.DEKO_FEW === '1'; if (FEW) console.log('DEKO_FEW=1：はじめての 周回（始めの もちもの 3つ）');
 // 決定 21-d：はじめの うち（殿堂の だれも 3勝に 届いて いない）は 1・2戦目の 相手が やさしい。DEKO_FEW=1 なら そう（殿堂 0体）。DEKO_EASY=1 でも 入る
-var EASY = process.env.DEKO_EASY === '0' ? false : (FEW || process.env.DEKO_EASY === '1'); // DEKO_EASY=0 で はじめての 周回でも 切る（前と 比べる） if (EASY) console.log('はじめの うち：1・2戦目の 相手 ×' + S.CFG.early.join('・×'));
+var EASY = process.env.DEKO_EASY === '0' ? false : (FEW || process.env.DEKO_EASY === '1'); // DEKO_EASY=0 で はじめての 周回でも 切る（前と 比べる）
+if (EASY) console.log('はじめの うち：1・2戦目の 相手 ×' + S.CFG.early.join('・×'));
 if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
@@ -185,15 +186,15 @@ function reportBot(name, st) {
 
 // ---------- ボット ----------
 function scoreOf(parts, path, stage, grow, lv2) {
-  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard, mon: CUR_MON });
+  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard, easy: EASY, mon: CUR_MON });
   return (r.winner === 'p' ? 1 : 0) + 0.5 * (r.p.hp / r.p.maxHp - r.e.hp / r.e.maxHp);
 }
 // 合わせ：毎戦 その相手に最良の3つ。分かれ道は「勝ちやすい方」（もらえるものは見ない）
 var matchedBot = {
-  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard, CUR_MON).parts; },
+  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard, CUR_MON, EASY).parts; },
   fork: function (paths, owned, stage, grow, lv2) {
-    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard, CUR_MON).score;
-    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard, CUR_MON).score;
+    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard, CUR_MON, EASY).score;
+    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard, CUR_MON, EASY).score;
     return s1 > s0 ? 1 : 0;
   }
 };

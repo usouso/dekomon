@@ -37,8 +37,8 @@
     startParts: 3,         // はじめの もちもの（役割ごとに 1つ）
     // 負けの 理由の 確かめ（決定 28-2：当たらない 理由は 出さない）。同じ 相手と reasonTries 回 戦わせて、
     // 理由が すすめる 向きに 1つの 枠を かえると reasonGain 以上 勝ちやすく、関係ない 1つを かえた 平均より reasonOver 以上 上の ときだけ その 理由を 出す
-    reasonTries: 12, reasonGain: 0.15, reasonOver: 0.10,
-    closeRate: 0.5         // もとの パーツでも この 勝率 以上なら「あと すこし」（うんが わるかった）
+    reasonTries: 24, reasonGain: 0.15, reasonOver: 0.10,
+    closeRate: 0.5         // もとの パーツでも この 勝率 以上なら「うんが わるかった」
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -291,9 +291,9 @@
   var STATUS_NAME = { poison: 'どく', charge: 'ためた こうげき', counter: 'はんげき', hit: 'ふつうの こうげき' };
   function hasKw(pid, kws) { return PART_BY_ID[pid].kw.some(function (k) { return kws.indexOf(k) >= 0; }); }
   var REASONS = [
-    // もとの パーツでも 半分 以上 勝てる なら、ほかの 理由より 先に「あと すこし」（うんの 負け。確かめは baseRate そのもの）
+    // もとの パーツでも 半分 以上 勝てる なら、ほかの 理由より 先に「うんが わるかった」（うんの 負け。確かめは baseRate そのもの）
     { id: 'close', when: function (c) { return c.baseRate != null && c.baseRate >= CFG.closeRate; },
-      make: function () { return { kind: 'close', text: 'あと すこしだった！ うんが わるかった みたい', hope: 'おなじ パーツでも かてるかも。もう一度 ためそう' }; } },
+      make: function () { return { kind: 'close', text: 'うんが わるかった！ おなじ パーツでも かてる あいてだよ', hope: 'もう一度 ためそう' }; } },
     { id: 'dodged', when: function (c) { return c.res.dodged.e >= 3; },
       fix: function () { return [{ role: 'atk', ok: function (p) { return hasKw(p, ['sure']); } }]; },
       make: function (c) { return { kind: 'weak', text: c.eName + 'に ' + c.res.dodged.e + 'かい よけられた', hope: 'よけられない ちからを さがそう', kw: 'yokeru' }; } },
@@ -303,7 +303,7 @@
         if (k === 'counter') return [{ role: 'mov', ok: function (p) { return hasKw(p, ['ranged']); } }];
         return [{ role: 'atk', ok: function () { return true; } }, { role: 'mov', ok: function () { return true; } }]; },
       make: function (c) { var k = bigSrc(c.res.taken); var hopes = { poison: 'どくに まけない まもりを ためそう', charge: 'ためる 手が くる まえに たおせる ちからを さがそう', counter: 'はんげきを うけない こうげきを さがそう' };
-        return { kind: 'guard', text: STATUS_NAME[k] + 'で ' + c.res.taken[k] + ' けずられた', hope: hopes[k], src: k }; } },
+        return { kind: 'guard', text: STATUS_NAME[k] + 'で ' + c.res.taken[k] + ' けずられた', hope: hopes[k], src: k, kw: { counter: 'ranged', poison: 'immune' }[k] }; } },
     { id: 'hardRen', when: function (c) { return c.eSt.kw.hard && c.pSt.kw.ren; },
       fix: function () { return [{ role: 'atk', ok: function (p) { return !hasKw(p, ['ren']); } }]; },
       make: function (c) { return { kind: 'weak', text: 'かたい あいてに こまかい こうげきが ききにくかった', hope: 'ちがう せめの パーツも ためそう', kw: 'hard' }; } },

@@ -140,12 +140,12 @@ for (var k = 0; k < 9; k++) S.fight(run2, 0, run2.equip);
 ok(run2.clear && run2.over && run2.history[9].e === 'boss', '10戦目は ぬし・勝てば クリア');
 // 負けの 理由の 確かめ（決定 28-2：当たらない 理由は 出さない）
 (function () {
-  // もとの パーツで 半分 以上 勝てる 相手に 負けた ときは「あと すこし」
+  // もとの パーツで 半分 以上 勝てる 相手に 負けた ときは「うんが わるかった」
   var rn = S.newRun(11, 'gotsun'); rn.stats.hp = 200; rn.stats.atk = 20;
   var road = rn.fork.roads[0], eSrc = S.enemySrc(road.idx, 1, road.hard), waza = S.SPECIES_BY_ID.gotsun.waza;
   var fake = { pSt: S.statsOf(S.playerSrc(rn, rn.equip)), eSt: S.statsOf(eSrc), taken: { hit: 5, charge: 20, poison: 0, counter: 0 }, dodged: { p: 0, e: 0 } };
   var rs = S.loseReason(fake, { eName: 'x', hard: false, run: rn, equip: rn.equip, eSrc: eSrc, stage: 1, waza: waza });
-  ok(rs.id === 'close' && rs.base >= C.closeRate, 'もとの パーツで 半分 以上 勝てる 相手なら「あと すこし」：' + rs.id);
+  ok(rs.id === 'close' && rs.base >= C.closeRate, 'もとの パーツで 半分 以上 勝てる 相手なら「うんが わるかった」：' + rs.id);
   // よけられた（3かい 以上）でも、ひっちゅうの パーツを もう つけて いれば その 理由は 出さない（すすめる 向きが ない）
   var rn2 = S.newRun(12, 'koron'); rn2.stats.hp = 1; rn2.stats.atk = 0;
   var eq2 = { atk: 'eye', def: rn2.equip.def, mov: rn2.equip.mov };

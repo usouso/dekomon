@@ -593,8 +593,9 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .r-info.on { display: block; }
 .gb-row { display: flex; gap: 10px; align-items: center; margin: 4px 0; }
 .gb { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 0; color: inherit; font: inherit; cursor: help; }
-.gb-track { position: relative; flex: 1 1 auto; height: 12px; border-radius: 6px; background: #141720; border: 1px solid var(--line); overflow: hidden; }
-.gb-track i { position: absolute; top: 0; bottom: 0; left: 0; display: block; }
+.gb-track { position: relative; flex: 1 1 auto; height: 12px; border-radius: 6px; background: #141720; border: 1px solid var(--line); overflow: hidden; display: flex; }
+.gb-track i { flex: 0 0 auto; height: 100%; display: block; }
+.gb-track .gb-oo { background: #c78bff; } /* おおぐいで ふえた ぶん（そだちの みどりと 分ける。確認役 9） */
 .gb-track .gb-base { background: #8a93ad; }
 .gb-track .gb-up { background: var(--good); box-shadow: 0 0 6px var(--good); }
 .gb-stars { color: var(--gold); font-size: .95rem; letter-spacing: -1px; min-width: 0; white-space: nowrap; }
@@ -3664,16 +3665,21 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     });
   }
   var GB_MAX = { hp: 190, atk: 30, spd: 24 }; // バーの 長さの ものさし（そだち・おおぐいで のびる ぶんが 見える 長さ）
-  function gbPct(k, v) { return Math.max(2, Math.min(100, Math.round(v / GB_MAX[k] * 100))); }
   var GROW_OF = { hp: 'tough', atk: 'strong', spd: 'quick' };
-  // 強さの バー：灰色＝うまれた ときの 強さ・みどり＝そだちで のびた ぶん・★＝そだちの 回数（数字は 層②）
+  // 強さの バー：灰色＝うまれた ときの 強さ・みどり＝そだちで のびた ぶん・むらさき＝おおぐいで ふえた ぶん（たいりょく だけ）・★＝そだちの 回数（数字は 層②）
+  function gbSegs(k, base, val, oog) {
+    var M = GB_MAX[k], tot = Math.min(100, val / M * 100), b = Math.min(tot, base / M * 100), o = Math.min(tot - b, (oog || 0) / M * 100), g = Math.max(0, tot - b - o);
+    if (val - base - (oog || 0) > 0 && g < 3) g = 3; // そだちが あれば 見える 長さに
+    var r = function (x) { return Math.round(x * 10) / 10 + '%'; };
+    return { b: r(Math.max(2, b)), g: r(g), o: r(o) };
+  }
   function growBarHTML(k, base, val, grow, cls) {
-    var n = (grow && grow[GROW_OF[k]]) || 0, up = Math.max(0, val - base);
-    var eff = 'いま ' + fmt(val) + '（うまれつき ' + fmt(base) + (up > 0 ? '・そだち +' + fmt(up) : '') + '）';
-    if (k === 'hp' && grow && grow.oogui) eff += '。おおぐいで 上限 +' + grow.oogui + ' を ふくむ';
+    var n = (grow && grow[GROW_OF[k]]) || 0, oo = k === 'hp' && grow ? (grow.oogui || 0) : 0, up = Math.max(0, val - base - oo);
+    var eff = 'いま ' + fmt(val) + '（うまれつき ' + fmt(base) + (up > 0 ? '・そだち +' + fmt(up) : '') + (oo ? '・おおぐい +' + oo : '') + '）';
+    if (k === 'hp' && grow && grow.oogui) eff += '。むらさきは おおぐいで ふえた ぶん（上限 +' + grow.oogui + '）';
     eff += '<br>そだち「' + S.GROWS[GROW_OF[k]].name + '」' + (n ? n + 'かい（' + esc(S.GROWS[GROW_OF[k]].desc) + ' ずつ）' : 'は まだ');
     return '<button type="button" class="gb' + (cls ? ' ' + cls : '') + '" data-st="' + k + '" data-v="' + val + '" data-r="' + rKey(rInfoHTML(STAT_NAME[k], eff)) + '" aria-label="' + STAT_NAME[k] + '">' + STAT_ICON[k] +
-      '<span class="gb-track"><i class="gb-base" style="width:' + gbPct(k, Math.min(base, val)) + '%"></i><i class="gb-up" style="left:' + gbPct(k, Math.min(base, val)) + '%;width:' + (up > 0 ? Math.max(3, gbPct(k, val) - gbPct(k, base)) : 0) + '%"></i></span>' +
+      (function () { var sg = gbSegs(k, base, val, k === 'hp' && grow ? grow.oogui : 0); return '<span class="gb-track"><i class="gb-base" style="width:' + sg.b + '"></i><i class="gb-up" style="width:' + sg.g + '"></i><i class="gb-oo" style="width:' + sg.o + '"></i></span>'; })() +
       '<span class="gb-stars">' + (n ? new Array(n + 1).join('★') : '') + '</span></button>';
   }
   // あたえた ダメージ：パーツ・わざ ごとの バー（いちばん 多いのを 100%）。数は 層②
@@ -3782,7 +3788,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     setTimeout(function () {
       ga.classList.add('go');
       var b = $('growNum').querySelector('.gb'); if (!b || G.screen !== 'grow') return; // バーが のびる・★が ふえる
-      var bp = gbPct(gk, Math.min(gb, pair[2])); b.querySelector('.gb-up').style.width = (pair[2] > gb ? Math.max(3, gbPct(gk, pair[2]) - bp) : 0) + '%';
+      var sg = gbSegs(gk, gb, pair[2], gk === 'hp' ? G.grow.oogui : 0); b.querySelector('.gb-up').style.width = sg.g; b.querySelector('.gb-oo').style.width = sg.o;
       b.dataset.v = pair[2];
       setTimeout(function () { if (G.screen === 'grow') b.querySelector('.gb-stars').textContent = new Array((G.grow[dir] || 0) + 1).join('★'); }, 900 / OPT.speed); // バーが のびきって から ★ が ふえる
     }, 120 / OPT.speed);

@@ -46,6 +46,7 @@
     poisonRatio: 0.45, poisonHands: 3, staggerMult: 0.5, brittleMult: 1.6, brittleHands: 5, rainStatusHands: 1,
     // 相手の段階
     enemyBase: 1.06,
+    early: [0.75, 0.78],   // 決定 21-d：1戦目・2戦目の 相手の たいりょく・こうげきに かける 倍率（序盤だけ やさしく。3戦目から と ぬしは 変えない。[1, 1] で 前と 同じ）。でたらめ 3つでも 1・2戦目 85% 以上（bot）
     stageHp: 0.10, stageAtk: 0.10,
     variance: 0.15,
     // モンスター固有の技（2026-10-27 ぼくくんの 決定 13。試作：on が false なら 種類も 技も なし＝前と 同じ 1種 115／13／10。乱数の 順番も 前と 同じ）
@@ -352,8 +353,9 @@
     var s = stage || 1;
     var isEnemy = side === 'e';
     var hard = !!(opts && opts.hard);
-    var hpMul = (isEnemy ? CFG.enemyBase * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (def.boss ? CFG.boss.hp : 1) : 1);
-    var atkMul = (isEnemy ? CFG.enemyBase * (1 + CFG.stageAtk * (s - 1)) * (hard ? CFG.hard.atk : 1) * (def.boss ? CFG.boss.atk : 1) : 1);
+    var early = (isEnemy && !def.boss && CFG.early && s <= CFG.early.length) ? CFG.early[s - 1] : 1; // 決定 21-d
+    var hpMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (def.boss ? CFG.boss.hp : 1) : 1);
+    var atkMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageAtk * (s - 1)) * (hard ? CFG.hard.atk : 1) * (def.boss ? CFG.boss.atk : 1) : 1);
     var traits = def.traits || [];
     var T = toSet(traits);
     var maxHp = Math.round(def.hp * hpMul * (T.tough ? CFG.toughHp : 1));

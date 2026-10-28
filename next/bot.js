@@ -96,6 +96,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     else pity++;
     stats.stage[b].n++;
     var won = res.winner === 'p';
+    if (stats.stageHard) { var sh = stats.stageHard[b] || (stats.stageHard[b] = { hn: 0, hw: 0, nn: 0, nw: 0 }); if (hard) { sh.hn++; if (won) sh.hw++; } else { sh.nn++; if (won) sh.nw++; } } // 21-d：段階ごとの てごわい／ふつう
     var bucket = enemy.boss ? stats.boss : (hard ? stats.hardB : stats.normB);
     bucket.n++; if (won) bucket.w++;
     if (enemy.boss && lv2.indexOf('leech') >= 0) { stats.ooguiBoss.n++; stats.ooguiBoss.sum += grow.oogui || 0; }
@@ -227,11 +228,17 @@ var detarameBot = {
   },
   fork: function () { return S.randInt(rng, 2); }
 };
+// DEKO_DETA_FORK=easy（てごわいを 選ばない：友達の 形）／hard（いつも てごわい）／なし＝ランダム。DEKO_DETA_N=03 で 0〜3こ ランダム（ランダムボットの つけ方）
+var DETA_FORK = process.env.DEKO_DETA_FORK || '';
+if (DETA_FORK === 'easy') detarameBot.fork = function (paths) { return paths[0].hard ? 1 : 0; };
+else if (DETA_FORK === 'hard') detarameBot.fork = function (paths) { return paths[0].hard ? 0 : 1; };
+if (process.env.DEKO_DETA_N === '03') detarameBot.loadout = function (owned) { return S.randomLoadout(owned, rng); };
 if (process.env.DEKO_ONLY === 'detarame') {
-  var stD = newStats();
+  var stD = newStats(); stD.stageHard = [];
   for (var di = 0; di < RUNS; di++) playRun(detarameBot, stD);
-  reportBot('でたらめボット（場所の制約を守って ランダムに 3つ。道もランダム）', stD);
+  reportBot('でたらめボット（場所の制約を守って ランダムに ' + (process.env.DEKO_DETA_N === '03' ? '0〜3こ' : '3つ') + '。道は ' + (DETA_FORK === 'easy' ? 'いつも ふつう' : DETA_FORK === 'hard' ? 'いつも てごわい' : 'ランダム') + '）', stD);
   var s1 = stD.stage[0], s2 = stD.stage[1];
+  [0, 1].forEach(function (b) { var sh = stD.stageHard[b]; if (sh) console.log((b + 1) + '戦目：ふつう ' + pct(sh.nn ? sh.nw / sh.nn : 0) + '（' + sh.nn + '）・てごわい ' + pct(sh.hn ? sh.hw / sh.hn : 0) + '（' + sh.hn + '）'); });
   console.log((FEW ? '【はじめての 周回：もちもの 3つ】' : '【いつもの 6つ】') + '1戦目 ' + pct(s1.n ? s1.w / s1.n : 0) + '（' + s1.n + ' 戦）・2戦目 ' + pct(s2.n ? s2.w / s2.n : 0) + '（' + s2.n + ' 戦）・1〜2戦目を 両方 勝つ ' + pct(s2.w / RUNS) + '（目安 85% 以上：決定 21-d）');
   process.exit(0);
 }

@@ -287,7 +287,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 #battle .hardmark { margin-left: 0; }
 #bNareX2 { margin-left: 0; cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .b-clock { font: inherit; color: var(--sub); background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.b-cl { font-size: 1rem; font-weight: 700; }
+.b-cl { font-size: 1rem; font-weight: 700; white-space: nowrap; }
+#bField { white-space: nowrap; } .b-clock { flex: 0 0 auto; }
 .b-pips { display: inline-flex; gap: 3px; }
 .b-pips i { display: block; width: 9px; height: 16px; border-radius: 3px; background: #ffe08a; }
 .b-pips i.used { background: #3a3f4f; }
@@ -303,12 +304,13 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .bw.ready { background: var(--sc, #fff); color: #1a1208; box-shadow: 0 0 10px var(--sc, #fff); }
 .bw.ready .bw-h, .bw.ready .bw-cd { color: #1a1208; }
 .bw.fx-bwfire { animation: bwfire calc(.5s * var(--spd)) ease-out; }
-@keyframes bwfire { 0% { transform: scale(1.18); box-shadow: 0 0 16px var(--sc, #fff); } 100% { transform: scale(1); } }
+@keyframes bwfire { 0% { background: var(--sc, #fff); box-shadow: 0 0 16px var(--sc, #fff); filter: brightness(1.4); } 100% { box-shadow: none; filter: none; } } /* 大きさは 変えない（となりの 札と 重ならない） */
 .b-info { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(560px, 92%); z-index: 30; display: none; background: #20242ff2; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; pointer-events: none; }
 .b-info.on { display: block; }
 @media (max-width: 899px) {
   .b-fhito { display: none; } /* スマホ：ひとことは 長押しの 文で */
-  .b-cl { display: none; }
+  .b-cl { font-size: .95rem; }
+  .b-clock { gap: 5px; }
   .b-pips { gap: 2px; } .b-pips i { width: 5px; height: 14px; border-radius: 2px; }
   .bw .bw-h { display: none; }
   .bw { padding: 1px 7px; }
@@ -429,7 +431,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .dmg.poison { color: #e2b7ff; font-size: 1.8rem; }
 .dmg.stat { font-size: 1.4rem; color: #e2b7ff; }
 @media (min-width: 900px) { .dmg { font-size: 2.6rem; } .dmg.bighit { font-size: 3.6rem; } .dmg.weak { font-size: 1.8rem; } }
-.result { position: absolute; left: 0; right: 0; top: 40%; text-align: center; line-height: 1.1; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
+.result { position: absolute; left: 0; right: 0; top: 44%; /* 15時の回：技の 札の 段で 戦いの 場が 30px ほど ひくく なったので「みつけた！」の 名前と 重ならない ように 下げた */ text-align: center; line-height: 1.1; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
 .result.on { display: block; animation: pop calc(.4s * var(--spd)) ease-out; }
 .result.finish { font-size: 3.4rem; }
 @keyframes pop { 0% { transform: scale(.4); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
@@ -2564,7 +2566,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   function nx2InfoHTML() { return '<div class="info"><div class="if-name">' + NX2_HITO + '（てごわい）：なれ ×' + S.CFG.hard.nareMul + '</div><div class="if-eff">この たたかいでは、あなたの パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'; }
   var NX2_HITO = 'ひらめき やすい'; // てごわいの なれ ×2 の 層①の ことば（×2 は 合わせる／長押しの 文）
   var FIELD_HITO = { plain: 'なにも おきない', mud: 'おもい パーツが おそい', wind: 'かるいと はやくなる', rain: 'じょうたいが すぐ きえる', summit: 'ぬしが まっている' };
-  var WAZA_HITO = { nerai: 'どくの あいてに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけた あいてに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
+  var WAZA_HITO = { nerai: 'じょうたいの あいてに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけた あいてに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
   // 自分の わざ（決定 17-c の 層①：名前と ひとこと。合わせる／長押しで くわしい 文）
   function renderWazaChips() {
     var box = $('pWaza'); box.innerHTML = '';
@@ -3004,15 +3006,14 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     });
     updateWazaCards();
   }
-  // 札が 光る：その技が いま 出る／効く とき（ねらいうち＝あいてが じょうたい、すきをつく＝あいてが よろけ、ふんばり＝体が 光っている、いかり＝ためた、○手ごと＝この手）
+  // 札が 光る：その技が いま 効く じょうたい（ねらいうち＝あいてが どく・よろけ・もろい、すきをつく＝あいてが よろけ、ふんばり＝体が 光っている、いかり＝ためた）。○手ごとの 技は 光らせず「あと○」と 出た 瞬間の 札の 点滅（確認役：光る 時と 出る 時が ずれる）
   function wazaReady(id) {
-    var cw = (CD.p && CD.p.waza) || {}, e = ST.e || {};
+    var e = ST.e || {};
     switch (id) {
       case 'nerai': return !!(e.poison || e.stagger || e.brittle);
       case 'suki': return !!e.stagger;
       case 'kiai': return !!KIAI_SHOWN.p;
       case 'ikari': return !!IKARI_READY.p;
-      case 'hitoiki': case 'renda': case 'oonaguri': return cw[id] === 0;
     }
     return false;
   }
@@ -3038,6 +3039,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   }
   function bTapsOnce() {
     if ($('bClock').dataset.tap) return; $('bClock').dataset.tap = '1';
+    document.addEventListener('pointerdown', function (ev) { if (ev.pointerType !== 'mouse') $('bInfo').className = 'b-info'; }, true); // 指で 触る 広い 画面：つぎに 触ると 消える（タップで 出す ときは この あとの click で また 出る）
     bInfoTap($('bClock'), function () { var n = S.CFG.maxHands; return '<div class="info"><div class="if-name">のこりの じかん</div><div class="if-eff">' + n + '手で きまらなければ、たいりょくの のこりの わりあいが おおい ほうの かち。いま ' + (parseInt($('bHand').textContent, 10) || 0) + '手め／' + n + '手</div></div>'; });
     bInfoTap($('bFieldB'), function () { return B_FIELD ? infoFieldHTML(B_FIELD) : ''; });
     bInfoTap($('bNareX2'), nx2InfoHTML);
@@ -3188,6 +3190,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       if (!hasText) continue;
       var cs = getComputedStyle(e);
       if (!e.offsetParent && cs.position !== 'fixed') continue;
+      if (cs.visibility === 'hidden') continue; // 見えない 文字（相手の 体力の 数＝検査用）は 数えない
       if (parseFloat(cs.opacity) < 0.3) continue; // ほぼ透明（消えていく途中）は数えない
       var er = e.getBoundingClientRect();
       if (er.width <= 0 || er.height <= 0 || er.bottom < 0 || er.top > vh || er.right < 0 || er.left > vw) continue;
@@ -3337,7 +3340,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 
     $('bField').textContent = f.name; $('bFieldHito').textContent = FIELD_HITO[f.id] || ''; B_FIELD = f; // 決定 23：ばしょは 名前と ひとこと（くわしい 文は 合わせる／長押し）
     $('bHard').style.display = hard ? 'inline-block' : 'none';
-    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = NX2_HITO; $('bNareX2').title = 'なれ ×' + S.CFG.hard.nareMul; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
+    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = NX2_HITO; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
     bTapsOnce(); renderPips(0); $('bInfo').className = 'b-info';
     $('bPName').textContent = G.run.name;
     $('bEName').textContent = e.name;
@@ -3552,8 +3555,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
           tl.at(0, function () { setBig('p', ''); setBig('e', ''); showResult('じかん ぎれ！', '#f4f1ea', false); });
           tl.add(1100);
           tl.at(0, function () {
-            var pr = Math.round(HP.p / MAX.p * 100), er = Math.round(HP.e / MAX.e * 100);
-            var pw = pr >= er; setBig('p', pw ? 'げんきが のこった！' : 'つかれた…'); setBig('e', pw ? 'つかれた…' : 'げんきが のこった！'); // 層①は ことば（体力の わりあいは バーで 見える。sim と 同じ pr >= er）
+            var pw = ev.winner === 'p'; setBig('p', pw ? 'げんきが のこった！' : 'つかれた…'); setBig('e', pw ? 'つかれた…' : 'げんきが のこった！'); // 層①は ことば（体力の わりあいは バーで 見える。勝ち負けは sim の 判定 ev.winner）
             $('bResult').className = 'result';
           });
           tl.add(1200);

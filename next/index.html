@@ -279,6 +279,49 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .hpBox.e .hp-name { flex-direction: row-reverse; }
 .hpBox.e .hp .fill, .hpBox.e .hp .ghost { left: auto; right: 0; }
 @media (max-width: 899px) { .hp-name, .hpBox.e .hp-name { flex-direction: column; gap: 0; } .hp-name { align-items: flex-start; } .hpBox.e .hp-name { align-items: flex-end; } }
+/* 決定 23 の 3つ目：戦いの 画面の 3つの 層（2026-10-28 15時の回）。層①＝ばしょの ひとこと・のこりの 目もり・バー・技の 札。数字と くわしい 文は 合わせる／長押し（層②） */
+.b-fld { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.b-fldb { font: inherit; color: var(--text); background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.b-fldb #bField { font-weight: 800; }
+.b-fhito { color: var(--sub); font-size: .95rem; }
+#battle .hardmark { margin-left: 0; }
+#bNareX2 { margin-left: 0; cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.b-clock { font: inherit; color: var(--sub); background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.b-cl { font-size: 1rem; font-weight: 700; white-space: nowrap; }
+#bField { white-space: nowrap; } .b-clock { flex: 0 0 auto; }
+.b-pips { display: inline-flex; gap: 3px; }
+.b-pips i { display: block; width: 9px; height: 16px; border-radius: 3px; background: #ffe08a; }
+.b-pips i.used { background: #3a3f4f; }
+.b-pips.few i:not(.used) { background: #ff9c6b; }
+.b-hand { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* 手の 数は 見えない ところで 持つ（重なりの 記録・検査用） */
+.hpBox.e .num { visibility: hidden; } /* 相手の 体力は 数字なしの バー（数は 検査用に 持つ。場所は とって 自分の バーと 高さを そろえる） */
+.hpBox.p .num { font-size: 1rem; }
+.b-waza { display: flex; gap: 6px; margin-top: 5px; min-height: 30px; flex-wrap: nowrap; }
+.b-waza:empty { display: none; }
+.bw { font: inherit; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 1rem; font-weight: 800; color: #fff; background: #0007; border: 2px solid var(--sc, #fff); border-radius: 9px; padding: 1px 9px; cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: background calc(.2s * var(--spd)), color calc(.2s * var(--spd)); }
+.bw .bw-h { font-size: .9rem; font-weight: 700; color: var(--sub); }
+.bw .bw-cd { font-size: .9rem; font-weight: 800; color: var(--accent); }
+.bw.ready { background: var(--sc, #fff); color: #1a1208; box-shadow: 0 0 10px var(--sc, #fff); }
+.bw.ready .bw-h, .bw.ready .bw-cd { color: #1a1208; }
+.bw.fx-bwfire { animation: bwfire calc(.5s * var(--spd)) ease-out; }
+@keyframes bwfire { 0% { background: var(--sc, #fff); box-shadow: 0 0 16px var(--sc, #fff); filter: brightness(1.4); } 100% { box-shadow: none; filter: none; } } /* 大きさは 変えない（となりの 札と 重ならない） */
+@media (max-width: 1099px) { .bw .bw-h { display: none; } .b-waza { flex-wrap: wrap; } } /* せまい 窓：札は 名前だけ（ひとことは 合わせる 文）。はみ出さない */
+@media (min-width: 1100px) { /* 低い PC（1366×650 など）：技の 札は 名前の 行に 入れて 戦いの 場を ひくく しない（ひとことは 合わせる 文で）。幅 1100 未満は 札が 名前・数と 重なるので 別の 段（Codex PR #24） */
+  :where(html.eshort) .hpBox.p { position: relative; }
+  :where(html.eshort) .b-waza { position: absolute; top: 0; left: 7.5rem; right: 6.5rem; margin: 0; min-height: 0; justify-content: center; }
+  :where(html.eshort) .bw .bw-h { display: none; }
+}
+.b-info { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(560px, 92%); z-index: 30; display: none; background: #20242ff2; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; pointer-events: none; }
+.b-info.on { display: block; }
+@media (max-width: 899px) {
+  .b-fhito { display: none; } /* スマホ：ひとことは 長押しの 文で */
+  .b-cl { font-size: .95rem; }
+  .b-clock { gap: 5px; }
+  .b-pips { gap: 2px; } .b-pips i { width: 5px; height: 14px; border-radius: 2px; }
+  .bw .bw-h { display: none; }
+  .bw { padding: 1px 7px; }
+  .b-waza { gap: 4px; flex-wrap: wrap; }
+}
 /* 寄りで拡大する層の外側に、不透明の層（後ろの画面が透けないように） */
 .arena-wrap { position: relative; flex: 1; min-height: 260px; margin-top: 4px; border-radius: 16px; background: #1b1f2a; overflow: hidden; }
 .arena { position: absolute; inset: 0; background: linear-gradient(#232838, #1b1f2a 70%); transition: transform calc(.08s * var(--spd)) ease-out; transform-origin: 50% 60%; }
@@ -394,7 +437,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .dmg.poison { color: #e2b7ff; font-size: 1.8rem; }
 .dmg.stat { font-size: 1.4rem; color: #e2b7ff; }
 @media (min-width: 900px) { .dmg { font-size: 2.6rem; } .dmg.bighit { font-size: 3.6rem; } .dmg.weak { font-size: 1.8rem; } }
-.result { position: absolute; left: 0; right: 0; top: 40%; text-align: center; line-height: 1.1; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
+.result { position: absolute; left: 0; right: 0; top: 44%; /* 15時の回：技の 札の 段で 戦いの 場が 30px ほど ひくく なったので「みつけた！」の 名前と 重ならない ように 下げた */ text-align: center; line-height: 1.1; font-size: 2.8rem; font-weight: 900; display: none; text-shadow: 0 3px 0 #000, 0 0 16px #000; z-index: 5; }
 .result.on { display: block; animation: pop calc(.4s * var(--spd)) ease-out; }
 .result.finish { font-size: 3.4rem; }
 @keyframes pop { 0% { transform: scale(.4); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
@@ -456,7 +499,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .nbar.x2 { opacity: 1; width: 44px; height: 8px; border: 2px solid #ff6b6b; } .nbar.x2 i { background: #ff9f6b; transition: width calc(.25s * var(--spd)) ease-out; }
 .nbar.x2.near i { background: #ffd54a; }
 .nbar.x2.full { width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.x2.full i { background: #ffe08a; }
-.b-fld { display: inline-block; padding-right: 28px; } /* なれ ×2 が はねても 枠の中 */
+.b-fld { padding-right: 28px; } /* なれ ×2 が はねても 枠の中 */
 .nx2 { display: inline-block; margin-left: 14px; transform-origin: 0 50%; font-size: 1.05rem; font-weight: 900; padding: 1px 10px; border-radius: 10px; background: #ff9f6b; color: #2a0b0b; white-space: nowrap; }
 #eNareX2 { cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 @media (max-width: 899px) { #eNareX2 { margin-left: 0; font-size: .95rem; padding: 1px 8px; } } /* スマホ：てごわいの 下に 折れても 右に はみ出さない */
@@ -1301,9 +1344,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 <!-- バトル -->
 <div id="battle" class="screen">
   <div class="b-inner">
-  <div class="b-top"><span class="b-fld"><span id="bField"></span><span class="nx2" id="bNareX2" style="display:none">なれ ×2</span></span><span><b id="bHand"></b> <span>/ 16 手</span></span></div>
+  <div class="b-top"><span class="b-fld"><button type="button" class="b-fldb" id="bFieldB"><span id="bField"></span><span class="b-fhito" id="bFieldHito"></span></button><span class="hardmark" id="bHard" style="display:none">てごわい</span><span class="nx2" id="bNareX2" style="display:none">ひらめき やすい</span></span><button type="button" class="b-clock" id="bClock" aria-label="のこりの じかん"><span class="b-cl">のこり</span><span class="b-pips" id="bPips"></span><span class="b-hand"><b id="bHand"></b> / 16 手</span></button></div>
   <div class="hpRow">
-    <div class="hpBox p"><div class="hp-name"><span class="nm" id="bPName">あなた</span><span class="num" id="hpNumP"></span></div><div class="hp" id="hpP"><div class="ghost" id="ghostP"></div><div class="fill" id="fillP"></div></div></div>
+    <div class="hpBox p"><div class="hp-name"><span class="nm" id="bPName">あなた</span><span class="num" id="hpNumP"></span></div><div class="hp" id="hpP"><div class="ghost" id="ghostP"></div><div class="fill" id="fillP"></div></div><div class="b-waza" id="bWaza"></div></div>
     <div class="hpBox e"><div class="hp-name"><span class="nm" id="bEName"></span><span class="num" id="hpNumE"></span></div><div class="hp" id="hpE"><div class="ghost" id="ghostE"></div><div class="fill" id="fillE"></div></div></div>
   </div>
   <div class="arena-wrap">
@@ -1321,6 +1364,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       <div class="found" id="found"><div class="fcard l" id="fcardL"></div><div class="fcard r" id="fcardR"></div><div class="ftag">みつけた！</div><div class="fname" id="fname"></div></div>
       <svg class="zkicon" id="zkicon" viewBox="0 0 44 44"><rect x="6" y="6" width="32" height="34" rx="4" fill="#5a4a10" stroke="#ffcc4d" stroke-width="3"/><path d="M22 6v34M12 16h6M12 24h6M26 16h6M26 24h6" stroke="#ffcc4d" stroke-width="2.5"/></svg>
       <div class="result" id="bResult"></div>
+      <div class="b-info" id="bInfo"></div>
     </div>
   </div>
   </div>
@@ -2528,7 +2572,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   function nx2InfoHTML() { return '<div class="info"><div class="if-name">' + NX2_HITO + '（てごわい）：なれ ×' + S.CFG.hard.nareMul + '</div><div class="if-eff">この たたかいでは、あなたの パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'; }
   var NX2_HITO = 'ひらめき やすい'; // てごわいの なれ ×2 の 層①の ことば（×2 は 合わせる／長押しの 文）
   var FIELD_HITO = { plain: 'なにも おきない', mud: 'おもい パーツが おそい', wind: 'かるいと はやくなる', rain: 'じょうたいが すぐ きえる', summit: 'ぬしが まっている' };
-  var WAZA_HITO = { nerai: 'どくや よろけに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
+  var WAZA_HITO = { nerai: 'じょうたいの あいてに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけた あいてに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
   // 自分の わざ（決定 17-c の 層①：名前と ひとこと。合わせる／長押しで くわしい 文）
   function renderWazaChips() {
     var box = $('pWaza'); box.innerHTML = '';
@@ -2906,31 +2950,32 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     });
     // 決定 13：待ち時間の ある 技（○手ごとに）の のこり。0 は この手に 出る
     var cw = cdn.waza || {};
-    Object.keys(cw).forEach(function (wid) {
+    updateWazaCards(); // 決定 17-c：自分の 技は 体力の 下の 札で（あと○・光る）。足元の 札には 出さない
+    if (side !== 'p') Object.keys(cw).forEach(function (wid) {
       var c = el('span', 'stchip cd fx-wzcd' + (cw[wid] === 0 ? ' now' : ''), esc(S.WAZA_BY_ID[wid].name) + (cw[wid] === 0 ? '！' : ' あと' + cw[wid]));
       c.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(c);
     });
     // ふんばりの 光の 意味（体が 光っている あいだ）：つぎの 自分の手に ×2（札「ふんばり つぎの手 ×2」）
-    if (KIAI_SHOWN[side]) { // kiaiGlow が 決める（戦いの 始めは false。前の 戦いの 体力で 出さない。Codex PR #12）
+    if (KIAI_SHOWN[side] && side !== 'p') { // kiaiGlow が 決める（戦いの 始めは false。前の 戦いの 体力で 出さない。Codex PR #12）
       var kc = el('span', 'stchip cd fx-wzcd now', esc(S.WAZA_BY_ID.kiai.name) + ' つぎの手 ×' + S.CFG.waza.kiaiMult);
       kc.style.setProperty('--wzc', WZC[side] || '#fff'); bar.appendChild(kc);
     }
-    if (SPDMOD[side]) bar.appendChild(el('span', 'stchip spd', 'はやさ ' + SPDMOD[side]));
+    if (SPDMOD[side]) bar.appendChild(el('span', 'stchip spd', SPDMOD[side] < 0 ? 'おそく なった' : 'はやく なった')); // 層①は ことば（数は 札の 文）
   }
   var SPDMOD = { p: 0, e: 0 }, SPDBASE = { p: 0, e: 0 };
   // ---------- 決定 13：技の 見せ方。技の 名前を 大きく その子の 色の ふだで（パーツの 発動と 見分ける）。全画面の 光は 使わない ----------
   var WZC = { p: null, e: null }, KIAI = { p: false, e: false };
+  // 層①の ことば（決定 23：×2・+2 などの 数は 出さない。くわしい 文は 技の 札を 合わせる／長押し）
   function wazaSub(ev) {
-    var w = S.CFG.waza;
     switch (ev.id) {
-      case 'nerai': return '1げき +' + w.nerai;
-      case 'kiai': return 'この手 ×' + w.kiaiMult;
-      case 'kamitsuki': return 'はんげき';
-      case 'hitoiki': return 'たいりょく +' + w.hitoikiHeal;
-      case 'suki': return 'よろけに ×' + w.sukiMult;
+      case 'nerai': return 'よわみを ねらう';
+      case 'kiai': return 'ちからが わいた';
+      case 'kamitsuki': return 'やりかえす';
+      case 'hitoiki': return 'げんきが もどる';
+      case 'suki': return 'すきを ついた';
       case 'renda': return 'もう1かい';
-      case 'ikari': return ev.use ? 'この こうげき ×' + w.ikariMult : 'ためた！ つぎ ×' + w.ikariMult;
-      case 'oonaguri': return '1げきめ ×' + w.oonaguriMult;
+      case 'ikari': return ev.use ? 'いかりの いちげき' : 'おこった！ つぎ つよい';
+      case 'oonaguri': return 'ちから いっぱい';
     }
     return '';
   }
@@ -2945,9 +2990,66 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     }
     var c = bodyPt(side); var r = spawn('ring fx-wazaring', c.x, c.y); r.style.setProperty('--wzc', col); removeLater(r, 900);
     if (ev.id === 'kiai') { KIAI[side] = false; wazaGlow(side, false); kiaiGlow(side); }
-    if (ev.id === 'ikari') wazaGlow(side, !!ev.ready);
+    if (ev.id === 'ikari') { wazaGlow(side, !!ev.ready); IKARI_READY[side] = !!ev.ready; }
+    if (side === 'p') { updateWazaCards(); var bc = document.querySelector('#bWaza .bw[data-id="' + ev.id + '"]'); if (bc) { bc.classList.remove('fx-bwfire'); void bc.offsetWidth; bc.classList.add('fx-bwfire'); } }
     if (!quiet) sfx(ev.id === 'kamitsuki' ? 'fang' : (S.WAZA_BY_ID[ev.id].kind === 'kokozo' ? 'eye' : 'pick'));
     if (OPT.auto && side === 'p' && !ev.use) G.auto.waza[ev.id] = (G.auto.waza[ev.id] || 0) + 1;
+  }
+  // ---------- 決定 23 の 3つ目・17-c：戦いの 中の 自分の 技の 札（体力の 下）・のこりの 目もり・層②の 文 ----------
+  var IKARI_READY = { p: false, e: false }, B_FIELD = null, B_WAZA = [];
+  function renderBattleWaza(pf) {
+    var box = $('bWaza'); box.innerHTML = ''; B_WAZA = [];
+    var sp = curSpecies(); if (!sp || !pf.waza) return;
+    var list = Object.keys(pf.waza).filter(function (id) { return pf.waza[id] && S.WAZA_BY_ID[id]; });
+    var order = (G.run && G.run.waza) || sp.waza; list.sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); });
+    B_WAZA = list;
+    list.forEach(function (id) {
+      var w = S.WAZA_BY_ID[id];
+      var b = el('button', 'bw', '<b>' + esc(w.name) + '</b><span class="bw-h">' + esc(WAZA_HITO[id] || '') + '</span><span class="bw-cd"></span>'); b.type = 'button'; b.dataset.id = id;
+      b.style.setProperty('--sc', sp.color);
+      bInfoTap(b, function () { return infoWazaHTML(id, sp); });
+      box.appendChild(b);
+    });
+    updateWazaCards();
+  }
+  // 札が 光る：その技が いま 効く じょうたい（ねらいうち＝あいてが どく・よろけ・もろい、すきをつく＝あいてが よろけ、ふんばり＝体が 光っている、いかり＝ためた）。○手ごとの 技は 光らせず「あと○」と 出た 瞬間の 札の 点滅（確認役：光る 時と 出る 時が ずれる）
+  function wazaReady(id) {
+    var e = ST.e || {};
+    switch (id) {
+      case 'nerai': return !!(e.poison || e.stagger || e.brittle);
+      case 'suki': return !!e.stagger;
+      case 'kiai': return !!KIAI_SHOWN.p;
+      case 'ikari': return !!IKARI_READY.p;
+    }
+    return false;
+  }
+  function updateWazaCards() {
+    var cw = (CD.p && CD.p.waza) || {};
+    Array.prototype.forEach.call($('bWaza').querySelectorAll('.bw'), function (b) {
+      var id = b.dataset.id, on = wazaReady(id);
+      b.classList.toggle('ready', on);
+      var cd = b.querySelector('.bw-cd'), n = cw[id];
+      cd.textContent = (typeof n === 'number' && n > 0) ? 'あと' + n : (id === 'kiai' && on ? 'つぎ つよい' : '');
+    });
+  }
+  function renderPips(n) {
+    var max = S.CFG.maxHands, box = $('bPips'), h = '';
+    for (var i = 0; i < max; i++) h += '<i' + (i < n ? ' class="used"' : '') + '></i>';
+    box.innerHTML = h; box.classList.toggle('few', max - n <= 3);
+  }
+  // 層②（戦いの 中）：PC は マウスを 合わせると 上に 文・はなすと 消える。スマホは タップ／長押しで 小さな まど（showInfo と 同じ）
+  function bInfoTap(b, htmlFn) {
+    infoTap(b, function () { if (narrow()) showInfo('bInfo', htmlFn()); else { var x = $('bInfo'); x.innerHTML = htmlFn(); x.className = 'b-info on'; } });
+    b.addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') $('bInfo').className = 'b-info'; });
+    return b;
+  }
+  function bTapsOnce() {
+    if ($('bClock').dataset.tap) return; $('bClock').dataset.tap = '1';
+    document.addEventListener('pointerdown', function (ev) { if (ev.pointerType !== 'mouse') $('bInfo').className = 'b-info'; }, true); // 指で 触る 広い 画面：つぎに 触ると 消える（タップで 出す ときは この あとの click で また 出る）
+    bInfoTap($('bClock'), function () { var n = S.CFG.maxHands; return '<div class="info"><div class="if-name">のこりの じかん</div><div class="if-eff">' + n + '手で きまらなければ、たいりょくの のこりの わりあいが おおい ほうの かち。いま ' + (parseInt($('bHand').textContent, 10) || 0) + '手め／' + n + '手</div></div>'; });
+    bInfoTap($('bFieldB'), function () { return B_FIELD ? infoFieldHTML(B_FIELD) : ''; });
+    bInfoTap($('bNareX2'), nx2InfoHTML);
+    bInfoTap($('hpP'), function () { return '<div class="info"><div class="if-name">' + esc(G.run.name) + 'の たいりょく</div><div class="if-eff">' + HP.p + ' / ' + MAX.p + '</div></div>'; });
   }
   // ふんばり：たいりょくが 半分より すくないと（まだ 出ていなければ）体が 光る＝つぎの 自分の手に 出る
   var KIAI_SHOWN = { p: false, e: false };
@@ -3094,6 +3196,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       if (!hasText) continue;
       var cs = getComputedStyle(e);
       if (!e.offsetParent && cs.position !== 'fixed') continue;
+      if (cs.visibility === 'hidden') continue; // 見えない 文字（相手の 体力の 数＝検査用）は 数えない
       if (parseFloat(cs.opacity) < 0.3) continue; // ほぼ透明（消えていく途中）は数えない
       var er = e.getBoundingClientRect();
       if (er.width <= 0 || er.height <= 0 || er.bottom < 0 || er.top > vh || er.right < 0 || er.left > vw) continue;
@@ -3224,7 +3327,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     if (!main) main = 'こうげき';
     var suffix = ev.halved ? '…' : (labels.length + (ev.bigmove ? 1 : 0) >= 2 ? '' : '！'); // 名前が 2つ並ぶときは「！」を省く（スマホで 3行になる）。よろけは「…」（札で見える）
     var cnt = (ev.parts.indexOf('claw') >= 0 && ev.hits > 1 && labels.length === 1) ? ' ' + ev.hit + 'かいめ' : ''; // 2つ以上の名前が並ぶときは「かいめ」を省く（スマホで4行になる）
-    if (ev.zushin) return { text: 'ずしん +' + ev.zushin + suffix, num: ev.dmg };
+    if (ev.zushin) return { text: 'ずしん' + suffix, num: ev.dmg };
     if (ev.stomp) return { text: 'ふみつけ' + suffix, num: ev.dmg };
     if (ev.jump2) return { text: 'ジャンプ' + suffix, num: ev.dmg };
     return { text: main + suffix + cnt, num: ev.dmg };
@@ -3241,11 +3344,14 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var used = G.attached.slice();
     G.curRes = res;
 
-    $('bField').textContent = f.name + (hard ? '　てごわい' : '');
-    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
+    $('bField').textContent = f.name; $('bFieldHito').textContent = FIELD_HITO[f.id] || ''; B_FIELD = f; // 決定 23：ばしょは 名前と ひとこと（くわしい 文は 合わせる／長押し）
+    $('bHard').style.display = hard ? 'inline-block' : 'none';
+    NARE_X2 = !!(hard && S.CFG.hard.nareMul > 1); $('bNareX2').textContent = NX2_HITO; $('bNareX2').style.display = NARE_X2 ? 'inline-block' : 'none'; $('bNareX2').classList.remove('fx-nare-up');
+    bTapsOnce(); renderPips(0); $('bInfo').className = 'b-info';
     $('bPName').textContent = G.run.name;
     $('bEName').textContent = e.name;
     $('bHand').textContent = '0';
+    IKARI_READY = { p: false, e: false }; renderBattleWaza(p);
     $('arena').className = 'arena ' + f.id + (e.boss ? ' bossfight' : '');
     $('monE').className = 'mon-wrap e' + (e.boss ? ' boss' : '');
     $('animP').className = 'anim'; $('animE').className = 'anim';
@@ -3280,7 +3386,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       var a = hand.actor, d = other(a);
       var firstHitDone = { p: false, e: false };
       tl.at(0, function () {
-        handsPlayed = hand.n; $('bHand').textContent = hand.n; clearFx(); setBig('p', ''); setBig('e', '');
+        handsPlayed = hand.n; $('bHand').textContent = hand.n; renderPips(hand.n); clearFx(); setBig('p', ''); setBig('e', '');
         flashThisHand = 0;
         updateCountdown(a, hand.countdown);
         animEl(a).querySelector('.mon').classList.remove('chargeglow');
@@ -3313,7 +3419,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
           tl.add(350);
         } else if (ev.t === 'maxUp') {
           // おおぐい：たおした あと、たいりょくの 上限が のびる（この周回のあいだ残る）
-          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + ev.amt, 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい', '+' + ev.amt, '上限 ' + ev.maxHp, 'bighit'); sfx('leech'); });
+          tl.at(0, function () { setMax(ev.side, ev.maxHp); setHp(ev.side, ev.hp, true); dmgFx(ev.side, '+' + ev.amt, 'heal'); glowPart(ev.side, 'leech', true); setBig(ev.side, 'おおぐい', '+' + ev.amt, 'たいりょくが ふえた', 'bighit'); sfx('leech'); });
           tl.add(1000);
         } else if (ev.t === 'spdDown') {
           tl.at(0, function () { SPDMOD[ev.side] = ev.spd - (SPDBASE[ev.side] || ev.spd); renderStatus(ev.side); flashChip(ev.side, 'spd'); scratchFx(ev.side); });
@@ -3326,13 +3432,13 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
           tl.at(0, function () { var c = bodyPt(ev.side); var sh = spawn('shield big', c.x, c.y); removeLater(sh, 900); glowPart(ev.side, 'shell', true); setBig(ev.side, 'こもった！', null, null, 'bighit'); sfx('shell'); });
           tl.add(500); // 「こもった！」を見せてから（直後の反撃の文字に 消されないように）
         } else if (ev.t === 'statusExtend') {
-          tl.at(0, function () { ev.statuses.forEach(function (x) { setStatus(ev.side, x.status, x.hands); flashChip(ev.side, x.status); }); glowPart(other(ev.side), 'tail', true); setBig(other(ev.side), 'ふりまわし！ +' + S.CFG.lv2.extendHands + '手', null, null, 'status'); sfx('tail'); });
+          tl.at(0, function () { ev.statuses.forEach(function (x) { setStatus(ev.side, x.status, x.hands); flashChip(ev.side, x.status); }); glowPart(other(ev.side), 'tail', true); setBig(other(ev.side), 'ふりまわし！ ながびく', null, null, 'status'); sfx('tail'); });
           tl.add(300);
         } else if (ev.t === 'store') {
-          tl.at(0, function () { dmgFx(ev.side, '+' + S.CFG.lv2.storeStep + ' こうげき', 'heal'); glowPart(ev.side, 'longtail', true); setBig(ev.side, 'たくわえ！', null, 'こうげき ' + ev.atk, 'bighit'); sfx('longtail'); });
+          tl.at(0, function () { dmgFx(ev.side, 'つよく', 'heal'); glowPart(ev.side, 'longtail', true); setBig(ev.side, 'たくわえ！', null, 'ちからが たまった', 'bighit'); sfx('longtail'); });
           tl.add(300);
         } else if (ev.t === 'tailwind') {
-          tl.at(0, function () { windFx(ev.side); glowPart(ev.side, 'wing'); setBig(ev.side, 'おいかぜ！', null, 'こうげき +' + ev.n, 'bighit'); sfx('wing'); });
+          tl.at(0, function () { windFx(ev.side); glowPart(ev.side, 'wing'); setBig(ev.side, 'おいかぜ！', null, 'つよく なった', 'bighit'); sfx('wing'); });
           tl.add(250);
         } else if (ev.t === 'reflect') {
           tl.at(0, function () { reflectFx(ev.side, ev.status); glowPart(ev.side, 'fur', true); setBig(ev.side, 'もふもふ！', null, null, 'status'); sfx('fur'); });
@@ -3380,9 +3486,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
             if (ev.zushin) { dustFx(a); dustFx(a); sfx('weight'); }
             if (ev.stomp) sfx('weight');
             var dtext = [];
-            if (ev.shell && !ev.shellHide) { glowPart(d, 'shell'); shieldFx(d); sfx('shell'); dtext.push('コウラ −' + ev.shell); }
-            if (ev.hard && !ev.deflect) dtext.push('かたい −' + ev.hardFlat);
-            if (ev.brittle) dtext.push('もろい ×' + ev.brittle);
+            if (ev.shell && !ev.shellHide) { glowPart(d, 'shell'); shieldFx(d); sfx('shell'); dtext.push('コウラ！'); } // 層①は ことば（−3 などの 数は 札の 文＝層②）
+            if (ev.hard && !ev.deflect) dtext.push('かたい！');
+            if (ev.brittle) dtext.push('もろい！');
             if (ev.deflect) dtext.push('はじいた！');
             if (dtext.length && !ev.shellHide) setBig(d, dtext.slice(0, 2).join(' '), null, null, ev.deflect ? 'bighit' : ''); // 3つ並ぶと スマホで 3行になる（もろいは 札で見える）
             if (finisher) { finishFlash(); shakeScreen(); sfx('finish'); }
@@ -3452,11 +3558,10 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
         } else if (ev.t === 'ko') {
           tl.add(200);
         } else if (ev.t === 'timeout') {
-          tl.at(0, function () { setBig('p', ''); setBig('e', ''); showResult('16手 おわり', '#f4f1ea', false); });
+          tl.at(0, function () { setBig('p', ''); setBig('e', ''); showResult('じかん ぎれ！', '#f4f1ea', false); });
           tl.add(1100);
           tl.at(0, function () {
-            var pr = Math.round(HP.p / MAX.p * 100), er = Math.round(HP.e / MAX.e * 100);
-            setBig('p', 'のこり ' + pr + '%'); setBig('e', 'のこり ' + er + '%');
+            var pw = ev.winner === 'p'; setBig('p', pw ? 'げんきが のこった！' : 'つかれた…'); setBig('e', pw ? 'つかれた…' : 'げんきが のこった！'); // 層①は ことば（体力の わりあいは バーで 見える。勝ち負けは sim の 判定 ev.winner）
             $('bResult').className = 'result';
           });
           tl.add(1200);

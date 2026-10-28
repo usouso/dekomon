@@ -19,11 +19,12 @@ const SIZES = (process.argv[3] || '1366x650,1920x910,375x812').split(',').map(s 
     const press = async (sel) => { const l = page.locator(sel).first(); await l.waitFor({ state: 'visible', timeout: 8000 }); if (mobile) await l.tap(); else await l.click(); await page.waitForTimeout(250); };
     const waitScr = async (names, ms) => { const t = Date.now(); while (Date.now() - t < ms) { const s = await scr(); if (names.indexOf(s) >= 0) return s; await page.waitForTimeout(150); } return await scr(); };
     // 1回目：はじめての 周回（殿堂 0体）。2回目：殿堂 1体
-    for (const hall of [0, 1]) {
+    // hall 2＝殿堂 1体 だが 2勝（決定 21-d：まだ「はじめの うち」＝1・2戦目の 相手が やさしい）
+    for (const hall of [0, 1, 2]) {
       await page.goto('http://localhost:' + PORT + '/?mute=1&speed=10&seed=7&reset=1');
       await page.waitForTimeout(300);
       if (hall) {
-        await page.evaluate(() => { const D = window.__dekomon, S = window.DekoSim; D.STORE.hall.push({ id: 'h1', name: 'むむ', wins: 3, parts: ['fang'], lv2: [], sparked: [], synergies: [], grow: S.emptyGrow(), growHist: [], maxHit: null, boss: false, enemies: [], date: '2026-10-28', eggUsed: 'x' }); });
+        await page.evaluate((hw) => { const D = window.__dekomon, S = window.DekoSim; D.STORE.hall.push({ id: 'h1', name: 'むむ', wins: hw, parts: ['fang'], lv2: [], sparked: [], synergies: [], grow: S.emptyGrow(), growHist: [], maxHit: null, boss: false, enemies: [], date: '2026-10-28', eggUsed: 'x' }); }, hall === 2 ? 2 : 3);
       }
       const path = [];
       try {
@@ -50,6 +51,12 @@ const SIZES = (process.argv[3] || '1366x650,1920x910,375x812').split(',').map(s 
         await press('#fightBtn');
         if ((await scr()) === 'pre') { await page.waitForTimeout(700); await press('#fightBtn'); }
         const s1 = await waitScr(['battle'], 4000); path.push(s1);
+        // 決定 21-d：はじめの うち（殿堂の だれも 3勝に 届いて いない）は 1戦目の 相手の たいりょくが ×early。画面の 数と 計算を 比べる
+        const hp = await page.evaluate(() => { const G = window.__dekomon.G, S = window.DekoSim, e = S.enemyDefOf(S.pathOf(G.run, 0, G.run.choices[0] || 0).enemy), hard = !!S.pathOf(G.run, 0, G.run.choices[0] || 0).hard;
+          return { shown: document.getElementById('hpNumE').textContent, easy: S.makeFighter('e', e, e.parts, 1, [], { hard: hard, easy: true }).maxHp, norm: S.makeFighter('e', e, e.parts, 1, [], { hard: hard }).maxHp }; });
+        const wantEasy = hall !== 1, want = wantEasy ? hp.easy : hp.norm;
+        console.log('  1戦目の 相手の たいりょく：' + hp.shown + '（はじめの うち ' + (wantEasy ? 'はい' : 'いいえ') + '：やさしい ' + hp.easy + '／ふつう ' + hp.norm + '）');
+        if (hp.shown !== want + ' / ' + want) ng(w + 'x' + h + ' 殿堂 ' + hall + '：1戦目の 相手の たいりょくが ' + hp.shown + '（ほしい ' + want + '）');
         const s2 = await waitScr(['win', 'over', 'grow'], 60000); path.push(s2);
         if (['win', 'over', 'grow'].indexOf(s2) < 0) throw new Error('戦いが 終わらない（' + s2 + '）');
         if (s2 === 'win') { await press('#winNext'); path.push(await waitScr(['fork', 'grow', 'summit', 'pre'], 6000)); }

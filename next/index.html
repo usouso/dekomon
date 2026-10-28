@@ -1444,7 +1444,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   // タイトルに 出たら、つぎに 周回の 画面に もどるまで（タイトルから 開いた ずかん・でんどう も）数えない
   function kTick(id) { if (!kOn()) return; kFlush(); KT.screen = id; KT.battle = G.battle; if (id === 'title') KT.off = true; else if (KIROKU_SCREENS[id] && id !== 'zukan' && id !== 'dendo') KT.off = false; if (KREC) kSave(); }
   function kInfo(extra) { var o = { ver: GAME_VER, auto: OPT.auto || undefined, name: G.run.name, gen: G.gen, egg: G.egg ? { parentName: G.egg.parentName, part: G.egg.part } : null,
-    species: wazaOn() && G.run ? (G.run.species || 'koron') : null, waza: wazaOn() && G.run ? S.playerDef(null, null, monOf()).waza : null }; Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
+    species: wazaOn() && G.run ? (G.run.species || 'koron') : null, waza: wazaOn() && G.run ? S.playerDef(null, null, monOf()).waza : null, easy: easyStart() || undefined }; /* easy：決定 21-d の はじめの うち（1・2戦目が やさしい） */ Object.keys(extra || {}).forEach(function (k) { o[k] = extra[k]; }); return o; }
   function kEnd(lostTo) {
     if (!kOn() || !KREC) return;
     kFlush();
@@ -2344,7 +2344,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var box = $('forkPaths'); box.innerHTML = '';
     paths.forEach(function (path, k) {
       var def = S.enemyDefOf(path.enemy), fld = S.FIELD_BY_ID[path.field];
-      var ef = S.makeFighter('e', def, def.parts, stage, [], { hard: path.hard });
+      var ef = S.makeFighter('e', def, def.parts, stage, [], { hard: path.hard, easy: easyStart() });
       var met = metCount(def.id);
       var d = el('div', 'dr-door' + (path.hard ? ' hard' : ''));
       d.style.setProperty('--fc', fld.color);
@@ -2371,8 +2371,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     infoEmpty('forkInfo', 'みちを きめるのは「ひだりへ」「みぎへ」の ボタン。ほかの 札は おすと せつめい。青い わくは まえの たたかいで つけていた パーツ');
     show('fork');
     if (OPT.auto) setTimeout(function () {
-      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf()).score;
-      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard, monOf()).score;
+      var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf(), easyStart()).score;
+      var s1 = S.bestLoadout(G.owned, paths[1].enemy, stage, paths[1].field, G.grow, G.lv2, paths[1].hard, monOf(), easyStart()).score;
       chooseFork(s1 > s0 ? 1 : 0);
     }, 300 / OPT.speed);
   }
@@ -2402,11 +2402,13 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 
   // ---------- バトル前 ----------
   function metCount(enemyId) { return STORE.met[enemyId] || 0; }
+  // 決定 21-d：はじめの うち（殿堂の だれも CFG.earlyUntil 勝に 届いて いない）は 1・2戦目の 相手が やさしい。殿堂は 周回の おわりにしか 変わらないので 周回の あいだは 同じ
+  function easyStart() { var u = S.CFG.earlyUntil || 0; if (!u) return false; for (var i = 0; i < STORE.hall.length; i++) if ((STORE.hall[i].wins || 0) >= u) return false; return true; }
   function firstEver() { return STORE.hall.length === 0; } // はじめての 周回（殿堂に まだ だれも いない。途中セーブから 戻っても 同じ）。21-b の 始めの 3つ・21-c の ◎✕ は これ 1つで 決める（G.firstRun は「ページを 開いて 最初の 周回」の「えらぶ ↓」だけ）
   var swapFlash = null;
   function showPre() {
     var e = curEnemyDef(), f = curField(), stage = curStage(), hard = curHard();
-    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
+    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard, easy: easyStart() });
     var met = metCount(e.id);
     G.attached = []; // 毎戦、装備を外した状態で始める
     // 決定 21-b：はじめての 周回の 1戦目は 始めの 3つを つけた 状態で（3つとも 場所が ちがう）。2戦目からは いつもどおり
@@ -2447,7 +2449,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     show('pre');
     if (OPT.auto) {
       setTimeout(function () {
-        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard, monOf());
+        var best = S.bestLoadout(G.owned, e.index, stage, f.id, G.grow, G.lv2, hard, monOf(), easyStart());
         G.attached = best.parts.slice();
         renderMe(); renderPlist();
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);
@@ -2468,7 +2470,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('pMon').innerHTML = monsterSVG('player', G.attached, 'r', [], G.lv2, G.grow);
     var e = curEnemyDef(), f = curField(), d = myDef();
     var p = S.makeFighter('p', d, G.attached, 1, G.lv2);
-    var ef = S.makeFighter('e', e, e.parts, curStage(), [], { hard: curHard() });
+    var ef = S.makeFighter('e', e, e.parts, curStage(), [], { hard: curHard(), easy: easyStart() });
     var ps = S.effSpd(p, f.id), es = S.effSpd(ef, f.id);
     $('pName').innerHTML = esc(G.run.name) + '<span class="kv-slc">わく ' + G.attached.length + '／3</span>';
     $('pStats').innerHTML = statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(ps), spdCls: ps !== baseStats().spd ? 'chg' : '' }, 'p');
@@ -3142,7 +3144,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     STORE.met[e.id] = (STORE.met[e.id] || 0) + 1; save(KEY.met, STORE.met);
     var lv2Before = G.lv2.slice(), zukanBefore = STORE.zukan.slice(), kPick = G.run.choices[G.battle] || 0;
     var p = S.makeFighter('p', myDef(), G.attached, 1, lv2Before);
-    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard });
+    var ef = S.makeFighter('e', e, e.parts, stage, [], { hard: hard, easy: easyStart() });
     var brng = S.makeRng(Math.floor(G.rng() * 4294967296));
     var res = S.simulateBattle(p, ef, f.id, { rng: brng, variance: OPT.rng0 ? 0 : undefined, spark: { stage: stage, pity: G.pity, nare: G.nare, parent: G.egg ? G.egg.part : null } });
     var used = G.attached.slice();

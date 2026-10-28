@@ -42,6 +42,7 @@
     closeOpen(store, null, now);
     var r = { id: runId(now), start: stamp(now), ver: info.ver || '', kind: info.egg ? 'egg' : 'new', name: info.name || '', gen: info.gen || 1,
       parent: info.egg ? info.egg.parentName : null, inherit: info.egg ? info.egg.part : null, battles: [], sec: [], end: null };
+    if (info.easy) r.easy = true; // 決定 21-d：はじめの うち（1・2戦目の 相手が やさしい）の 周回
     if (info.auto) r.auto = true; // 確かめ用の 自動（?auto=1&kiroku=1）
     if (info.species) { r.species = info.species; r.waza = (info.waza || []).slice(); } // 決定 13：モンスターの 種類と 技（わざ なしの ときは 無い）
     if (info.resumed) { r.resumed = true; r.fromBattle = info.fromBattle || 1; }

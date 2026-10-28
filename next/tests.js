@@ -744,6 +744,29 @@ var P = CFG.playerAtk; // 13
   CFG.waza.on = on0;
 })();
 
+// ======================= 決定 21-d：序盤の やさしさ =======================
+(function () {
+  var E = CFG.early, d = dummy({ hp: 100, atk: 10 }), r2 = function (x) { return Math.round(x * 100) / 100; };
+  var mk = function (st, o) { return S.makeFighter('e', d, [], st, [], o); };
+  var e1 = mk(1, { easy: true }), e2 = mk(2, { easy: true }), e3 = mk(3, { easy: true }), h1 = mk(1, { hard: true, easy: true }), n1 = mk(1, {});
+  row('序盤の やさしさ', 'はじめの うちは 1戦目の 相手の たいりょく・こうげき ×' + E[0] + '（100×1.06×' + E[0] + '）', { hp: Math.round(100 * 1.06 * E[0]), atk: r2(10 * 1.06 * E[0]) }, { hp: e1.maxHp, atk: r2(e1.baseAtk) });
+  row('序盤の やさしさ', 'はじめの うちは 2戦目の 相手 ×' + E[1] + '（100×1.06×1.1×' + E[1] + '）', { hp: Math.round(100 * 1.06 * 1.1 * E[1]), atk: r2(10 * 1.06 * 1.1 * E[1]) }, { hp: e2.maxHp, atk: r2(e2.baseAtk) });
+  row('序盤の やさしさ', '3戦目からは 変えない（100×1.06×1.2）', { hp: Math.round(100 * 1.06 * 1.2), atk: r2(10 * 1.06 * 1.2) }, { hp: e3.maxHp, atk: r2(e3.baseAtk) });
+  row('序盤の やさしさ', '1戦目の てごわいは ×' + E[0] + ' の うえに ×1.15', Math.round(100 * 1.06 * E[0] * 1.15), h1.maxHp);
+  row('序盤の やさしさ', 'はじめの うち で なければ 1戦目も 変えない（100×1.06）', 106, n1.maxHp);
+  var b1 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, [], { easy: true }), b10 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, [], { easy: true });
+  var b1o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, []), b10o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, []);
+  row('序盤の やさしさ', 'ぬしは 変えない（どの 段階でも）', [b1o.maxHp, b10o.maxHp], [b1.maxHp, b10.maxHp]);
+  var ra = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3), easy: true }), rb = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3) });
+  row('序盤の やさしさ', 'runBattle の easy で 相手の たいりょくが ×' + E[0] + '（easy なしは 前と 同じ）', [Math.round(S.enemyDefOf(0).hp * 1.06 * E[0] * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1)), rb.e.maxHp], [ra.e.maxHp, Math.round(S.enemyDefOf(0).hp * 1.06 * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1))]);
+  // Codex PR #20：選ぶ 側（bestLoadout）も easy で 計算し、覚えの 鍵も 分ける
+  var bA = S.bestLoadout(['horn', 'scale', 'tail'], 9, 1, 'rain', null, [], false, null, true), bB = S.bestLoadout(['horn', 'scale', 'tail'], 9, 1, 'rain', null, [], false, null, false);
+  var direct = S.runBattle(bA.parts, 9, 1, 'rain', { variance: 0, easy: true });
+  row('序盤の やさしさ', 'つける 3つを 選ぶ 計算（bestLoadout）も はじめの うちの 強さで（easy あり／なしは 別に 覚える）', { win: direct.winner === 'p', sameObj: false }, { win: bA.win, sameObj: bA === bB });
+  var KR2 = require('./kiroku.js');
+  row('序盤の やさしさ', '試遊の 記録の 周回に easy（はじめの うち）が 残る', [true, undefined], [KR2.newRun(KR2.empty(), { name: 't', easy: true }).easy, KR2.newRun(KR2.empty(), { name: 't' }).easy]);
+})();
+
 // ======================= 出力 =======================
 console.log('| 札 | 文 | 期待 | 実測 | 一致 |');
 console.log('|---|---|---|---|---|');

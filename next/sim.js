@@ -46,6 +46,8 @@
     poisonRatio: 0.45, poisonHands: 3, staggerMult: 0.5, brittleMult: 1.6, brittleHands: 5, rainStatusHands: 1,
     // 相手の段階
     enemyBase: 1.06,
+    early: [0.75, 0.78],   // 決定 21-d：はじめの うち（殿堂の だれも earlyUntil 勝に 届いて いない あいだ）は 1戦目・2戦目の 相手の たいりょく・こうげきに この 倍率（3戦目から と ぬしは 変えない。[1, 1] で 前と 同じ）。でたらめ 3つでも 1・2戦目 85% 以上（bot）
+    earlyUntil: 3,         // 決定 21-d：殿堂の だれかが この 勝ち数に 届いたら 序盤の やさしさは おわり（なれた 人の 強さ・正解の道の 物差しは 変えない）。0 で だれにも かけない
     stageHp: 0.10, stageAtk: 0.10,
     variance: 0.15,
     // モンスター固有の技（2026-10-27 ぼくくんの 決定 13。試作：on が false なら 種類も 技も なし＝前と 同じ 1種 115／13／10。乱数の 順番も 前と 同じ）
@@ -352,8 +354,9 @@
     var s = stage || 1;
     var isEnemy = side === 'e';
     var hard = !!(opts && opts.hard);
-    var hpMul = (isEnemy ? CFG.enemyBase * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (def.boss ? CFG.boss.hp : 1) : 1);
-    var atkMul = (isEnemy ? CFG.enemyBase * (1 + CFG.stageAtk * (s - 1)) * (hard ? CFG.hard.atk : 1) * (def.boss ? CFG.boss.atk : 1) : 1);
+    var early = (isEnemy && opts && opts.easy && !def.boss && CFG.early && s <= CFG.early.length) ? CFG.early[s - 1] : 1; // 決定 21-d：opts.easy＝はじめの うち
+    var hpMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (def.boss ? CFG.boss.hp : 1) : 1);
+    var atkMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageAtk * (s - 1)) * (hard ? CFG.hard.atk : 1) * (def.boss ? CFG.boss.atk : 1) : 1);
     var traits = def.traits || [];
     var T = toSet(traits);
     var maxHp = Math.round(def.hp * hpMul * (T.tough ? CFG.toughHp : 1));
@@ -848,7 +851,7 @@
     opts = opts || {};
     var def = enemyDefOf(enemyIndex);
     var p = makeFighter('p', playerDef(opts.grow || null, opts.name, opts.mon || null), playerParts, 1, opts.lv2 || []);
-    var e = makeFighter('e', def, def.parts, stage, [], { hard: !!opts.hard });
+    var e = makeFighter('e', def, def.parts, stage, [], { hard: !!opts.hard, easy: !!opts.easy });
     return simulateBattle(p, e, fieldId, opts);
   }
 
@@ -1004,16 +1007,16 @@
   // mon（決定 13）：{ species, waza }。CFG.waza.on が false なら 無視される
   // わざ ありなら 'W種類:技' を 返す（mon が 無くても ころんとして 'W' つき＝あり／なしで 覚えが まざらない）
   function monKey(mon) { if (!CFG.waza.on) return ''; var d = playerDef(null, null, mon); return 'W' + d.species + ':' + d.waza.join(','); } // 実際に 使う 技で（省略＝その種類の 2つ、[]＝技なし は 別）
-  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon) {
-    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
+  function bestLoadout(owned, enemyIndex, stage, fieldId, grow, lv2, hard, mon, easy) { // easy：決定 21-d の はじめの うち（覚えの 鍵にも 入れる）
+    var key = ownedMask(owned) + '|' + enemyIndex + '|' + stage + '|' + fieldId + '|' + growKey(grow) + '|' + ownedMask(lv2 || []) + '|' + (hard ? 'H' : '') + (easy ? 'E' : '') + (monKey(mon) ? '|' + monKey(mon) : '');
     if (memo[key]) return memo[key];
     var best = null;
     // 乱れなし1回 ＋ 種を固定した乱れあり2回 の平均で選ぶ（乱れなしだけだと、1点差の きわどい組み合わせを選んでしまう）
     var h = 0; for (var ci = 0; ci < key.length; ci++) h = (h * 31 + key.charCodeAt(ci)) >>> 0;
     loadouts(owned).forEach(function (combo) {
-      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null });
+      var res = runBattle(combo, enemyIndex, stage, fieldId, { variance: 0, grow: grow || null, lv2: lv2 || [], hard: hard, easy: !!easy, mon: mon || null });
       var s = score(res);
-      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard, mon: mon || null }));
+      for (var t = 1; t <= 2; t++) s += score(runBattle(combo, enemyIndex, stage, fieldId, { rng: makeRng(h + t * 7919 + ownedMask(combo)), grow: grow || null, lv2: lv2 || [], hard: hard, easy: !!easy, mon: mon || null }));
       s /= 3;
       if (!best || s > best.score + 1e-9) best = { parts: combo, score: s, win: res.winner === 'p', nHands: res.nHands };
     });

@@ -235,7 +235,9 @@
           } else if (a.kw.poison || a.kw.stagger || a.kw.brittle) log({ t: 'kw', who: d.side, kw: 'immune' });
           // はんげき
           if (d.kw.counter && !a.kw.ranged) {
-            var c = Math.max(1, Math.round(d.st.atk * CFG.counterRatio) - a.st.def);
+            // はんげきも「1げき」：うける 側の もろい（+2）・はんげきする 側の ねらいうち（+2）が のる
+            var craw = Math.round(d.st.atk * CFG.counterRatio) + (a.brittle > 0 ? CFG.brittlePlus : 0) + (d.kw.nerai && (a.poison > 0 || a.stagger || a.brittle > 0) ? CFG.neraiPlus : 0);
+            var c = Math.max(1, craw - a.st.def);
             dmgTo(a, c, 'counter', d.side);
             if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
             log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp });

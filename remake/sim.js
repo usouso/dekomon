@@ -34,7 +34,11 @@
     hard: { hp: 1.2, atk: 1 },     // てごわい：たいりょく ×1.2・こうげき +1
     boss: { hp: 1.3, atk: 1 },
     hpUp: 2,               // レベルアップの たいりょくは +2（ほかは +1）
-    startParts: 3          // はじめの もちもの（役割ごとに 1つ）
+    startParts: 3,         // はじめの もちもの（役割ごとに 1つ）
+    // 負けの 理由の 確かめ（決定 28-2：当たらない 理由は 出さない）。同じ 相手と reasonTries 回 戦わせて、
+    // 理由が すすめる 向きに 1つの 枠を かえると reasonGain 以上 勝ちやすく、関係ない 1つを かえた 平均より reasonOver 以上 上の ときだけ その 理由を 出す
+    reasonTries: 12, reasonGain: 0.15, reasonOver: 0.10,
+    closeRate: 0.5         // もとの パーツでも この 勝率 以上なら「あと すこし」（うんが わるかった）
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -282,22 +286,66 @@
   }
 
   // ---------- 負けの 理由（決定 28。戦いの ログから ルール側で 決める。{ id, text, hope, show } ） ----------
+  // fix：理由が すすめる 向き（どの 枠に どんな パーツを 入れると よいか）。hope の 文と そろえる。
+  //   loseReason は「その 向きに 1つ かえると ほんとうに 勝ちやすく なるか」を 戦わせて 確かめ、当たらない 理由は とばす（決定 28-2）。
   var STATUS_NAME = { poison: 'どく', charge: 'ためた こうげき', counter: 'はんげき', hit: 'ふつうの こうげき' };
+  function hasKw(pid, kws) { return PART_BY_ID[pid].kw.some(function (k) { return kws.indexOf(k) >= 0; }); }
   var REASONS = [
+    // もとの パーツでも 半分 以上 勝てる なら、ほかの 理由より 先に「あと すこし」（うんの 負け。確かめは baseRate そのもの）
+    { id: 'close', when: function (c) { return c.baseRate != null && c.baseRate >= CFG.closeRate; },
+      make: function () { return { kind: 'close', text: 'あと すこしだった！ うんが わるかった みたい', hope: 'おなじ パーツでも かてるかも。もう一度 ためそう' }; } },
     { id: 'dodged', when: function (c) { return c.res.dodged.e >= 3; },
+      fix: function () { return [{ role: 'atk', ok: function (p) { return hasKw(p, ['sure']); } }]; },
       make: function (c) { return { kind: 'weak', text: c.eName + 'に ' + c.res.dodged.e + 'かい よけられた', hope: 'よけられない ちからを さがそう', kw: 'yokeru' }; } },
     { id: 'taken', when: function (c) { var t = c.res.taken, tot = t.hit + t.charge + t.poison + t.counter; var k = bigSrc(t); return tot > 0 && k !== 'hit' && t[k] >= tot * 0.35; },
+      fix: function (c) { var k = bigSrc(c.res.taken);
+        if (k === 'poison') return [{ role: 'def', ok: function (p) { return hasKw(p, ['immune', 'regen']); } }];
+        if (k === 'counter') return [{ role: 'mov', ok: function (p) { return hasKw(p, ['ranged']); } }];
+        return [{ role: 'atk', ok: function () { return true; } }, { role: 'mov', ok: function () { return true; } }]; },
       make: function (c) { var k = bigSrc(c.res.taken); var hopes = { poison: 'どくに まけない まもりを ためそう', charge: 'ためる 手が くる まえに たおせる ちからを さがそう', counter: 'はんげきを うけない こうげきを さがそう' };
         return { kind: 'guard', text: STATUS_NAME[k] + 'で ' + c.res.taken[k] + ' けずられた', hope: hopes[k], src: k }; } },
     { id: 'hardRen', when: function (c) { return c.eSt.kw.hard && c.pSt.kw.ren; },
+      fix: function () { return [{ role: 'atk', ok: function (p) { return !hasKw(p, ['ren']); } }]; },
       make: function (c) { return { kind: 'weak', text: 'かたい あいてに こまかい こうげきが ききにくかった', hope: 'ちがう せめの パーツも ためそう', kw: 'hard' }; } },
+    // さいごの 受け皿（確かめない）
     { id: 'power', when: function () { return true; },
       make: function (c) { return { kind: 'power', text: 'いまの つよさでは まだ むずかしい あいてだった', hope: c.hard ? 'もう片方の 道や、ほかの パーツを ためそう' : 'パーツを かえて もう一度 ためそう' }; } }
   ];
   function bigSrc(t) { var best = 'hit'; ['charge', 'poison', 'counter'].forEach(function (k) { if ((t[k] || 0) > (t[best] || 0)) best = k; }); return best; }
+  // 同じ 相手と CFG.reasonTries 回 戦った 勝率（理由の 確かめ用。ゲームの 乱数とは 別の 種）
+  function tryRate(ctx, equip) {
+    var w = 0, pSrc = playerSrc(ctx.run, equip);
+    for (var i = 0; i < CFG.reasonTries; i++) if (battle(pSrc, ctx.eSrc, mix(5150 + i, ctx.stage * 13 + (ctx.hard ? 1 : 0)), { waza: ctx.waza }).win) w++;
+    return w / CFG.reasonTries;
+  }
+  // 理由の 向きが 当たって いるか：{ hit, base, fix, ctrl }
+  function checkFix(ctx, fixes, base) {
+    var eq = ctx.equip, best = 0, remSet = {}, ctrl = [], n = 0;
+    fixes.forEach(function (f) { PARTS.forEach(function (p) {
+      if (p.role !== f.role || p.id === eq[f.role] || !f.ok(p.id)) return;
+      remSet[f.role + ':' + p.id] = true; var e = { atk: eq.atk, def: eq.def, mov: eq.mov }; e[f.role] = p.id; best = Math.max(best, tryRate(ctx, e)); n++;
+    }); });
+    if (!n) return { hit: false, base: base, fix: base, ctrl: base };
+    PARTS.forEach(function (p) {
+      if (p.id === eq[p.role] || remSet[p.role + ':' + p.id]) return;
+      var e = { atk: eq.atk, def: eq.def, mov: eq.mov }; e[p.role] = p.id; ctrl.push(tryRate(ctx, e));
+    });
+    var c = ctrl.length ? ctrl.reduce(function (a, b) { return a + b; }, 0) / ctrl.length : base;
+    return { hit: best - base >= CFG.reasonGain - 1e-9 && best - c >= CFG.reasonOver - 1e-9, base: base, fix: best, ctrl: c };
+  }
+  // ctx：{ eName, hard, run, equip, eSrc, stage, waza }（run が ない とき＝確かめ なしで 上から 順に）
   function loseReason(res, ctx) {
-    var c = { res: res, pSt: res.pSt, eSt: res.eSt, eName: ctx.eName, hard: ctx.hard };
-    for (var i = 0; i < REASONS.length; i++) if (REASONS[i].when(c)) { var o = REASONS[i].make(c); o.id = REASONS[i].id; return o; }
+    var c = { res: res, pSt: res.pSt, eSt: res.eSt, eName: ctx.eName, hard: ctx.hard, baseRate: null };
+    var can = !!(ctx.run && ctx.eSrc);
+    if (can) c.baseRate = tryRate(ctx, ctx.equip);
+    for (var i = 0; i < REASONS.length; i++) {
+      var R = REASONS[i];
+      if (!R.when(c)) continue;
+      var chk = null;
+      if (R.fix && can) { chk = checkFix(ctx, R.fix(c), c.baseRate); if (!chk.hit) continue; }
+      var o = R.make(c); o.id = R.id; if (chk) o.check = chk; else if (can) o.base = c.baseRate;
+      return o;
+    }
   }
 
   // ---------- 周回 ----------
@@ -346,7 +394,7 @@
       else run.fork = makeFork(run);
     } else {
       run.hearts--; run.tries++; run.lossStreak++;
-      out.reason = loseReason(res, { eName: d.name, hard: road.hard });
+      out.reason = loseReason(res, { eName: d.name, hard: road.hard, run: run, equip: run.equip, eSrc: enemySrc(road.idx, s, road.hard), stage: s, waza: SPECIES_BY_ID[run.species].waza });
       if (run.hearts <= 0) { run.over = true; out.over = true; }
     }
     return out;

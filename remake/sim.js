@@ -365,11 +365,14 @@
     tries = tries || 12;
     var road = run.fork.roads[roadIndex], s = run.fork.stage;
     var byRole = {}; ROLES.forEach(function (r) { byRole[r.id] = [null].concat(run.owned.filter(function (p) { return PART_BY_ID[p].role === r.id; })); });
-    var best = null, bestScore = -1, eSrc = enemySrc(road.idx, s, road.hard), waza = SPECIES_BY_ID[run.species].waza;
+    var best = null, bestScore = -1, bestN = -1, eSrc = enemySrc(road.idx, s, road.hard), waza = SPECIES_BY_ID[run.species].waza;
     byRole.atk.forEach(function (a) { byRole.def.forEach(function (d) { byRole.mov.forEach(function (m) {
       var eq = { atk: a, def: d, mov: m }, w = 0, pSrc = playerSrc(run, eq);
       for (var i = 0; i < tries; i++) { var r = battle(pSrc, eSrc, mix(4242 + i, s), { waza: waza }); if (r.win) w += 1; else w += 0.001 * (1 - r.eHp / r.eMax); }
-      if (w > bestScore) { bestScore = w; best = eq; }
+      // 同じ くらいなら パーツが 多い 組（「はずす」を むやみに すすめない）
+      var n = (a ? 1 : 0) + (d ? 1 : 0) + (m ? 1 : 0);
+      var fw = Math.floor(w), fb = Math.floor(bestScore);
+      if (fw > fb || (fw === fb && (n > bestN || (n === bestN && w > bestScore)))) { bestScore = w; best = eq; bestN = n; }
     }); }); });
     return { equip: best, rate: Math.floor(bestScore) / tries };
   }

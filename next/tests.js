@@ -4,8 +4,6 @@
 'use strict';
 var S = require('./sim.js');
 var CFG = S.CFG;
-// 決定 21-d：札の 文の テストは 段階の 倍率（相手 ×1.06）で 数を 書いている。序盤（1・2戦目）の やさしさ CFG.early は ここでは 切り、下の「序盤の やさしさ」で 別に 確かめる
-var EARLY0 = CFG.early.slice(); CFG.early = [1, 1];
 var rows = [], fails = 0;
 
 function dummy(over) {
@@ -748,20 +746,19 @@ var P = CFG.playerAtk; // 13
 
 // ======================= 決定 21-d：序盤の やさしさ =======================
 (function () {
-  CFG.early = EARLY0.slice();
-  var d = dummy({ hp: 100, atk: 10 });
-  var e1 = S.makeFighter('e', d, [], 1, []), e2 = S.makeFighter('e', d, [], 2, []), e3 = S.makeFighter('e', d, [], 3, []);
-  var h1 = S.makeFighter('e', d, [], 1, [], { hard: true });
-  var r2 = function (x) { return Math.round(x * 100) / 100; };
-  row('序盤の やさしさ', '1戦目の 相手は たいりょく・こうげき ×' + EARLY0[0] + '（100×1.06×' + EARLY0[0] + '）', { hp: Math.round(100 * 1.06 * EARLY0[0]), atk: r2(10 * 1.06 * EARLY0[0]) }, { hp: e1.maxHp, atk: r2(e1.baseAtk) });
-  row('序盤の やさしさ', '2戦目の 相手は ×' + EARLY0[1] + '（100×1.06×1.1×' + EARLY0[1] + '）', { hp: Math.round(100 * 1.06 * 1.1 * EARLY0[1]), atk: r2(10 * 1.06 * 1.1 * EARLY0[1]) }, { hp: e2.maxHp, atk: r2(e2.baseAtk) });
+  var E = CFG.early, d = dummy({ hp: 100, atk: 10 }), r2 = function (x) { return Math.round(x * 100) / 100; };
+  var mk = function (st, o) { return S.makeFighter('e', d, [], st, [], o); };
+  var e1 = mk(1, { easy: true }), e2 = mk(2, { easy: true }), e3 = mk(3, { easy: true }), h1 = mk(1, { hard: true, easy: true }), n1 = mk(1, {});
+  row('序盤の やさしさ', 'はじめの うちは 1戦目の 相手の たいりょく・こうげき ×' + E[0] + '（100×1.06×' + E[0] + '）', { hp: Math.round(100 * 1.06 * E[0]), atk: r2(10 * 1.06 * E[0]) }, { hp: e1.maxHp, atk: r2(e1.baseAtk) });
+  row('序盤の やさしさ', 'はじめの うちは 2戦目の 相手 ×' + E[1] + '（100×1.06×1.1×' + E[1] + '）', { hp: Math.round(100 * 1.06 * 1.1 * E[1]), atk: r2(10 * 1.06 * 1.1 * E[1]) }, { hp: e2.maxHp, atk: r2(e2.baseAtk) });
   row('序盤の やさしさ', '3戦目からは 変えない（100×1.06×1.2）', { hp: Math.round(100 * 1.06 * 1.2), atk: r2(10 * 1.06 * 1.2) }, { hp: e3.maxHp, atk: r2(e3.baseAtk) });
-  row('序盤の やさしさ', '1戦目の てごわいは ×' + EARLY0[0] + ' の うえに ×1.15', Math.round(100 * 1.06 * EARLY0[0] * 1.15), h1.maxHp);
-  var b1 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, []), b10 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, []);
-  CFG.early = [1, 1];
+  row('序盤の やさしさ', '1戦目の てごわいは ×' + E[0] + ' の うえに ×1.15', Math.round(100 * 1.06 * E[0] * 1.15), h1.maxHp);
+  row('序盤の やさしさ', 'はじめの うち で なければ 1戦目も 変えない（100×1.06）', 106, n1.maxHp);
+  var b1 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, [], { easy: true }), b10 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, [], { easy: true });
   var b1o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, []), b10o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, []);
   row('序盤の やさしさ', 'ぬしは 変えない（どの 段階でも）', [b1o.maxHp, b10o.maxHp], [b1.maxHp, b10.maxHp]);
-  CFG.early = [1, 1];
+  var ra = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3), easy: true }), rb = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3) });
+  row('序盤の やさしさ', 'runBattle の easy で 相手の たいりょくが ×' + E[0] + '（easy なしは 前と 同じ）', [Math.round(S.enemyDefOf(0).hp * 1.06 * E[0] * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1)), rb.e.maxHp], [ra.e.maxHp, Math.round(S.enemyDefOf(0).hp * 1.06 * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1))]);
 })();
 
 // ======================= 出力 =======================

@@ -12,6 +12,8 @@ var SEED = 20261026;
 // 決定 13：モンスターの 種類と 技。DEKO_MON='{"species":"pyun"}' で わざ あり（CFG.waza.on = true）・その 種類で 回す。無ければ わざ なし（前と 同じ）
 var CUR_MON = null;
 var FEW = process.env.DEKO_FEW === '1'; if (FEW) console.log('DEKO_FEW=1：はじめての 周回（始めの もちもの 3つ）');
+// 決定 21-d：はじめの うち（殿堂の だれも 3勝に 届いて いない）は 1・2戦目の 相手が やさしい。DEKO_FEW=1 なら そう（殿堂 0体）。DEKO_EASY=1 でも 入る
+var EASY = FEW || process.env.DEKO_EASY === '1'; if (EASY) console.log('はじめの うち：1・2戦目の 相手 ×' + S.CFG.early.join('・×'));
 if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
@@ -73,7 +75,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     var rewards = fixedParts ? [] : path.rewards;
     if (!fixedParts && !enemy.boss) { var slots = hard ? 2 : 1; stats.rw.slots += slots; stats.rw.none += slots - rewards.length; noneR += slots - rewards.length; }
     var parts = fixedParts ? fixedParts : chooser.loadout(owned, eIdx, stage, fId, grow, lv2, hard);
-    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, mon: CUR_MON, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
+    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, easy: EASY, mon: CUR_MON, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
     if (res.summary.waza) Object.keys(res.summary.waza).forEach(function (w) { stats.waza[w] = (stats.waza[w] || 0) + res.summary.waza[w]; });
     stats.battles++;
     stats.hands.push(res.nHands);

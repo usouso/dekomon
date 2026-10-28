@@ -46,7 +46,8 @@
     poisonRatio: 0.45, poisonHands: 3, staggerMult: 0.5, brittleMult: 1.6, brittleHands: 5, rainStatusHands: 1,
     // 相手の段階
     enemyBase: 1.06,
-    early: [0.75, 0.78],   // 決定 21-d：1戦目・2戦目の 相手の たいりょく・こうげきに かける 倍率（序盤だけ やさしく。3戦目から と ぬしは 変えない。[1, 1] で 前と 同じ）。でたらめ 3つでも 1・2戦目 85% 以上（bot）
+    early: [0.75, 0.78],   // 決定 21-d：はじめの うち（殿堂の だれも earlyUntil 勝に 届いて いない あいだ）は 1戦目・2戦目の 相手の たいりょく・こうげきに この 倍率（3戦目から と ぬしは 変えない。[1, 1] で 前と 同じ）。でたらめ 3つでも 1・2戦目 85% 以上（bot）
+    earlyUntil: 3,         // 決定 21-d：殿堂の だれかが この 勝ち数に 届いたら 序盤の やさしさは おわり（なれた 人の 強さ・正解の道の 物差しは 変えない）。0 で だれにも かけない
     stageHp: 0.10, stageAtk: 0.10,
     variance: 0.15,
     // モンスター固有の技（2026-10-27 ぼくくんの 決定 13。試作：on が false なら 種類も 技も なし＝前と 同じ 1種 115／13／10。乱数の 順番も 前と 同じ）
@@ -353,7 +354,7 @@
     var s = stage || 1;
     var isEnemy = side === 'e';
     var hard = !!(opts && opts.hard);
-    var early = (isEnemy && !def.boss && CFG.early && s <= CFG.early.length) ? CFG.early[s - 1] : 1; // 決定 21-d
+    var early = (isEnemy && opts && opts.easy && !def.boss && CFG.early && s <= CFG.early.length) ? CFG.early[s - 1] : 1; // 決定 21-d：opts.easy＝はじめの うち
     var hpMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (def.boss ? CFG.boss.hp : 1) : 1);
     var atkMul = (isEnemy ? early * CFG.enemyBase * (1 + CFG.stageAtk * (s - 1)) * (hard ? CFG.hard.atk : 1) * (def.boss ? CFG.boss.atk : 1) : 1);
     var traits = def.traits || [];
@@ -850,7 +851,7 @@
     opts = opts || {};
     var def = enemyDefOf(enemyIndex);
     var p = makeFighter('p', playerDef(opts.grow || null, opts.name, opts.mon || null), playerParts, 1, opts.lv2 || []);
-    var e = makeFighter('e', def, def.parts, stage, [], { hard: !!opts.hard });
+    var e = makeFighter('e', def, def.parts, stage, [], { hard: !!opts.hard, easy: !!opts.easy });
     return simulateBattle(p, e, fieldId, opts);
   }
 

@@ -1315,7 +1315,7 @@ span.kv-st:active { transform: none; }
 
 <!-- わかれみち（1〜9戦目）。2つの扉：左右に 相手の姿・ばしょ・もらえるもの。道を決めるのは「ひだりへ／みぎへ」のボタンだけ（ほかは 押すと 文が出る） -->
 <div id="fork" class="screen">
-  <div class="topbar"><div class="big-title">わかれみち</div><b id="forkNo" style="font-size:1.2rem"></b><span class="sub" id="forkWins"></span><div id="forkTrail" class="trailbox"></div><div class="dr-q">「ひだりへ」「みぎへ」の ボタンで すすむ。ほかの 札は おすと せつめい</div></div>
+  <div class="topbar"><div class="big-title">わかれみち</div><b id="forkNo" style="font-size:1.2rem"></b><span class="sub" id="forkWins"></span><div id="forkTrail" class="trailbox"></div><div class="dr-q" id="forkQ">「ひだりへ」「みぎへ」の ボタンで すすむ。ほかの 札は おすと せつめい</div></div>
   <div class="pcbody">
     <div class="dr-grid" id="forkPaths"></div>
   </div>
@@ -2273,7 +2273,7 @@ span.kv-st:active { transform: none; }
   function infoFieldHTML(f) {
     return '<div class="info"><div class="if-head">' + fieldIcon(f.color, 'lg') + '<div class="if-t"><div class="if-name">ばしょ：' + esc(f.name) + '</div></div></div><div class="if-eff">' + esc(f.desc) + '</div></div>';
   }
-  function infoStatHTML(k, side, val, cmp) {
+  function infoStatHTML(k, side, val, cmp, hard) {
     var t = { hp: 'たいりょく：0 に なると まけ。', atk: 'こうげき：1げきの つよさ。', spd: 'はやさ：おおきい ほうが さきに うごく。' + S.CFG.speedGap + ' いじょう ちがうと さいしょに 2かい。' }[k];
     var extra = '';
     if (side === 'p' && G.run) {
@@ -2286,6 +2286,7 @@ span.kv-st:active { transform: none; }
     if (side === 'p' && val !== undefined && !isNaN(val)) t = 'いま ' + fmt(val) + '。' + t; // 層②：自分の 数字
     if (side === 'e' && val !== undefined && !isNaN(val)) t = 'いま ' + fmt(val) + (cmp ? '（' + cmp + '）' : '') + '。' + t;
     else if (side === 'e' && cmp) t = cmp + '。' + t;
+    if (side === 'e' && hard) t = 'てごわい ので ふだんより つよい（あかい 数字）。' + t; // 確認役（PR #28）：赤い 色の 意味
     return '<div class="info"><div class="if-head"><span class="if-sicon">' + STAT_ICON[k] + '</span><div class="if-t"><div class="if-name">' + STAT_NAME[k] + '</div><div class="if-tags"><span class="tag ' + (side === 'p' ? 'me">じぶん' : 'foe">あいて') + '</span></div></div></div><div class="if-eff">' + t + '</div>' + (extra ? '<div class="if-note">' + esc(extra) + '</div>' : '') + '</div>';
   }
   // 強さ：アイコンと 数字（2026-10-29 ぼくくん 判断待ち 4 の 答え A：5つの 目もりは やめて 数字に 戻す。自分も 相手も 同じ 形で 並べて 見比べる）。data-v に 本当の 数（検査用）
@@ -2313,7 +2314,7 @@ span.kv-st:active { transform: none; }
   function statInfoOf(b) {
     var side = b.parentNode.dataset.side, k = b.dataset.st, v = parseFloat(b.dataset.v), cmp = '';
     if (side === 'e') { var mine = document.querySelector('.screen.on .kv-stats[data-side="p"] .kv-st[data-st="' + k + '"]'); cmp = mine ? cmpWord(k, v, parseFloat(mine.dataset.v)) : ''; if (cmp && G.screen === 'fork') cmp = cmp.replace('あなた', 'パーツも ばしょも ない あなた'); } // わかれみちの 自分は パーツなし・ばしょなしの 強さ
-    return infoStatHTML(k, side, v, cmp);
+    return infoStatHTML(k, side, v, cmp, side === 'e' && !!b.querySelector('b.hard'));
   }
   document.addEventListener('click', function (ev) {
     var b = ev.target && ev.target.closest ? ev.target.closest('.kv-st') : null;
@@ -2504,7 +2505,8 @@ span.kv-st:active { transform: none; }
       box.appendChild(d);
     });
     box.appendChild(itemsPanel());
-    infoEmpty('forkInfo', 'みちを きめるのは「ひだりへ」「みぎへ」の ボタン。ほかの 札は おすと せつめい。青い わくは まえの たたかいで つけていた パーツ');
+    $('forkQ').textContent = '「ひだりへ」「みぎへ」の ボタンで すすむ。ほかの 札は おすと せつめい' + (paths.some(function (p) { return p.hard; }) ? '。あかい 数字は てごわいで ふだんより つよい' : ''); // 確認役：スマホでも 赤の 意味（説明の 箱は スマホで 出ない）
+    infoEmpty('forkInfo', 'みちを きめるのは「ひだりへ」「みぎへ」の ボタン。ほかの 札は おすと せつめい。青い わくは まえの たたかいで つけていた パーツ' + (paths.some(function (p) { return p.hard; }) ? '。あかい 数字は てごわいで ふだんより つよい しるし' : '')); // 確認役（PR #28）：赤い 色の 意味
     show('fork');
     if (OPT.auto) setTimeout(function () {
       var s0 = S.bestLoadout(G.owned, paths[0].enemy, stage, paths[0].field, G.grow, G.lv2, paths[0].hard, monOf(), easyStart()).score;

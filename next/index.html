@@ -458,6 +458,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .nbar.x2.full { width: 48px; height: 9px; border-color: #fff; box-shadow: 0 0 10px #ffd54a; } .nbar.x2.full i { background: #ffe08a; }
 .b-fld { display: inline-block; padding-right: 28px; } /* なれ ×2 が はねても 枠の中 */
 .nx2 { display: inline-block; margin-left: 14px; transform-origin: 0 50%; font-size: 1.05rem; font-weight: 900; padding: 1px 10px; border-radius: 10px; background: #ff9f6b; color: #2a0b0b; white-space: nowrap; }
+#eNareX2 { cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+@media (max-width: 899px) { #eNareX2 { margin-left: 0; font-size: .95rem; padding: 1px 8px; } } /* スマホ：てごわいの 下に 折れても 右に はみ出さない */
 .nx2.fx-nare-up { animation: nx2up calc(.5s * var(--spd)) ease-out; }
 @keyframes nx2up { 0% { transform: scale(1.2); box-shadow: 0 0 14px #ff9f6b; } 100% { transform: scale(1); box-shadow: none; } }
 .dr-nx2 { font: inherit; cursor: pointer; border: 0; -webkit-appearance: none; appearance: none; font-size: 1.05rem; font-weight: 900; background: #ff9f6b; color: #2a0b0b; border-radius: 10px; padding: 1px 10px; margin-left: 6px; white-space: nowrap; }
@@ -1096,15 +1098,19 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .dr-q { flex: 1 1 100%; color: var(--accent); font-weight: 700; }
 .dr-door { display: flex; flex-direction: column; gap: 8px; border-radius: 18px; padding: 8px 10px 10px; background: linear-gradient(180deg, #2a2230 0%, #1f1d27 100%); border: 3px solid #6b7590; min-height: 0; }
 .dr-door.hard { border-color: var(--e); background: linear-gradient(180deg, #4a1c22 0%, #2a1a1f 100%); box-shadow: 0 0 0 2px rgba(255,107,107,.3) inset; }
-.dr-head { display: flex; align-items: center; gap: 8px; }
+.dr-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .dr-no { font-size: 1.35rem; font-weight: 900; color: var(--accent); }
 .dr-hard { font-size: 1.1rem; font-weight: 900; background: var(--e); color: #2a0b0b; border-radius: 10px; padding: 1px 10px; }
+.dr-no, .dr-hard, .dr-nx2 { white-space: nowrap; } /* 見出しは 1行（2行に わかれると 扉の 中が スクロールする） */
+:where(html.eshort) .dr-head { gap: 6px; } :where(html.eshort) .dr-hard, :where(html.eshort) .dr-nx2 { padding: 1px 7px; margin-left: 0; }
 .dr-foe { display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255,107,107,.10); border: 2px solid rgba(255,107,107,.45); border-radius: 14px; padding: 6px 8px; }
 .dr-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .dr-name b { font-size: 1.35rem; color: #ffd0d0; }
 .dr-mon { width: 100%; height: 120px; display: flex; justify-content: center; }
 .dr-mon .mon { height: 100%; width: auto; }
 .dr-door .kv-chips { justify-content: center; }
+.dr-door .dr-chips { flex-direction: column; align-items: center; gap: 4px; } .dr-door .dr-chips .kv-grp { justify-content: center; } /* 決定 22：うまれつき（丸）と そうび（四角）を 段で 分ける */
+.dr-field .kv-fhito { font-size: .95em; }
 .dr-field { justify-content: center; }
 .dr-door .kv-rw { justify-content: center; background: rgba(255,213,74,.08); border: 2px solid rgba(255,213,74,.5); border-radius: 12px; padding: 4px 8px; }
 .dr-go { margin-top: auto; min-height: 54px; font-size: 1.45rem; }
@@ -1132,9 +1138,11 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   .dr-q { display: none; }
   .dr-door { gap: 6px; }
   .dr-mon { height: 100px; }
+  :where(html.eshort) .dr-mon { height: 60px; } :where(html.eshort) .dr-door { gap: 4px; } /* 1366×650：うまれつき／そうびの 見出しで 1段 ふえた ぶん */
 }
 @media (max-width: 899px) {
   .dr-items .kv-info { display: none; }
+  .dr-door .dr-chips { flex-direction: row; flex-wrap: wrap; justify-content: center; } .dr-door .kv-gl { display: none; } /* スマホは バトル前と 同じ：見出しは 出さず 形（丸／四角）で 分ける */
   .dr-mon { height: 100px; }
 }
 </style>
@@ -1269,7 +1277,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
         </div>
         <div class="kv-vs">VS</div>
         <div class="kv-side foe" id="preFoe">
-          <div class="kv-nm"><span id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="nx2" id="eNareX2" style="display:none">なれ ×2</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
+          <div class="kv-nm"><span id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="nx2" id="eNareX2" style="display:none">ひらめき やすい</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
           <div class="kv-mon" id="eMon"></div>
           <div id="eStats"></div>
           <div class="kv-chips" id="eChips"></div>
@@ -2204,7 +2212,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     return '<div class="info"><div class="if-head"><span class="if-sicon">' + STAT_ICON[k] + '</span><div class="if-t"><div class="if-name">' + STAT_NAME[k] + '</div><div class="if-tags"><span class="tag ' + (side === 'p' ? 'me">じぶん' : 'foe">あいて') + '</span></div></div></div><div class="if-eff">' + t + '</div>' + (extra ? '<div class="if-note">' + esc(extra) + '</div>' : '') + '</div>';
   }
   // 強さ（決定 23 の 層①）：アイコンと 5つの 目もり（数字は 出さない）。数字は 合わせる／長押しの 文（層②。自分だけ）。data-v に 本当の 数を 持つ（検査用）
-  var STAR_STEPS = { hp: [70, 95, 125, 165], atk: [10, 13, 17, 22], spd: [4, 8, 12, 16] };
+  var STAR_STEPS = { hp: [70, 95, 125, 165], atk: [10, 13, 17, 22], spd: [3, 7, 12, 18] }; // はやさ：相手は −16〜32 に 広がる（ばしょ・せいしつ・パーツ込み）。区切りを 広げて 1 と 5 に 寄らない ように（2026-10-28 13時の回）
   function starN(k, v) { var s = STAR_STEPS[k], n = 1; for (var i = 0; i < s.length; i++) if (v >= s[i]) n++; return n; }
   function pipsHTML(n, cls) { var h = '<span class="kv-pips' + (cls ? ' ' + cls : '') + '" aria-label="' + n + '／5">'; for (var i = 0; i < 5; i++) h += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return h + '</span>'; }
   function statsHTML(v, side) {
@@ -2228,7 +2236,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   });
   function statInfoOf(b) {
     var side = b.parentNode.dataset.side, k = b.dataset.st, v = parseFloat(b.dataset.v), cmp = '';
-    if (side === 'e') { var mine = document.querySelector('.screen.on .kv-stats[data-side="p"] .kv-st[data-st="' + k + '"]'); cmp = mine ? cmpWord(k, v, parseFloat(mine.dataset.v)) : ''; }
+    if (side === 'e') { var mine = document.querySelector('.screen.on .kv-stats[data-side="p"] .kv-st[data-st="' + k + '"]'); cmp = mine ? cmpWord(k, v, parseFloat(mine.dataset.v)) : ''; if (cmp && G.screen === 'fork') cmp = cmp.replace('あなた', 'パーツも ばしょも ない あなた'); } // わかれみちの 自分は パーツなし・ばしょなしの 強さ
     return infoStatHTML(k, side, v, cmp);
   }
   document.addEventListener('click', function (ev) {
@@ -2252,7 +2260,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     row.appendChild(el('span', 'kv-rwl', 'かてば もらえる'));
     rewards.forEach(function (r) {
       var p = S.PART_BY_ID[r.part];
-      var b = el('button', 'kv-rwb', partIcon(r.part) + '<b>' + esc(p.short) + '</b>' + (r.kind === 'nare' ? '<span class="naretag">なれ +' + r.amt + '</span>' : '')); b.type = 'button';
+      var b = el('button', 'kv-rwb', partIcon(r.part) + '<b>' + esc(p.short) + '</b>' + (r.kind === 'nare' ? '<span class="naretag">なれ ↑</span>' : '')); b.type = 'button'; // 層①は ことば。+10 は 合わせる／長押しの 文（層②）
       infoTap(b, function () { showInfo(boxId, infoPartHTML(r.part, { reward: r, mine: G.owned.indexOf(r.part) >= 0 })); });
       row.appendChild(b);
     });
@@ -2396,17 +2404,21 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       var met = metCount(def.id);
       var d = el('div', 'dr-door' + (path.hard ? ' hard' : ''));
       d.style.setProperty('--fc', fld.color);
-      d.innerHTML = '<div class="dr-head"><span class="dr-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="dr-hard">てごわい</span>' + (S.CFG.hard.nareMul > 1 ? '<button type="button" class="dr-nx2">なれ ×' + S.CFG.hard.nareMul + '</button>' : '') : '') + '</div>' +
+      d.innerHTML = '<div class="dr-head"><span class="dr-no">' + (k === 0 ? 'ひだりの みち' : 'みぎの みち') + '</span>' + (path.hard ? '<span class="dr-hard">てごわい</span>' + (S.CFG.hard.nareMul > 1 ? '<button type="button" class="dr-nx2">' + NX2_HITO + '</button>' : '') : '') + '</div>' +
         '<div class="dr-foe"><div class="dr-name"><b>' + esc(def.name) + '</b><span class="met' + (met ? '' : ' first') + '">' + (met ? (met + 1) + 'かいめ' : 'はじめて') + '</span></div>' +
         statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, fld.id), hpCls: path.hard ? 'hard' : '', atkCls: path.hard ? 'hard' : '' }, 'e') +
         '<div class="dr-mon">' + monsterSVG(def.id, def.parts, 'l', def.traits) + '</div></div>';
       var nxb = d.querySelector('.dr-nx2');
-      if (nxb) infoTap(nxb, function () { showInfo('forkInfo', '<div class="info"><div class="if-name">なれ ×' + S.CFG.hard.nareMul + '（てごわい）</div><div class="if-eff">この たたかいでは、パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'); });
-      var chips = el('div', 'kv-chips');
-      def.traits.forEach(function (t) { chips.appendChild(chipEl('trait', t, 'forkInfo')); });
-      def.parts.forEach(function (pid) { chips.appendChild(chipEl('part', pid, 'forkInfo')); });
+      if (nxb) infoTap(nxb, function () { showInfo('forkInfo', nx2InfoHTML()); });
+      // 決定 22・23：せいしつ（うまれつき・丸い バッジ）と パーツ（そうび・四角い 札）を 見出しで 分ける（バトル前と 同じ）
+      var chips = el('div', 'kv-chips dr-chips');
+      var gt = el('div', 'kv-grp kv-grp-t', '<span class="kv-gl">うまれつき</span>'), gp = el('div', 'kv-grp kv-grp-p', '<span class="kv-gl">そうび</span>');
+      def.traits.forEach(function (t) { gt.appendChild(chipEl('trait', t, 'forkInfo')); });
+      def.parts.forEach(function (pid) { gp.appendChild(chipEl('part', pid, 'forkInfo')); });
+      if (def.traits.length) chips.appendChild(gt);
+      if (def.parts.length) chips.appendChild(gp);
       d.appendChild(chips);
-      var fb = el('button', 'kv-field dr-field', '' + fieldIcon(fld.color) + '<b>ばしょ：' + esc(fld.name) + '</b>'); fb.type = 'button';
+      var fb = el('button', 'kv-field dr-field', '' + fieldIcon(fld.color) + '<b>ばしょ：' + esc(fld.name) + '</b><span class="kv-fhito">' + esc(FIELD_HITO[fld.id] || '') + '</span>'); fb.type = 'button';
       infoTap(fb, function () { showInfo('forkInfo', infoFieldHTML(fld)); });
       d.appendChild(fb);
       d.appendChild(rewardRow(path.rewards, 'forkInfo', 'dr-rw'));
@@ -2475,7 +2487,9 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('eName').textContent = e.name;
     var mb = $('eMet'); mb.textContent = met ? (met + 1) + 'かいめ' : 'はじめて'; mb.className = 'met' + (met ? '' : ' first');
     $('eHard').style.display = hard ? 'inline-block' : 'none';
-    $('eNareX2').textContent = 'なれ ×' + S.CFG.hard.nareMul; $('eNareX2').style.display = (hard && S.CFG.hard.nareMul > 1) ? 'inline-block' : 'none';
+    $('eNareX2').textContent = NX2_HITO; $('eNareX2').title = 'なれ ×' + S.CFG.hard.nareMul;
+    if (!$('eNareX2').dataset.tap) { $('eNareX2').dataset.tap = '1'; infoTap($('eNareX2'), function () { showInfo('preInfo', nx2InfoHTML()); }); } /* 層②：×2 の 文（スマホは 長押し） */
+    $('eNareX2').style.display = (hard && S.CFG.hard.nareMul > 1) ? 'inline-block' : 'none';
     $('eBoss').style.display = e.boss ? 'inline-block' : 'none';
     $('preFoe').className = 'kv-side foe' + (hard ? ' hard' : '') + (e.boss ? ' boss' : '');
     $('eStats').innerHTML = statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, f.id), hpCls: hard ? 'hard' : '', atkCls: hard ? 'hard' : '' }, 'e');
@@ -2511,6 +2525,8 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     }
   }
   // 層①の ひとこと（決定 23。ひらがな中心・10文字 くらい。くわしい 文は 層②）
+  function nx2InfoHTML() { return '<div class="info"><div class="if-name">' + NX2_HITO + '（てごわい）：なれ ×' + S.CFG.hard.nareMul + '</div><div class="if-eff">この たたかいでは、あなたの パーツが はたらくたびに たまる「なれ」が ' + S.CFG.hard.nareMul + 'ばい。なれが いっぱいを こえると ひらめく（Lv2）</div></div>'; }
+  var NX2_HITO = 'ひらめき やすい'; // てごわいの なれ ×2 の 層①の ことば（×2 は 合わせる／長押しの 文）
   var FIELD_HITO = { plain: 'なにも おきない', mud: 'おもい パーツが おそい', wind: 'かるいと はやくなる', rain: 'じょうたいが すぐ きえる', summit: 'ぬしが まっている' };
   var WAZA_HITO = { nerai: 'どくや よろけに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
   // 自分の わざ（決定 17-c の 層①：名前と ひとこと。合わせる／長押しで くわしい 文）

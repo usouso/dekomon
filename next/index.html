@@ -595,7 +595,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .gb { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 0; color: inherit; font: inherit; cursor: help; }
 .gb-track { position: relative; flex: 1 1 auto; height: 12px; border-radius: 6px; background: #141720; border: 1px solid var(--line); overflow: hidden; display: flex; }
 .gb-track i { flex: 0 0 auto; height: 100%; display: block; }
-.gb-track .gb-oo { background: #c78bff; } /* おおぐいで ふえた ぶん（そだちの みどりと 分ける。確認役 9） */
+.gb-track .gb-oo { background: #ff8fb0; } /* おおぐいで ふえた ぶん（そだちの みどりと 分ける。たいりょくの ハートの 色。どくの むらさきと まちがえない） */
 .gb-track .gb-base { background: #8a93ad; }
 .gb-track .gb-up { background: var(--good); box-shadow: 0 0 6px var(--good); }
 .gb-stars { color: var(--gold); font-size: .95rem; letter-spacing: -1px; min-width: 0; white-space: nowrap; }
@@ -3666,7 +3666,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   }
   var GB_MAX = { hp: 190, atk: 30, spd: 24 }; // バーの 長さの ものさし（そだち・おおぐいで のびる ぶんが 見える 長さ）
   var GROW_OF = { hp: 'tough', atk: 'strong', spd: 'quick' };
-  // 強さの バー：灰色＝うまれた ときの 強さ・みどり＝そだちで のびた ぶん・むらさき＝おおぐいで ふえた ぶん（たいりょく だけ）・★＝そだちの 回数（数字は 層②）
+  // 強さの バー：灰色＝うまれた ときの 強さ・みどり＝そだちで のびた ぶん・ピンク＝おおぐいで ふえた ぶん（たいりょく だけ）・★＝そだちの 回数（数字は 層②）
   function gbSegs(k, base, val, oog) {
     var M = GB_MAX[k], tot = Math.min(100, val / M * 100), b = Math.min(tot, base / M * 100), o = Math.min(tot - b, (oog || 0) / M * 100), g = Math.max(0, tot - b - o);
     if (val - base - (oog || 0) > 0 && g < 3) g = 3; // そだちが あれば 見える 長さに
@@ -3676,7 +3676,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   function growBarHTML(k, base, val, grow, cls) {
     var n = (grow && grow[GROW_OF[k]]) || 0, oo = k === 'hp' && grow ? (grow.oogui || 0) : 0, up = Math.max(0, val - base - oo);
     var eff = 'いま ' + fmt(val) + '（うまれつき ' + fmt(base) + (up > 0 ? '・そだち +' + fmt(up) : '') + (oo ? '・おおぐい +' + oo : '') + '）';
-    if (k === 'hp' && grow && grow.oogui) eff += '。むらさきは おおぐいで ふえた ぶん（上限 +' + grow.oogui + '）';
+    if (oo) eff += '<br>ピンク＝おおぐいで ふえた ぶん';
     eff += '<br>そだち「' + S.GROWS[GROW_OF[k]].name + '」' + (n ? n + 'かい（' + esc(S.GROWS[GROW_OF[k]].desc) + ' ずつ）' : 'は まだ');
     return '<button type="button" class="gb' + (cls ? ' ' + cls : '') + '" data-st="' + k + '" data-v="' + val + '" data-r="' + rKey(rInfoHTML(STAT_NAME[k], eff)) + '" aria-label="' + STAT_NAME[k] + '">' + STAT_ICON[k] +
       (function () { var sg = gbSegs(k, base, val, k === 'hp' && grow ? grow.oogui : 0); return '<span class="gb-track"><i class="gb-base" style="width:' + sg.b + '"></i><i class="gb-up" style="width:' + sg.g + '"></i><i class="gb-oo" style="width:' + sg.o + '"></i></span>'; })() +
@@ -3777,7 +3777,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var gk = dir === 'tough' ? 'hp' : (dir === 'strong' ? 'atk' : 'spd'), gb = baseStats()[gk];
     $('growNum').innerHTML = '<div class="gbig">' + growBarHTML(gk, gb, pair[1], before) + '</div>';
     $('growNum').dataset.from = pair[1]; $('growNum').dataset.to = pair[2];
-    RINFO[$('growNum').querySelector('.gb').dataset.r] = rInfoHTML(esc(pair[0]), fmt(pair[1]) + ' → ' + fmt(pair[2]) + '（' + esc(gdef.desc) + '）');
+    RINFO[$('growNum').querySelector('.gb').dataset.r] = rInfoHTML(esc(pair[0]), fmt(pair[1]) + ' → ' + fmt(pair[2]) + '（' + esc(gdef.desc) + '）' + (gk === 'hp' && G.grow.oogui ? '<br>ピンク＝おおぐいで ふえた ぶん' : ''));
     bindRInfo($('growNum'));
     $('growNum').querySelector('.gb').addEventListener('click', function (ev) { ev.stopPropagation(); }); // 文を 開く タップで #grow の「つぎへ」に 進まない（Codex P2）
     $('growDesc').textContent = descs[dir] + '　（これまで：' + growHistText(G.growHist) + '）';

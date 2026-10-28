@@ -50,7 +50,7 @@
     { id: 'hard',    name: 'かたい',     role: 'def',  text: function () { return 'まもり +' + CFG.hardDef; } },
     { id: 'counter', name: 'はんげき',   role: 'def',  text: function () { return 'ちかくから 1げき うけるたび、こうげきの 半分で やりかえす'; } },
     { id: 'regen',   name: 'かいふく',   role: 'def',  text: function () { return 'じぶんの手の はじめに たいりょく +' + CFG.regenHeal; } },
-    { id: 'leech', short: 'すいつく',   name: 'すいとり',   role: 'def',  text: function () { return 'あたえた ダメージの 1/3 だけ かいふく'; } },
+    { id: 'leech',   name: 'すいとり',   role: 'def',  text: function () { return 'あたえた ダメージの 1/3 だけ かいふく'; } },
     { id: 'immune',  name: 'へっちゃら', role: 'def',  text: function () { return 'どく・よろけ・もろい を うけない'; } },
     { id: 'fast',    name: 'はやい',     role: 'mov',  text: function () { return 'はやさ +' + CFG.fastSpd; } },
     { id: 'sharp',   name: 'するどい',   role: 'luck', text: function () { return 'かいしん +' + CFG.critSharp + '%'; } },
@@ -72,7 +72,7 @@
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
     { id: 'weight', short: 'おもし',   name: 'おもし',       role: 'atk', kw: ['heavy'],            line: '1げきごとに +1', special: 'weightPlus' },
-    { id: 'leech',    name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +3', bonus: { hp: 3 } },
+    { id: 'leech', short: 'すいつく', name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spike', short: 'トゲ',    name: 'トゲ',         role: 'def', kw: ['counter'],          line: 'まもり +1', bonus: { def: 1 } },
     { id: 'shell', short: 'コウラ',    name: 'かたいコウラ', role: 'def', kw: ['hard', 'heavy'],    line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'scale', short: 'うろこ',    name: 'いしのうろこ', role: 'def', kw: ['hard'],             line: 'まもり +1', bonus: { def: 1 } },
@@ -94,7 +94,7 @@
     { id: 'gaman',   name: 'がまん',     text: '1げき うけるたび、つぎの こうげきの 1げき +1（+3 まで）' },
     { id: 'hayauchi', name: 'はやうち',  text: 'さいしょの じぶんの手は 2かい こうげき' },
     { id: 'renda',   name: 'れんだ',     text: '4手ごとに、もう1かい こうげき' },
-    { id: 'oonaguri', name: 'おおなぐり', text: '4手ごとに、さいしょに あたる 1げきが ×2' },
+    { id: 'oonaguri', name: 'おおなぐり', text: '4手ごとに、つぎに あたる 1げきが ×2' },
     { id: 'ikari',   name: 'いかり',     text: 'たいりょくが 半分より すくないと こうげき +2' }
   ];
   var WAZA_BY_ID = {}; WAZA.forEach(function (w) { WAZA_BY_ID[w.id] = w; });
@@ -206,12 +206,12 @@
       if (charged) log({ t: 'kw', who: a.side, kw: 'charge' });
       var st = a.stagger; if (st) { a.stagger = false; log({ t: 'kw', who: a.side, kw: 'stagger', on: 'self' }); }
       var atk = a.st.atk + (a.waza.indexOf('ikari') >= 0 && a.hp * 2 < a.maxHp ? 2 : 0);
-      var dealtSum = 0, multLeft = opt.mult1 || 0;
+      var dealtSum = 0;
       for (var h = 0; h < hits && !dead(); h++) {
         // かいひ
         var dodge = a.kw.sure ? 0 : d.st.dodge;
         if (dodge > 0 && rng() * 100 < dodge) { dodged[d.side]++; log({ t: 'dodge', who: d.side, by: d.kw.yokeru ? 'yokeru' : d.kw.hirari ? 'hirari' : 'luck' }); if (d.waza.indexOf('lucky') >= 0) d.luckyNext = true; continue; }
-        var m = mult * (charged ? CFG.chargeMult : 1) * (st ? CFG.staggerMult : 1) * (multLeft ? multLeft : 1); multLeft = 0;
+        var m = mult * (charged ? CFG.chargeMult : 1) * (st ? CFG.staggerMult : 1) * (a.multPending || 1); a.multPending = 0;
         var raw = atk * m;
         if (a.sp.weightPlus) raw += 1;
         if (a.gaman) { raw += a.gaman; a.gaman = 0; }
@@ -241,7 +241,7 @@
           }
         }
       }
-      if (a.kw.leech && dealtSum > 0) heal(a, Math.round(dealtSum * CFG.leechRatio), 'leech');
+      if (a.kw.leech && dealtSum > 0 && a.hp > 0) heal(a, Math.round(dealtSum * CFG.leechRatio), 'leech');
     }
     function turn(a, d) {
       a.hands++;
@@ -255,7 +255,8 @@
       if (a.luckyNext) { a.luckyNext = false; forceCrit1 = true; log({ t: 'waza', who: a.side, w: 'lucky' }); }
       if (a.waza.indexOf('oonaguri') >= 0 && a.hands % 4 === 0) { mult1 = 2; log({ t: 'waza', who: a.side, w: 'oonaguri' }); }
       if (forceCrit1) a.critPending = true;
-      oneAttack(a, d, { hits: hits, mult1: mult1 });
+      if (mult1) a.multPending = mult1;
+      oneAttack(a, d, { hits: hits });
       var extra = 0;
       if (!dead() && a.sp.springExtra && a.hands % 3 === 0) { log({ t: 'kw', who: a.side, kw: 'springExtra' }); extra++; oneAttack(a, d, { hits: hits }); }
       if (!dead() && a.waza.indexOf('hayauchi') >= 0 && a.hands === 1) { log({ t: 'waza', who: a.side, w: 'hayauchi' }); oneAttack(a, d, { hits: hits }); }

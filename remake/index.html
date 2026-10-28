@@ -183,11 +183,17 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   if (Q.get('reset') === '1') { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(KEY) === 0) localStorage.removeItem(k); }); } catch (e) {} }
   var $ = function (id) { return document.getElementById(id); };
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
-  if (G.run && G.run.over) G.run = null;
+  if (G.run && G.run.over) { recordHall(G.run); G.run = null; lsSet('run', null); }
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); window.scrollTo(0, 0); }
   function save() { lsSet('run', G.run); }
 
+  // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
+  function recordHall(run) {
+    var hall = lsGet('hall', []);
+    hall.push({ name: run.name, sp: S.SPECIES_BY_ID[run.species].name, wins: run.wins, clear: run.clear, parts: run.owned.slice(), at: Date.now() });
+    lsSet('hall', hall.slice(-50));
+  }
   // ---------- 絵 ----------
   function bodyShape(shape, color) {
     var st = ' fill="' + color + '" stroke="#111" stroke-width="4"';
@@ -246,7 +252,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     fur: '<g fill="#f3e9d2"><circle cx="12.5" cy="22" r="7.5"/><circle cx="20" cy="14" r="8.5"/><circle cx="27.5" cy="22" r="7.5"/><circle cx="20" cy="27" r="7.5"/></g>'
   };
   function glyph(id) { return '<svg viewBox="0 0 40 40"><g stroke="#1b1f2a" stroke-width="2" stroke-linejoin="round">' + (GLYPH[id] || '') + '</g></svg>'; }
-  function ptile(id, extra, cls) { var p = S.PART_BY_ID[id]; return '<div class="ptile ' + p.role + (cls ? ' ' + cls : '') + '" data-part="' + id + '"' + (extra || '') + '>' + glyph(id) + '<span class="pname">' + p.short + '</span></div>'; }
+  function ptile(id, extra, cls) { var p = S.PART_BY_ID[id]; return '<div class="ptile ' + p.role + (cls ? ' ' + cls : '') + '" data-part="' + id + '"' + (extra || '') + '>' + glyph(id) + '<span class="pname">' + (p.short || p.name) + '</span></div>'; }
   function kwBadge(k, born) { var d = S.KW_BY_ID[k]; return '<span class="kw ' + d.role + (born ? ' born' : '') + '" data-kw="' + k + '">' + d.name + '</span>'; }
   var STAT_LABEL = { hp: '♥ たいりょく', atk: '⚔ こうげき', def: '🛡 まもり', spd: '💨 はやさ', luck: '🍀 うん' };
   var STAT_SHORT = { hp: '♥', atk: '⚔', def: '🛡', spd: '💨', luck: '🍀' };
@@ -484,9 +490,8 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     if (AUTO) autoNext();
   }
   function endRun() {
-    var run = G.run, hall = lsGet('hall', []);
-    hall.push({ name: run.name, sp: S.SPECIES_BY_ID[run.species].name, wins: run.wins, clear: run.clear, parts: run.owned.slice(), at: Date.now() });
-    lsSet('hall', hall.slice(-50));
+    var run = G.run;
+    recordHall(run);
     if (AUTO) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts);
     G.run = null; lsSet('run', null);
     drawTitle();

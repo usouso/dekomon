@@ -85,6 +85,15 @@ noLuck(function () {
   for (var q = 0; q < 60; q++) { var rq = S.battle(P({ atk: 2, hp: 20 }), E({ atk: 4, hp: 300 }, [], ['yokeru']), q, { waza: ['kokozo'] });
     var on = false, done = false; rq.events.forEach(function (e) { if (e.t === 'waza' && e.w === 'kokozo') { on = true; } else if (on && !done && e.t === 'hit' && e.who === 'p') { done = true; tried++; if (e.crit) kept++; } }); }
   ok(tried > 0 && kept === tried, 'ここぞ：よけられても さいしょに あたる 1げきが かいしん（' + kept + '/' + tried + '）');
+  // おおなぐり：よけられても つぎに あたる 1げきが ×2（Codex P2）
+  var okO = true, seenO = 0;
+  for (var q2 = 0; q2 < 80; q2++) { var ro = S.battle(P({ atk: 5 }), E({ atk: 0, hp: 500 }, [], ['yokeru']), q2, { waza: ['oonaguri'] });
+    var onO = false; ro.events.forEach(function (e) { if (e.t === 'waza' && e.w === 'oonaguri') onO = true; else if (onO && e.t === 'hit' && e.who === 'p') { onO = false; seenO++; if (e.dmg !== 10 && e.dmg !== 20) okO = false; } }); }
+  ok(okO && seenO > 0, 'おおなぐり：よけられても つぎに あたる 1げきが ×2');
+  // たおれた あとに すいとりで 生きかえらない（Codex P2）
+  var revive = 0;
+  for (var q3 = 0; q3 < 200; q3++) { var rl = S.battle(P({ atk: 6, hp: 3 }, ['leech']), E({ atk: 1, hp: 300 }, ['spike']), q3); if (rl.events.some(function (e, i) { return e.t === 'heal' && e.who === 'p' && rl.events.slice(0, i).reverse().find(function (x) { return x.to === 'p' && x.hp !== undefined; }) && rl.events.slice(0, i).reverse().find(function (x) { return x.to === 'p' && x.hp !== undefined; }).hp <= 0; })) revive++; }
+  ok(revive === 0, 'たおれた あとに すいとりで かいふく しない');
   // 時間ぎれ：のこりの わりあいで（同じなら あいて）
   r = S.battle(P({ atk: 1, hp: 300 }), E({ atk: 1, hp: 300 }), 1);
   ok(r.timeout && r.win === false, '時間ぎれで 同じ わりあい → あいての かち');

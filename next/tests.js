@@ -527,6 +527,16 @@ var P = CFG.playerAtk; // 13
     ['atk', 'def', 'mov'].forEach(function (c) { if (!items.some(function (id) { return S.PART_BY_ID[id].cat === c; })) catOk = false; });
   }
   row('卵：始めの もちもの', '継ぐパーツが 6つのうちの 1つ。同じ場所のパーツは 選ばれない。せめ・まもり・うごき が そろう（種 1〜200 × 16種）', { has: true, six: true, loc: true, cat: true }, { has: allOk, six: nOk, loc: locOk, cat: catOk });
+  // 決定 21-b：はじめての 周回（few）は せめ・まもり・うごき 1つずつの 3つ。3つとも 場所が ちがう（全部 つけられる）。卵が あれば few は 無視
+  var fewN = true, fewCat = true, fewLoc = true;
+  for (var fs = 1; fs <= 300; fs++) {
+    var fi = S.startItems(S.makeRng(fs), null, true);
+    if (fi.length !== 3) fewN = false;
+    if (fi.map(function (id) { return S.PART_BY_ID[id].cat; }).join(',') !== 'atk,def,mov') fewCat = false;
+    if (new Set(fi.map(function (id) { return S.PART_BY_ID[id].loc; })).size !== 3) fewLoc = false;
+  }
+  var fewEgg = S.startItems(S.makeRng(9), 'fang', true);
+  row('はじめての 周回：始めの もちもの', 'few なら 3つ（せめ・まもり・うごき の 順に 1つずつ・場所は みな ちがう。種 1〜300）。卵（継ぐ パーツ あり）なら いつもの 6つ', { n3: true, cat: true, loc: true, egg6: true }, { n3: fewN, cat: fewCat, loc: fewLoc, egg6: fewEgg.length === 6 && fewEgg.indexOf('fang') >= 0 });
   var plain = S.startItems(S.makeRng(7)), plain2 = S.startItems(S.makeRng(7), null);
   row('卵：始めの もちもの', '継がないときは いままでと 同じ（乱数の使い方も 同じ）', true, JSON.stringify(plain) === JSON.stringify(plain2) && plain.length === 6);
   // 継いだパーツは なれ full+1 で始まり、1戦目の 最初の発動で 必ず ひらめく（by: parent）
@@ -732,6 +742,29 @@ var P = CFG.playerAtk; // 13
   CFG.waza.on = false;
   row('ツメ（手札の ◎）', 'おそい あいて（3かい）：はやさは その子の 種類で 見る', { pyun: true, koron: false }, { pyun: hPy, koron: hKo });
   CFG.waza.on = on0;
+})();
+
+// ======================= 決定 21-d：序盤の やさしさ =======================
+(function () {
+  var E = CFG.early, d = dummy({ hp: 100, atk: 10 }), r2 = function (x) { return Math.round(x * 100) / 100; };
+  var mk = function (st, o) { return S.makeFighter('e', d, [], st, [], o); };
+  var e1 = mk(1, { easy: true }), e2 = mk(2, { easy: true }), e3 = mk(3, { easy: true }), h1 = mk(1, { hard: true, easy: true }), n1 = mk(1, {});
+  row('序盤の やさしさ', 'はじめの うちは 1戦目の 相手の たいりょく・こうげき ×' + E[0] + '（100×1.06×' + E[0] + '）', { hp: Math.round(100 * 1.06 * E[0]), atk: r2(10 * 1.06 * E[0]) }, { hp: e1.maxHp, atk: r2(e1.baseAtk) });
+  row('序盤の やさしさ', 'はじめの うちは 2戦目の 相手 ×' + E[1] + '（100×1.06×1.1×' + E[1] + '）', { hp: Math.round(100 * 1.06 * 1.1 * E[1]), atk: r2(10 * 1.06 * 1.1 * E[1]) }, { hp: e2.maxHp, atk: r2(e2.baseAtk) });
+  row('序盤の やさしさ', '3戦目からは 変えない（100×1.06×1.2）', { hp: Math.round(100 * 1.06 * 1.2), atk: r2(10 * 1.06 * 1.2) }, { hp: e3.maxHp, atk: r2(e3.baseAtk) });
+  row('序盤の やさしさ', '1戦目の てごわいは ×' + E[0] + ' の うえに ×1.15', Math.round(100 * 1.06 * E[0] * 1.15), h1.maxHp);
+  row('序盤の やさしさ', 'はじめの うち で なければ 1戦目も 変えない（100×1.06）', 106, n1.maxHp);
+  var b1 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, [], { easy: true }), b10 = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, [], { easy: true });
+  var b1o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 1, []), b10o = S.makeFighter('e', S.BOSS, S.BOSS.parts, 10, []);
+  row('序盤の やさしさ', 'ぬしは 変えない（どの 段階でも）', [b1o.maxHp, b10o.maxHp], [b1.maxHp, b10.maxHp]);
+  var ra = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3), easy: true }), rb = S.runBattle(['claw'], 0, 1, S.FIELDS[0].id, { rng: S.makeRng(3) });
+  row('序盤の やさしさ', 'runBattle の easy で 相手の たいりょくが ×' + E[0] + '（easy なしは 前と 同じ）', [Math.round(S.enemyDefOf(0).hp * 1.06 * E[0] * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1)), rb.e.maxHp], [ra.e.maxHp, Math.round(S.enemyDefOf(0).hp * 1.06 * (S.enemyDefOf(0).traits.indexOf('tough') >= 0 ? CFG.toughHp : 1))]);
+  // Codex PR #20：選ぶ 側（bestLoadout）も easy で 計算し、覚えの 鍵も 分ける
+  var bA = S.bestLoadout(['horn', 'scale', 'tail'], 9, 1, 'rain', null, [], false, null, true), bB = S.bestLoadout(['horn', 'scale', 'tail'], 9, 1, 'rain', null, [], false, null, false);
+  var direct = S.runBattle(bA.parts, 9, 1, 'rain', { variance: 0, easy: true });
+  row('序盤の やさしさ', 'つける 3つを 選ぶ 計算（bestLoadout）も はじめの うちの 強さで（easy あり／なしは 別に 覚える）', { win: direct.winner === 'p', sameObj: false }, { win: bA.win, sameObj: bA === bB });
+  var KR2 = require('./kiroku.js');
+  row('序盤の やさしさ', '試遊の 記録の 周回に easy（はじめの うち）が 残る', [true, undefined], [KR2.newRun(KR2.empty(), { name: 't', easy: true }).easy, KR2.newRun(KR2.empty(), { name: 't' }).easy]);
 })();
 
 // ======================= 出力 =======================

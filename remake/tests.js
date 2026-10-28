@@ -97,6 +97,9 @@ noLuck(function () {
   r = S.battle(P({ atk: 5, hp: 60 }), E({ atk: 2, hp: 500 }, ['spike']), 1, { waza: ['gaman'] });
   // 1手め：こうげき 1げき → はんげきを 1げき うける。あいての こうげきで もう 1げき。2手めは +2
   ok(handHits(r, 'p', 2)[0].dmg === 5 + 2 - 1, 'がまん：はんげきで うけた 1げきも 数える（まもり +1 の トゲ）');
+  r = S.battle(P({ atk: 1, hp: 60, spd: 9 }, ['crush', 'spike']), E({ atk: 1, hp: 500, spd: 1 }), 1);
+  var cc = r.events.filter(function (e) { return e.t === 'counter' && e.who === 'p'; });
+  ok(cc.length > 0 && cc[0].dmg === Math.round((1 + 1 + C.heavyAtk) * C.counterRatio) + C.brittlePlus, 'はんげきも 1げき：もろい あいてへ +2');
   // 時間ぎれ：のこりの わりあいで（同じなら あいて）
   r = S.battle(P({ atk: 1, hp: 300 }), E({ atk: 1, hp: 300 }), 1);
   ok(r.timeout && r.win === false, '時間ぎれで 同じ わりあい → あいての かち');

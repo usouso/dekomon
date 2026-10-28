@@ -369,9 +369,9 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     }).join('') + '<div class="sub" style="color:var(--dim);font-size:.85rem">パーツを おすと つける／はずす。合わせると つよさが どう かわるか 見えるよ。</div>';
     Array.prototype.forEach.call($('slots').querySelectorAll('[data-pick]'), function (el) {
       var id = el.getAttribute('data-pick');
-      el.onclick = function () { var r = S.PART_BY_ID[id].role; G.lastCmp = S.statsOf(S.playerSrc(run, run.equip)); run.equip[r] = run.equip[r] === id ? null : id; HOVER = null; save(); drawPrep(); };
-      el.onmouseenter = function () { if (matchMedia('(hover: hover)').matches) { HOVER = id; G.lastCmp = null; drawPrepCardsOnly(); } };
-      el.onmouseleave = function () { HOVER = null; drawPrepCardsOnly(); };
+      el.onclick = function () { var r = S.PART_BY_ID[id].role; G.lastCmp = S.statsOf(S.playerSrc(run, run.equip)); G.clicked = id; run.equip[r] = run.equip[r] === id ? null : id; HOVER = null; save(); drawPrep(); };
+      el.onmouseenter = function () { if (G.clicked === id) return; if (matchMedia('(hover: hover)').matches) { HOVER = id; G.lastCmp = null; drawPrepCardsOnly(); } };
+      el.onmouseleave = function () { if (G.clicked === id) { G.clicked = null; return; } HOVER = null; drawPrepCardsOnly(); };
     });
     $('bHint').style.display = run.lossStreak >= 2 ? '' : 'none';
     $('bBack').style.display = run.fork.roads.length > 1 ? '' : 'none';

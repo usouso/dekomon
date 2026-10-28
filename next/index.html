@@ -909,9 +909,36 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-st { display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,.25); border: 2px solid rgba(255,255,255,.14); border-radius: 12px; padding: 2px 10px 2px 6px; }
 .kv-st b { font-size: 1.35rem; font-weight: 900; line-height: 1.2; }
 .kv-st b.hard { color: var(--e); }
-.kv-st b.chg { color: var(--accent); }
 /* 小さな札（相手の 性質・パーツ） */
 .kv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 決定 23 の 層①：強さは 5つの 目もり（数字は 合わせる／長押し） */
+.kv-pips { display: inline-flex; gap: 2px; align-items: center; }
+.kv-pips i { display: block; width: 8px; height: 16px; border-radius: 3px; background: rgba(255,255,255,.16); }
+.kv-pips i.on { background: #f4f1ea; }
+.kv-stats[data-side="p"] .kv-pips i.on { background: #8fd8ff; }
+.kv-stats[data-side="e"] .kv-pips i.on { background: #ffb0b0; }
+.kv-pips.chg i.on { background: var(--accent) !important; }
+.kv-pips.hard i.on { background: var(--e) !important; }
+/* 決定 22：せいしつ＝丸い バッジ（うまれつき）、パーツ＝四角い 札（そうび・こわせる 印） */
+.kv-grp { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.kv-side.foe .kv-grp { justify-content: flex-end; }
+.kv-gl { font-size: .9rem; font-weight: 800; color: #ffd0d0; opacity: .85; }
+.kv-chip.trait { border-radius: 999px; padding: 3px 10px 3px 4px; border-style: solid; background: rgba(255,107,107,.08); }
+.kv-chip.trait .ticon { border-radius: 50%; }
+.kv-chip.part { position: relative; border-radius: 5px; padding-right: 19px; }
+.kv-crack { position: absolute; top: 1px; right: 2px; width: 14px; height: 16px; }
+.kv-waza { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.kv-st:has(.kv-pips) { padding: 2px 7px 2px 4px; gap: 4px; }
+.kv-chip.waza { min-width: 0; text-align: left; background: color-mix(in srgb, var(--sc, #e8a33c) 22%, #1b1f2a); border-color: var(--sc, #e8a33c); border-radius: 10px; padding: 2px 8px; flex-wrap: wrap; align-items: baseline; gap: 0 8px; line-height: 1.25; word-break: keep-all; }
+.kv-chip.waza b { color: #fff3c4; font-size: 1.05rem; }
+.kv-hito { font-size: .95rem; font-weight: 700; color: #e8e4da; letter-spacing: -.03em; }
+@media (max-width: 899px) { .kv-chip.waza { padding: 2px 6px; } }
+.kv-fhito { color: #e8e4da; }
+.kv-arrow { color: var(--accent); margin-right: 4px; font-weight: 900; }
+@media (min-width: 900px) and (max-height: 700px) { #pre .kv-mon { height: 80px; } }
+.kv-pips.hard i { box-shadow: 0 0 0 1px #ff4d4d; }
+@media (max-width: 899px) { #pre .kv-mon { height: 76px; } #pWaza .kv-hito { display: none; } #pre .kv-gl { display: none; } #pre .kv-side.foe .kv-chips { gap: 4px; } }
+.kv-x2 { display: inline-block; margin-left: 6px; font-size: .95rem; font-weight: 900; color: #1b1f2a; background: var(--accent); border-radius: 8px; padding: 0 6px; }
 .kv-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--foe-bg); border: 2px solid rgba(255,107,107,.55); border-radius: 12px; padding: 3px 10px 3px 4px; font-size: 1.05rem; font-weight: 700; }
 .kv-chip .picon { width: 28px; height: 28px; flex-basis: 28px; }
 .kv-chip .ticon { display: inline-block; width: 26px; height: 26px; }
@@ -919,7 +946,6 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 /* ばしょ：その場所の色の 帯 */
 .kv-field { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 10px; width: 100%; text-align: left; background: color-mix(in srgb, var(--fc, #3e4558) 45%, #1b1f2a); border: 2px solid var(--fc, #3e4558); border-radius: 12px; padding: 2px 12px; font-size: 1.05rem; line-height: 1.35; }
 .kv-field b { font-size: 1.15rem; }
-.kv-fdesc { color: #e8e4da; }
 /* かてば もらえる：金色 */
 .kv-rw { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .kv-rwl { color: var(--gold); font-weight: 800; }
@@ -1036,18 +1062,20 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   .kv-side { display: contents; }
   .kv-vs { display: none; }
   .kv-side.me > .kv-nm { grid-column: 1; grid-row: 1; }
-  .kv-side.me > #pStats { grid-column: 1; grid-row: 2; }
-  .kv-side.me > .kv-mon { grid-column: 1; grid-row: 3; background: rgba(88,199,255,.12); border: 2px solid rgba(88,199,255,.5); border-radius: 12px; }
+  .kv-side.me > #pStats { grid-column: 1; grid-row: 3; }
+  .kv-side.me > #pWaza { grid-column: 1 / -1; grid-row: 5; display: flex; flex-wrap: wrap; }
+  .kv-side.me > .kv-mon { grid-column: 1; grid-row: 2; background: rgba(88,199,255,.12); border: 2px solid rgba(88,199,255,.5); border-radius: 12px; }
   .kv-side.foe > .kv-nm { grid-column: 2; grid-row: 1; justify-content: flex-start; }
-  .kv-side.foe > #eStats { grid-column: 2; grid-row: 2; }
+  .kv-side.foe > #eStats { grid-column: 2; grid-row: 3; }
   .kv-side.foe > #eStats .kv-stats { justify-content: flex-start; }
-  .kv-side.foe > .kv-mon { grid-column: 2; grid-row: 3; background: rgba(255,107,107,.12); border: 2px solid rgba(255,107,107,.5); border-radius: 12px; }
+  .kv-side.foe > .kv-mon { grid-column: 2; grid-row: 2; background: rgba(255,107,107,.12); border: 2px solid rgba(255,107,107,.5); border-radius: 12px; }
   .kv-side.foe.hard > .kv-mon { border-color: var(--e); }
-  .kv-side.foe > .kv-chips { grid-column: 1 / -1; grid-row: 4; justify-content: flex-start; }
-  .kv-side.me > .kv-slots { grid-column: 1 / -1; grid-row: 5; }
+  .kv-side.foe > .kv-chips { grid-column: 1 / -1; grid-row: 4; justify-content: flex-start; align-self: start; }
+  .kv-side.foe .kv-grp { justify-content: flex-start; }
+  #pre .kv-side.foe > .kv-chips { justify-content: flex-end; } #pre .kv-side.foe .kv-grp { justify-content: flex-end; }
+  .kv-side.me > .kv-slots { grid-column: 1 / -1; grid-row: 6; }
   .kv-mon { height: 72px; }
-  .kv-fdesc { display: none; } /* ばしょの 文は 押すと 出る */
-  .kv-slot { min-height: 44px; flex-direction: row; gap: 6px; }
+    .kv-slot { min-height: 44px; flex-direction: row; gap: 6px; }
   .kv-slot .kv-nm.long { font-size: .88rem; letter-spacing: -.06em; } .kv-slot.on:has(.kv-nm.long) { gap: 2px; }
   .kv-stage, .kv-handcol { flex: 0 0 auto; } /* スマホ：舞台と 手札は 縮めず、まとめて 中で スクロール */
   .kv-side.foe .met { display: none; } /* 名前の 行を 1行に（はじめて は 文の欄でも 分かる） */
@@ -1234,15 +1262,16 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       <div class="kv-duel">
         <div class="kv-side me">
           <div class="kv-nm" id="pName"></div>
-          <div id="pStats"></div>
           <div class="kv-mon" id="pMon"></div>
+          <div id="pStats"></div>
+          <div class="kv-chips kv-waza" id="pWaza"></div>
           <div class="kv-slots" id="slots"></div>
         </div>
         <div class="kv-vs">VS</div>
         <div class="kv-side foe" id="preFoe">
           <div class="kv-nm"><span id="eName"></span><span class="met" id="eMet"></span><span class="hardmark" id="eHard" style="display:none">てごわい</span><span class="nx2" id="eNareX2" style="display:none">なれ ×2</span><span class="bossmark" id="eBoss" style="display:none">やまの ぬし</span></div>
-          <div id="eStats"></div>
           <div class="kv-mon" id="eMon"></div>
+          <div id="eStats"></div>
           <div class="kv-chips" id="eChips"></div>
         </div>
       </div>
@@ -2137,7 +2166,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     var p = S.PART_BY_ID[id], isLv2 = !!opt.mine && G.lv2.indexOf(id) >= 0;
     var w = p.weight !== 'none' ? '<span class="tag ' + p.weight + '">' + WEIGHT[p.weight] + '</span>' : '';
     var h = '<div class="info"><div class="if-head">' + partIcon(id, 'lg') + '<div class="if-t"><div class="if-name">' + esc(p.name) + '</div><div class="if-tags"><span class="tag loc">' + esc(p.locName) + '</span>' + w +
-      (isLv2 ? '<span class="tag lv">Lv2</span>' : '') + (opt.foe ? '<span class="tag foe">あいての パーツ</span>' : '') + (opt.on ? '<span class="tag me">つけている</span>' : '') + '</div></div></div>';
+      (isLv2 ? '<span class="tag lv">Lv2</span>' : '') + (opt.foe ? '<span class="tag foe">あいての パーツ</span><span class="tag">そうび・こわせる</span>' : '') + (opt.on ? '<span class="tag me">つけている</span>' : '') + '</div></div></div>';
     h += '<div class="if-eff">' + esc(p.effect) + '</div>';
     if (isLv2) h += '<div class="if-lv2">Lv2「' + esc(p.lv2name) + '」：' + esc(p.lv2text) + '</div>';
     if (opt.reward) h += '<div class="if-rw">かてば もらえる：' + (opt.reward.kind === 'nare' ? 'もっている パーツの なれ +' + opt.reward.amt : 'あたらしい パーツ') + '</div>';
@@ -2155,12 +2184,12 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   }
   function infoTraitHTML(t) {
     var T = S.TRAITS[t];
-    return '<div class="info"><div class="if-head"><span class="if-ticon">' + TRAIT_ICON[t] + '</span><div class="if-t"><div class="if-name">' + esc(T.name) + '</div><div class="if-tags"><span class="tag foe">あいての せいしつ</span></div></div></div><div class="if-eff">' + esc(T.desc) + '</div></div>';
+    return '<div class="info"><div class="if-head"><span class="if-ticon">' + TRAIT_ICON[t] + '</span><div class="if-t"><div class="if-name">' + esc(T.name) + '</div><div class="if-tags"><span class="tag foe">あいての せいしつ</span><span class="tag">うまれつき・こわれない</span></div></div></div><div class="if-eff">' + esc(T.desc) + '</div></div>';
   }
   function infoFieldHTML(f) {
     return '<div class="info"><div class="if-head">' + fieldIcon(f.color, 'lg') + '<div class="if-t"><div class="if-name">ばしょ：' + esc(f.name) + '</div></div></div><div class="if-eff">' + esc(f.desc) + '</div></div>';
   }
-  function infoStatHTML(k, side) {
+  function infoStatHTML(k, side, val, cmp) {
     var t = { hp: 'たいりょく：0 に なると まけ。', atk: 'こうげき：1げきの つよさ。', spd: 'はやさ：おおきい ほうが さきに うごく。' + S.CFG.speedGap + ' いじょう ちがうと さいしょに 2かい。' }[k];
     var extra = '';
     if (side === 'p' && G.run) {
@@ -2170,31 +2199,50 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       if (k === 'spd') extra = 'パーツの おもさ（かるい +2・おもい −3）、はね、ばしょで かわる';
       if (k !== 'spd') extra += '。そだち：' + growMarks();
     }
+    if (side === 'p' && val !== undefined && !isNaN(val)) t = 'いま ' + fmt(val) + '。' + t; // 層②：自分の 数字
+    if (side === 'e' && cmp) t = cmp + '。' + t;
     return '<div class="info"><div class="if-head"><span class="if-sicon">' + STAT_ICON[k] + '</span><div class="if-t"><div class="if-name">' + STAT_NAME[k] + '</div><div class="if-tags"><span class="tag ' + (side === 'p' ? 'me">じぶん' : 'foe">あいて') + '</span></div></div></div><div class="if-eff">' + t + '</div>' + (extra ? '<div class="if-note">' + esc(extra) + '</div>' : '') + '</div>';
   }
-  // 強さ：アイコンと 数字だけ（押すと 文）
+  // 強さ（決定 23 の 層①）：アイコンと 5つの 目もり（数字は 出さない）。数字は 合わせる／長押しの 文（層②。自分だけ）。data-v に 本当の 数を 持つ（検査用）
+  var STAR_STEPS = { hp: [70, 95, 125, 165], atk: [10, 13, 17, 22], spd: [4, 8, 12, 16] };
+  function starN(k, v) { var s = STAR_STEPS[k], n = 1; for (var i = 0; i < s.length; i++) if (v >= s[i]) n++; return n; }
+  function pipsHTML(n, cls) { var h = '<span class="kv-pips' + (cls ? ' ' + cls : '') + '" aria-label="' + n + '／5">'; for (var i = 0; i < 5; i++) h += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return h + '</span>'; }
   function statsHTML(v, side) {
     return '<div class="kv-stats" data-side="' + side + '">' + ['hp', 'atk', 'spd'].map(function (k) {
-      return '<button type="button" class="kv-st" data-st="' + k + '" title="' + STAT_NAME[k] + '">' + STAT_ICON[k] + '<b class="' + (v[k + 'Cls'] || '') + '">' + v[k] + '</b></button>';
+      var num = parseFloat(v[k]) || 0;
+      return '<button type="button" class="kv-st" data-st="' + k + '" data-v="' + num + '" title="' + STAT_NAME[k] + '">' + STAT_ICON[k] + pipsHTML(starN(k, num), v[k + 'Cls'] || '') + '</button>';
     }).join('') + '</div>';
+  }
+  // 相手の 強さは 数字を 見せず「あなたより …」（決定 23：相手の 細かい 数字は あえて 見せない）
+  function cmpWord(k, ev, pv) {
+    if (pv === null || isNaN(pv)) return '';
+    var big = { hp: 'おおい', atk: 'つよい', spd: 'はやい' }[k], small = { hp: 'すくない', atk: 'よわい', spd: 'おそい' }[k];
+    var near = k === 'spd' ? ev === pv : Math.abs(ev - pv) <= Math.max(1, pv * 0.08);
+    return near ? 'あなたと おなじ くらい' : (ev > pv ? 'あなたより ' + big : 'あなたより ' + small);
   }
   document.addEventListener('pointerover', function (ev) { // 強さも マウスを 合わせると 文（決定 16）
     if (ev.pointerType !== 'mouse' || narrow()) return;
     var b = ev.target && ev.target.closest ? ev.target.closest('.kv-st') : null;
     if (!b || b.contains(ev.relatedTarget) || (G.screen !== 'pre' && G.screen !== 'fork')) return;
-    showInfo(G.screen === 'pre' ? 'preInfo' : 'forkInfo', infoStatHTML(b.dataset.st, b.parentNode.dataset.side));
+    showInfo(G.screen === 'pre' ? 'preInfo' : 'forkInfo', statInfoOf(b));
   });
+  function statInfoOf(b) {
+    var side = b.parentNode.dataset.side, k = b.dataset.st, v = parseFloat(b.dataset.v), cmp = '';
+    if (side === 'e') { var mine = document.querySelector('.screen.on .kv-stats[data-side="p"] .kv-st[data-st="' + k + '"]'); cmp = mine ? cmpWord(k, v, parseFloat(mine.dataset.v)) : ''; }
+    return infoStatHTML(k, side, v, cmp);
+  }
   document.addEventListener('click', function (ev) {
     var b = ev.target && ev.target.closest ? ev.target.closest('.kv-st') : null;
     if (!b || (G.screen !== 'pre' && G.screen !== 'fork')) return;
-    var side = b.parentNode.dataset.side;
-    showInfo(G.screen === 'pre' ? 'preInfo' : 'forkInfo', infoStatHTML(b.dataset.st, side));
+    showInfo(G.screen === 'pre' ? 'preInfo' : 'forkInfo', statInfoOf(b));
   });
+  // こわせる 印（パーツの 札の 右上の ひび。せいしつ には つかない）
+  var CRACK = '<svg class="kv-crack" viewBox="0 0 14 16" aria-label="こわせる"><path d="M9 0 L5 6 L10 9 L4 16" fill="none" stroke="#ffd0d0" stroke-width="2.4" stroke-linejoin="round"/></svg>';
   // 小さな札（相手の 性質・パーツ）。押すと 文
   function chipEl(kind, id, boxId) {
     var b = el('button', 'kv-chip ' + kind); b.type = 'button';
     if (kind === 'trait') { b.innerHTML = '<span class="ticon">' + TRAIT_ICON[id] + '</span>' + esc(S.TRAITS[id].name); infoTap(b, function () { showInfo(boxId, infoTraitHTML(id)); }); }
-    else { b.innerHTML = partIcon(id) + esc(S.PART_BY_ID[id].short); b.dataset.id = id; infoTap(b, function () { showInfo(boxId, infoPartHTML(id, { foe: true })); }); }
+    else { b.innerHTML = partIcon(id) + esc(S.PART_BY_ID[id].short) + CRACK; b.dataset.id = id; infoTap(b, function () { showInfo(boxId, infoPartHTML(id, { foe: true })); }); }
     return b;
   }
   // かてば もらえる：アイコン＋名前（なれ +10 は 印）。押すと 文（道は 決まらない）
@@ -2419,8 +2467,10 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('preTrail').innerHTML = trailHTML(true);
     // 舞台：ばしょの 色と 1行の文（押すと 文の欄にも）
     $('preStage').style.setProperty('--fc', f.color);
-    $('preField').innerHTML = '' + fieldIcon(f.color) + '<b>ばしょ：' + esc(f.name) + '</b><span class="kv-fdesc">' + esc(f.desc) + '</span>';
-    $('preField').onclick = function () { showInfo('preInfo', infoFieldHTML(f)); };
+    // 決定 23：層①は 名前と ひとこと。くわしい 文は 合わせる／押す（層②）
+    $('preField').innerHTML = '' + fieldIcon(f.color) + '<b>ばしょ：' + esc(f.name) + '</b><span class="kv-fhito">' + esc(FIELD_HITO[f.id] || '') + '</span>';
+    if (!$('preField').dataset.tap) { $('preField').dataset.tap = '1'; infoTap($('preField'), function () { showInfo('preInfo', infoFieldHTML(curField())); }); }
+    renderWazaChips();
     // 相手：名前・強さ（アイコンと 数字）・姿・性質と パーツの 小さな札
     $('eName').textContent = e.name;
     var mb = $('eMet'); mb.textContent = met ? (met + 1) + 'かいめ' : 'はじめて'; mb.className = 'met' + (met ? '' : ' first');
@@ -2430,9 +2480,13 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     $('preFoe').className = 'kv-side foe' + (hard ? ' hard' : '') + (e.boss ? ' boss' : '');
     $('eStats').innerHTML = statsHTML({ hp: ef.maxHp, atk: Math.round(S.effAtk(ef)), spd: S.effSpd(ef, f.id), hpCls: hard ? 'hard' : '', atkCls: hard ? 'hard' : '' }, 'e');
     $('eMon').innerHTML = monsterSVG(e.id, e.parts, 'l', e.traits);
+    // 決定 22：せいしつ（うまれつき・丸い バッジ）と パーツ（そうび・四角い 札・こわせる 印）を 形と 見出しで 分ける
     var ch = $('eChips'); ch.innerHTML = '';
-    e.traits.forEach(function (t) { ch.appendChild(chipEl('trait', t, 'preInfo')); });
-    e.parts.forEach(function (pid) { ch.appendChild(chipEl('part', pid, 'preInfo')); });
+    var gt = el('div', 'kv-grp kv-grp-t', '<span class="kv-gl">うまれつき</span>'), gp = el('div', 'kv-grp kv-grp-p', '<span class="kv-gl">そうび</span>');
+    e.traits.forEach(function (t) { gt.appendChild(chipEl('trait', t, 'preInfo')); });
+    e.parts.forEach(function (pid) { gp.appendChild(chipEl('part', pid, 'preInfo')); });
+    if (e.traits.length) ch.appendChild(gt);
+    if (e.parts.length) ch.appendChild(gp);
     // かてば もらえる：わかれみちで決めたもの（ぬしは なし）
     var rw = $('eReward'); rw.innerHTML = '';
     if (e.boss) rw.appendChild(el('span', 'kv-rwl', 'ぬしを たおせば ちょうじょう！'));
@@ -2455,6 +2509,27 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
         setTimeout(function () { $('fightBtn').click(); }, 400 / OPT.speed);
       }, 300 / OPT.speed);
     }
+  }
+  // 層①の ひとこと（決定 23。ひらがな中心・10文字 くらい。くわしい 文は 層②）
+  var FIELD_HITO = { plain: 'なにも おきない', mud: 'おもい パーツが おそい', wind: 'かるいと はやくなる', rain: 'じょうたいが すぐ きえる', summit: 'ぬしが まっている' };
+  var WAZA_HITO = { nerai: 'どくの あいてに つよい', kiai: 'ピンチで つよくなる', kamitsuki: 'ときどき かみつきかえす', hitoiki: 'ときどき かいふく', suki: 'よろけた あいてに つよい', renda: 'ときどき もう1かい', ikari: 'ときどき つよく なる', oonaguri: 'ときどき おおわざ' };
+  // 自分の わざ（決定 17-c の 層①：名前と ひとこと。合わせる／長押しで くわしい 文）
+  function renderWazaChips() {
+    var box = $('pWaza'); box.innerHTML = '';
+    var sp = curSpecies(); if (!sp) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    var list = (G.run && G.run.waza) || sp.waza;
+    list.forEach(function (id) {
+      var w = S.WAZA_BY_ID[id]; if (!w) return;
+      var b = el('button', 'kv-chip waza', '<b>' + esc(w.name) + '</b><span class="kv-hito">' + esc(WAZA_HITO[id] || '') + '</span>'); b.type = 'button'; b.dataset.id = id;
+      b.style.setProperty('--sc', sp.color);
+      infoTap(b, function () { showInfo('preInfo', infoWazaHTML(id, sp)); });
+      box.appendChild(b);
+    });
+  }
+  function infoWazaHTML(id, sp) {
+    var w = S.WAZA_BY_ID[id];
+    return '<div class="info"><div class="if-head"><div class="if-t"><div class="if-name" style="color:' + sp.color + '">' + esc(w.name) + '</div><div class="if-tags"><span class="tag me">' + esc(sp.name) + 'の わざ</span><span class="tag">' + wazaKind(id) + '</span></div></div></div><div class="if-eff">' + esc(w.text()) + '</div><div class="sub">わざは たたかいの なかで じどうで でる</div></div>';
   }
   // つぎの そだち：1行（あと ○しょう・いま いちばん のびそうな 方向）
   function renderGrowRow() {
@@ -2483,7 +2558,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
     })(G.attached[i], i + 1);
     var first = ps >= es ? G.run.name : 'あいて';
     var gap = Math.abs(ps - es) >= S.CFG.speedGap;
-    $('firstTxt').innerHTML = 'さきに うごく：<b>' + esc(first) + (gap ? '（さいしょに 2かい）' : '') + '</b>';
+    $('firstTxt').innerHTML = '<span class="kv-arrow">➜</span>さきに うごく：<b>' + esc(first) + '</b>' + (gap ? '<span class="kv-x2">さいしょ 2かい</span>' : '');
   }
   // 手札（もちもの）：小さな絵＋名前＋Lv2 の印＋◎✕（＋なれの 細い線）。1回目で 文、同じ札を もう1回で つける／はずす
   var preSel = null;

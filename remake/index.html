@@ -88,6 +88,10 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 .hpbar { height:1.1rem; background:#3a2530; border-radius:.5rem; overflow:hidden; border:2px solid #000; margin-top:.2rem; }
 .hpbar i { display:block; height:100%; background:linear-gradient(#7ee787,#3fa94b); transition: width .25s; }
 .hpnum { font-weight:900; font-size:1.2rem; text-align:right; }
+.hpnum .chgmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#1b1b1b; background:#e5534b; }
+.hpnum .chgmark:empty { display:none; }
+.hpnum .chgmark.fx-chgnow { background:#ffe066; animation: fxchg .5s 2 alternate; }
+@keyframes fxchg { from { transform:scale(1); } to { transform:scale(1.15); } }
 .stage2 { position:relative; height: 14rem; background:#1a2030; border-radius:1rem; overflow:hidden; }
 .stage2 .mp, .stage2 .ep { position:absolute; bottom:.6rem; height:9.5rem; transition: transform .15s; }
 .stage2 .mp { left:8%; } .stage2 .ep { right:8%; }
@@ -406,7 +410,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     show('battle');
     play(out, before, equip, d);
   }
-  function hpHtml(p, max) { return '<div class="hpnum" id="' + p + 'HpN">' + max + ' / ' + max + '</div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }
+  function hpHtml(p, max) { return '<div class="hpnum"><span class="chgmark" id="' + p + 'Chg"></span><span id="' + p + 'HpN">' + max + ' / ' + max + '</span></div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }
   function setHp(p, hp, max) { $(p + 'HpN').textContent = Math.max(0, hp) + ' / ' + max; $(p + 'Hp').style.width = Math.max(0, 100 * hp / max) + '%'; }
   function glow(side, sel) { var root = $(side === 'p' ? 'bMe' : 'bFoe'); Array.prototype.forEach.call(root.querySelectorAll(sel), function (el) { el.classList.remove('fx-glow'); void el.offsetWidth; el.classList.add('fx-glow'); }); }
   function glowKw(side, kw) { glow(side, '[data-kw="' + kw + '"]'); var root = $(side === 'p' ? 'bMe' : 'bFoe'); Array.prototype.forEach.call(root.querySelectorAll('.ptile'), function (el) { var p = S.PART_BY_ID[el.getAttribute('data-part')]; if (p && p.kw.indexOf(kw) >= 0) { el.classList.remove('fx-glow'); void el.offsetWidth; el.classList.add('fx-glow'); } }); }
@@ -421,6 +425,16 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     var pMax = out.res.pMax, eMax = out.res.eMax, pHp = pMax, eHp = eMax;
     var STN = { poison: 'どく', stagger: 'よろけ', brittle: 'もろい' };
     var WZ = S.WAZA_BY_ID;
+    // ためる の 印：ためる を もつ 側は、つぎの 手が ためる 手なら「つぎ ためる」、いまの 手が ためる 手なら「ためる！」（いちばん 多い 負けの 理由が 相手の ためる）
+    var hasChg = { p: !!out.res.pSt.kw.charge, e: !!out.res.eSt.kw.charge };
+    function chgMark(side, n) {
+      if (!hasChg[side]) return;
+      if (n < 0) { $(side === 'p' ? 'mChg' : 'fChg').textContent = ''; return; }
+      var el = $(side === 'p' ? 'mChg' : 'fChg'), now = n > 0 && n % C.chargeEvery === 0, next = (n + 1) % C.chargeEvery === 0;
+      el.textContent = now ? '⚡ ためる！' : next ? '⚡ つぎ ためる' : '';
+      el.className = 'chgmark' + (now ? ' fx-chgnow' : '');
+    }
+    chgMark('p', 0); chgMark('e', 0);
     $('bSkip').onclick = function () { fast = true; };
     G.playing = true;
     function step() {
@@ -458,8 +472,8 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
           if (e.src === 'regen' || e.src === 'leech') glowKw(who, e.src); else glow(who, '[data-waza="hitoiki"]');
           delay = 300; break;
         case 'waza': addLog(cls, nm + 'の わざ「' + WZ[e.w].name + '」！'); glow(who, '[data-waza="' + e.w + '"]'); popText(WZ[e.w].name + '！', 'crit'); delay = 450; break;
-        case 'hand': if (e.who === 'p') { $('handN').textContent = e.n + '手め'; addLog('hl', '― ' + me + 'の ' + e.n + '手め ―'); } delay = 60; break;
-        case 'end': addLog('s', e.win ? 'かった！' : (e.timeout ? '時間ぎれ… ' : '') + 'まけた…'); popText(e.win ? 'かった！' : 'まけた…', e.win ? 'crit' : 'dodge'); delay = 400; break;
+        case 'hand': chgMark(e.who, e.n); if (e.who === 'p') { $('handN').textContent = e.n + '手め'; addLog('hl', '― ' + me + 'の ' + e.n + '手め ―'); } delay = 60; break;
+        case 'end': chgMark('p', -1); chgMark('e', -1); addLog('s', e.win ? 'かった！' : (e.timeout ? '時間ぎれ… ' : '') + 'まけた…'); popText(e.win ? 'かった！' : 'まけた…', e.win ? 'crit' : 'dodge'); delay = 400; break;
       }
       setTimeout(step, fast ? 0 : delay / SPEED);
     }

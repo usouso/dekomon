@@ -33,6 +33,7 @@
 ### 2つの版
 - **安定版**：repo のいちばん上（index.html・sim.js …）。https://usouso.github.io/dekomon/ 。ぼくくんが遊ぶ版。自動の作業は触らない。
 - **試作版**：`next/` フォルダ（自分の index.html・sim.js・bot.js・tests.js・serve.js・tools/ を持つ）。https://usouso.github.io/dekomon/next/ 。自動の作業が触るのは ここと `auto/` だけ。保存は 'next.' を頭につけた別の鍵（初めて開いたときだけ安定版の保存を写す）。
+- **作り直しの版**（2026-10-29 ぼくくん承認）：`remake/` フォルダ。https://usouso.github.io/dekomon/remake/ 。設計書 https://claude.ai/artifact/GGMbMbeSY1gf7wLvytHtyb の 作り直しを ここで 作る。自動の作業は ここも 触って よく、main に 直接 入れて よい。保存は 'remake.' を頭に（殿堂は 0 から）。遊べる ように なって ぼくくんが「入れ替えて いい」と 言ったら next/ と 入れ替える。
 - 試作版 → 安定版へ上げる（next/ のゲームのファイルを いちばん上へコピーし、前の安定版を vN/ に残す）のは、ぼくくんが「上げていい」と言ったときだけ。相談役がやる。
 
 ### 時刻

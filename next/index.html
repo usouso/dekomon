@@ -1904,19 +1904,19 @@ span.kv-st:active { transform: none; }
   var SHU_SEL = null;
   function showShu() {
     SHU_SEL = null; $('shuGo').disabled = true;
-    $('shuHow').innerHTML = ['hp', 'atk', 'spd'].map(function (k) { return '<span class="shu-leg">' + STAT_ICON[k] + ' ' + STAT_NAME[k] + '</span>'; }).join('') + esc((canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる'); // 確認役：強さの アイコンの 見方
+    var leg = ['hp', 'atk', 'spd'].map(function (k) { return '<span class="shu-leg">' + STAT_ICON[k] + ' ' + STAT_NAME[k] + '</span>'; }).join(''); // 確認役：強さの アイコンの 見方（PC は 下の 説明の 箱、スマホは 上の 文）
+    $('shuHow').innerHTML = (narrow() ? leg : '') + esc((canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる');
     var list = $('shuList'); list.innerHTML = '';
     S.SPECIES.forEach(function (sp) {
       var c = el('button', 'shucard'); c.type = 'button'; c.setAttribute('data-sp', sp.id); c.style.setProperty('--sc', sp.color);
       c.innerHTML = '<div class="shu-mon">' + monsterSVG('player', [], 'r', [], [], null, false, sp.color, shuShape(sp.id)) + '</div><div class="shu-t">' +
         '<div class="shu-name" style="color:' + sp.color + '">' + esc(sp.name) + '</div>' +
         statsHTML({ hp: sp.hp, atk: sp.atk, spd: sp.spd }, 'p', 'span') + // バトル前・わかれみちと 同じ 形（アイコン＋数字）
-
         sp.waza.map(function (id) { var w = S.WAZA_BY_ID[id], k = w.kind === 'kokozo'; return '<div class="shu-w"><span class="wn">' + esc(w.name) + '</span><span class="wk' + (k ? ' kokozo' : '') + '">' + wazaKind(id) + '</span><div class="ws">' + esc(wazaShort(id)) + '</div></div>'; }).join('') + '</div>';
       infoTap(c, function () { showInfo('shuInfo', infoShuHTML(sp)); }, function () { selectShu(sp.id); });
       list.appendChild(c);
     });
-    $('shuInfo').innerHTML = '<div class="info empty"><div>しゅるいごとに つよさと わざ（2つ）が ちがう。たまごの 子は おやの しゅるい</div></div>';
+    $('shuInfo').innerHTML = '<div class="info empty"><div>しゅるいごとに つよさと わざ（2つ）が ちがう。たまごの 子は おやの しゅるい</div><div>' + leg + '</div></div>';
     show('shu');
     if (OPT.auto) setTimeout(function () { selectShu(S.SPECIES_IDS[G.auto.runs % S.SPECIES_IDS.length]); $('shuGo').click(); }, 300 / OPT.speed);
   }
@@ -2449,7 +2449,7 @@ span.kv-st:active { transform: none; }
   function itemsPanel() {
     var d = myDef();
     var box = el('div', 'dr-items'); box.id = 'forkItems';
-    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p').replace(/<\/div>$/, '<span class="kv-nopart" title="パーツと ばしょで かわる。バトル前で つけると きまる">パーツなし</span></div>'); // 確認役：わかれみちの 自分は パーツなし・ばしょなしの 数（バトル前で かわる）
+    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span><span class="kv-nopart" title="パーツと ばしょで かわる。バトル前で つけると きまる">パーツなし</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p'); // 確認役：わかれみちの 自分は パーツなし・ばしょなしの 数（バトル前で かわる）
     var grid = el('div', 'dr-igrid');
     S.LOCS.forEach(function (loc) {
       G.owned.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; }).forEach(function (id) {

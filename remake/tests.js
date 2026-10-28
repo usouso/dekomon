@@ -94,6 +94,9 @@ noLuck(function () {
   var revive = 0;
   for (var q3 = 0; q3 < 200; q3++) { var rl = S.battle(P({ atk: 6, hp: 3 }, ['leech']), E({ atk: 1, hp: 300 }, ['spike']), q3); if (rl.events.some(function (e, i) { return e.t === 'heal' && e.who === 'p' && rl.events.slice(0, i).reverse().find(function (x) { return x.to === 'p' && x.hp !== undefined; }) && rl.events.slice(0, i).reverse().find(function (x) { return x.to === 'p' && x.hp !== undefined; }).hp <= 0; })) revive++; }
   ok(revive === 0, 'たおれた あとに すいとりで かいふく しない');
+  r = S.battle(P({ atk: 5, hp: 60 }), E({ atk: 2, hp: 500 }, ['spike']), 1, { waza: ['gaman'] });
+  // 1手め：こうげき 1げき → はんげきを 1げき うける。あいての こうげきで もう 1げき。2手めは +2
+  ok(handHits(r, 'p', 2)[0].dmg === 5 + 2 - 1, 'がまん：はんげきで うけた 1げきも 数える（まもり +1 の トゲ）');
   // 時間ぎれ：のこりの わりあいで（同じなら あいて）
   r = S.battle(P({ atk: 1, hp: 300 }), E({ atk: 1, hp: 300 }), 1);
   ok(r.timeout && r.win === false, '時間ぎれで 同じ わりあい → あいての かち');

@@ -237,6 +237,7 @@
           if (d.kw.counter && !a.kw.ranged) {
             var c = Math.max(1, Math.round(d.st.atk * CFG.counterRatio) - a.st.def);
             dmgTo(a, c, 'counter', d.side);
+            if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
             log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp });
           }
         }

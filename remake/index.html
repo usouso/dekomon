@@ -448,7 +448,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   G.useEgg = true;
   function drawEggBar() {
     var e = eggNow(), w = e && S.WAZA_BY_ID[e.waza];
-    $('eggbar').innerHTML = e ? '<div class="eggbar' + (G.useEgg ? '' : ' off') + '">🥚 たまご：' + e.parent + 'の わざ <span class="wz oya" data-waza="' + e.waza + '">🥚' + w.name + '</span>' + (G.useEgg ? '　どの 子も おぼえて うまれる' : '　つかわない（たまごは のこる）') + '<button class="btn" id="bEggUse">' + (G.useEgg ? 'つかわない' : 'つかう') + '</button></div>' : '';
+    $('eggbar').innerHTML = e ? '<div class="eggbar' + (G.useEgg ? '' : ' off') + '">🥚 たまご：' + e.parent + 'の わざ <span class="wz oya" data-waza="' + e.waza + '">🥚' + w.name + '</span>' + (G.useEgg ? '　どの 子も おぼえて、1つ そだって うまれる' : '　つかわない（たまごは のこる）') + '<button class="btn" id="bEggUse">' + (G.useEgg ? 'つかわない' : 'つかう') + '</button></div>' : '';
     if ($('bEggUse')) $('bEggUse').onclick = function () { G.useEgg = !G.useEgg; drawEggBar(); };
   }
   function drawSpecies() {

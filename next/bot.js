@@ -11,6 +11,10 @@ var EGG_RUNS = parseInt(process.argv[6] || String(Math.max(50, Math.round(RUNS /
 var SEED = 20261026;
 // 決定 13：モンスターの 種類と 技。DEKO_MON='{"species":"pyun"}' で わざ あり（CFG.waza.on = true）・その 種類で 回す。無ければ わざ なし（前と 同じ）
 var CUR_MON = null;
+var FEW = process.env.DEKO_FEW === '1'; if (FEW) console.log('DEKO_FEW=1：はじめての 周回（始めの もちもの 3つ）');
+// 決定 21-d：はじめの うち（殿堂の だれも 3勝に 届いて いない）は 1・2戦目の 相手が やさしい。DEKO_FEW=1 なら そう（殿堂 0体）。DEKO_EASY=1 でも 入る
+var EASY = (process.env.DEKO_EASY === '0' || !(S.CFG.earlyUntil > 0)) ? false : (FEW || process.env.DEKO_EASY === '1'); // CFG.earlyUntil が 0 なら 画面の easyStart() と 同じく だれにも かけない // DEKO_EASY=0 で はじめての 周回でも 切る（前と 比べる）
+if (EASY) console.log('はじめの うち：1・2戦目の 相手 ×' + S.CFG.early.join('・×'));
 if (process.env.DEKO_MON) { CUR_MON = JSON.parse(process.env.DEKO_MON); S.CFG.waza.on = true; console.log('わざ あり：' + process.env.DEKO_MON); }
 var rng = S.makeRng(SEED);
 var NB = S.CFG.runBattles;
@@ -52,7 +56,7 @@ function newStats() {
 // inherit：版8の卵。継ぐパーツ（なれ full+1 で始まり、最初の発動で 必ず ひらめく）
 function playRun(chooser, stats, fixedParts, inherit) {
   var run = S.newRun(rng);
-  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng, inherit || null);
+  var owned = fixedParts ? S.PART_IDS.slice() : S.startItems(rng, inherit || null, FEW && !inherit); // 決定 21-b：DEKO_FEW=1 で はじめての 周回（始めの もちもの 3つ）
   var wins = 0, lv2 = [], pity = 0, nare = {}, grow = S.emptyGrow(), acc = { received: 0, landed: 0, first: 0 }, sparksThisRun = 0;
   if (inherit) nare[inherit] = S.CFG.nare.full + 1;
   var parentAt = -1;
@@ -72,7 +76,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     var rewards = fixedParts ? [] : path.rewards;
     if (!fixedParts && !enemy.boss) { var slots = hard ? 2 : 1; stats.rw.slots += slots; stats.rw.none += slots - rewards.length; noneR += slots - rewards.length; }
     var parts = fixedParts ? fixedParts : chooser.loadout(owned, eIdx, stage, fId, grow, lv2, hard);
-    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, mon: CUR_MON, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
+    var res = S.runBattle(parts, eIdx, stage, fId, { rng: rng, grow: grow, lv2: lv2, hard: hard, easy: EASY, mon: CUR_MON, spark: { stage: stage, pity: pity, nare: nare, parent: inherit || null } });
     if (res.summary.waza) Object.keys(res.summary.waza).forEach(function (w) { stats.waza[w] = (stats.waza[w] || 0) + res.summary.waza[w]; });
     stats.battles++;
     stats.hands.push(res.nHands);
@@ -95,6 +99,7 @@ function playRun(chooser, stats, fixedParts, inherit) {
     else pity++;
     stats.stage[b].n++;
     var won = res.winner === 'p';
+    if (stats.stageHard) { var sh = stats.stageHard[b] || (stats.stageHard[b] = { hn: 0, hw: 0, nn: 0, nw: 0 }); if (hard) { sh.hn++; if (won) sh.hw++; } else { sh.nn++; if (won) sh.nw++; } } // 21-d：段階ごとの てごわい／ふつう
     var bucket = enemy.boss ? stats.boss : (hard ? stats.hardB : stats.normB);
     bucket.n++; if (won) bucket.w++;
     if (enemy.boss && lv2.indexOf('leech') >= 0) { stats.ooguiBoss.n++; stats.ooguiBoss.sum += grow.oogui || 0; }
@@ -181,15 +186,15 @@ function reportBot(name, st) {
 
 // ---------- ボット ----------
 function scoreOf(parts, path, stage, grow, lv2) {
-  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard, mon: CUR_MON });
+  var r = S.runBattle(parts, path.enemy, stage, path.field, { variance: 0, grow: grow, lv2: lv2, hard: path.hard, easy: EASY, mon: CUR_MON });
   return (r.winner === 'p' ? 1 : 0) + 0.5 * (r.p.hp / r.p.maxHp - r.e.hp / r.e.maxHp);
 }
 // 合わせ：毎戦 その相手に最良の3つ。分かれ道は「勝ちやすい方」（もらえるものは見ない）
 var matchedBot = {
-  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard, CUR_MON).parts; },
+  loadout: function (owned, eIdx, stage, fId, grow, lv2, hard) { return S.bestLoadout(owned, eIdx, stage, fId, grow, lv2, hard, CUR_MON, EASY).parts; },
   fork: function (paths, owned, stage, grow, lv2) {
-    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard, CUR_MON).score;
-    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard, CUR_MON).score;
+    var s0 = S.bestLoadout(owned, paths[0].enemy, stage, paths[0].field, grow, lv2, paths[0].hard, CUR_MON, EASY).score;
+    var s1 = S.bestLoadout(owned, paths[1].enemy, stage, paths[1].field, grow, lv2, paths[1].hard, CUR_MON, EASY).score;
     return s1 > s0 ? 1 : 0;
   }
 };
@@ -214,6 +219,32 @@ var fixedBot = {
   fork: function (paths, owned, stage, grow, lv2, fixedParts) { return scoreOf(fixedParts, paths[1], stage, grow, lv2) > scoreOf(fixedParts, paths[0], stage, grow, lv2) ? 1 : 0; }
 };
 
+// 決定 21-d の 物差し：でたらめボット（もちものから 場所の 制約を 守って ランダムに 3つ まで つける。道も ランダム）。
+// DEKO_ONLY=detarame で これだけ 回して 終わる（ほかの ボットの 乱数の 順番は 変えない）。DEKO_FEW=1 と 合わせると はじめての 周回の 形。
+// 目安（決定 21-d）：1〜2戦目は でたらめでも 85% 以上。
+var detarameBot = {
+  loadout: function (owned) {
+    var out = [], used = {}, pool = owned.slice();
+    for (var i = pool.length - 1; i > 0; i--) { var k = S.randInt(rng, i + 1), t = pool[i]; pool[i] = pool[k]; pool[k] = t; }
+    pool.forEach(function (id) { var loc = S.PART_BY_ID[id].loc; if (out.length < 3 && !used[loc]) { used[loc] = true; out.push(id); } });
+    return out;
+  },
+  fork: function () { return S.randInt(rng, 2); }
+};
+// DEKO_DETA_FORK=easy（てごわいを 選ばない：友達の 形）／hard（いつも てごわい）／なし＝ランダム。DEKO_DETA_N=03 で 0〜3こ ランダム（ランダムボットの つけ方）
+var DETA_FORK = process.env.DEKO_DETA_FORK || '';
+if (DETA_FORK === 'easy') detarameBot.fork = function (paths) { return paths[0].hard ? 1 : 0; };
+else if (DETA_FORK === 'hard') detarameBot.fork = function (paths) { return paths[0].hard ? 0 : 1; };
+if (process.env.DEKO_DETA_N === '03') detarameBot.loadout = function (owned) { return S.randomLoadout(owned, rng); };
+if (process.env.DEKO_ONLY === 'detarame') {
+  var stD = newStats(); stD.stageHard = [];
+  for (var di = 0; di < RUNS; di++) playRun(detarameBot, stD);
+  reportBot('でたらめボット（場所の制約を守って ランダムに ' + (process.env.DEKO_DETA_N === '03' ? '0〜3こ' : '3つ') + '。道は ' + (DETA_FORK === 'easy' ? 'いつも ふつう' : DETA_FORK === 'hard' ? 'いつも てごわい' : 'ランダム') + '）', stD);
+  var s1 = stD.stage[0], s2 = stD.stage[1];
+  [0, 1].forEach(function (b) { var sh = stD.stageHard[b]; if (sh) console.log((b + 1) + '戦目：ふつう ' + pct(sh.nn ? sh.nw / sh.nn : 0) + '（' + sh.nn + '）・てごわい ' + pct(sh.hn ? sh.hw / sh.hn : 0) + '（' + sh.hn + '）'); });
+  console.log((FEW ? '【はじめての 周回：もちもの 3つ】' : '【いつもの 6つ】') + '1戦目 ' + pct(s1.n ? s1.w / s1.n : 0) + '（' + s1.n + ' 戦）・2戦目 ' + pct(s2.n ? s2.w / s2.n : 0) + '（' + s2.n + ' 戦）・1〜2戦目を 両方 勝つ ' + pct(s2.w / RUNS) + '（目安 85% 以上：決定 21-d）');
+  process.exit(0);
+}
 console.log('# でこもん 版8 ボット結果');
 console.log('');
 console.log('ぬし：たいりょく ×' + S.CFG.boss.hp + '、こうげき ×' + S.CFG.boss.atk + '（ふつうの相手の平均 ' + S.BOSS.hp + '・' + S.BOSS.atk + ' が基礎）。てごわい：たいりょく ×' + S.CFG.hard.hp + '、こうげき ×' + S.CFG.hard.atk + '。なれ +' + S.CFG.nare.dup + '（満タン ' + S.CFG.nare.full + '）。乱数の種 ' + SEED);

@@ -20,7 +20,7 @@ const URL = 'http://localhost:' + PORT + '/';
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     const open = async (owned) => {
       await page.goto(URL + '?mute=1&seed=7&reset=1');
-      await page.evaluate((o) => { const D = window.__dekomon; D.dbg.startRun(null, null, 'koron'); if (o) D.G.owned = o; D.dbg.showPre(); }, owned || null);
+      await page.evaluate((o) => { const D = window.__dekomon; D.STORE.hall.push({ id: 'h0', name: 'まえ', wins: 0, boss: false, gen: 1, parent: null, eggUsed: null, parts: [], lv2: [], sparked: [], synergies: [], grow: {}, growHist: [], maxHit: { dmg: 1, label: '' }, enemies: [], date: '2026-10-28' }); /* 殿堂 1体（決定 21-b の はじめての 3つ・つけた 状態を さけて いつもの 6つ・0こ から） */ D.dbg.startRun(null, null, 'koron'); if (o) D.G.owned = o; D.dbg.showPre(); }, owned || null);
       await page.waitForTimeout(150);
     };
     const st = () => page.evaluate(() => {
@@ -65,6 +65,19 @@ const URL = 'http://localhost:' + PORT + '/';
     await page.click('#fightBtn'); await page.waitForTimeout(150);
     s = await st(); if (s.screen !== 'battle') ng('つけられる ものが ないのに 止まった');
     if (errs.length) ng('エラー ' + errs.join(' / '));
+    await ctx.close();
+  }
+  // 6：はじめての 周回（殿堂 0体・決定 21-b）は 3つ つけた 状態で 始まる → 警告なしで 1回で 戦う
+  {
+    const ctx = await b.newContext({ viewport: { width: 1366, height: 650 } }); const page = await ctx.newPage();
+    await page.goto(URL + '?mute=1&seed=7&reset=1');
+    await page.evaluate(() => { const D = window.__dekomon; D.dbg.startRun(null, null, 'koron'); D.dbg.showPre(); });
+    await page.waitForTimeout(150);
+    const att = await page.evaluate(() => window.__dekomon.G.attached.length);
+    await page.click('#fightBtn'); await page.waitForTimeout(200);
+    const scr = await page.evaluate(() => window.__dekomon.G.screen);
+    console.log('はじめての 周回：つけて いる ' + att + '・1回目で ' + scr);
+    if (att === 3 && scr === 'pre') ng('はじめての 周回で 3つ つけて いるのに 警告で 止まった');
     await ctx.close();
   }
   // 5：?auto=1

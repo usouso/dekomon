@@ -32,10 +32,10 @@
 
 ## でこもんでの当てはめ（原則7：この repo の決まりが先）
 ぶつかる所と、どちらに従うかです。新しい決まりではなく、PLAN.md・AGENTS.md に書いてあることの案内です。
-1. **merge（原則6）**：この repo では、merge するのは毎日18時の作業だけ（PLAN.md 決定26。条件もそこに書いてあります）。開発の回（3〜17時）や、人に頼まれた作業では、条件が揃っても merge しません。例外：作り直しの版 `remake/` は、自動の作業が main に直接入れてよい（PLAN.md 2章「2つの版」）。レビューする Codex は、push も merge もしません（AGENTS.md）。
-2. **教訓の置き場（原則0・3）**：PLAN.md・AGENTS.md・スキルは書き換えません（PLAN.md「やらないこと」）。教訓は、テストを足すこと（next/tests.js など）と auto/STATE.md への記録で残します。決まりにしたいことは、STATE の「ぼくくんの判断待ち」に案として出します。
+1. **merge（原則6）**：この repo では、merge するのは毎日18時の作業だけ（PLAN.md 決定26。条件もそこに書いてあります）。開発の回（3〜17時）では、条件が揃っても merge しません。人に頼まれた作業でも同じです（2026-10-29 ぼくくん：「merge は18時の作業だけのまま、広げない」）。auto/LOCK や STATE を main に直接 push するのは、merge とは別です（流れ 1・8）。例外：作り直しの版 `remake/` は、自動の作業が main に直接入れてよい（PLAN.md 2章「2つの版」）。レビューする Codex は、push も merge もしません（AGENTS.md）。
+2. **教訓の置き場（原則0・3）**：PLAN.md・AGENTS.md・スキルは書き換えません（PLAN.md「やらないこと」）。教訓は、テストを足すこと（next/tests.js など）と、auto/ の記録（STATE.md・IDEAS.md の「失敗」・REVIEWS.md）で残します。この CLAUDE.md の「教訓」の欄も、頼まれたとき以外は書き足しません。決まりにしたいことや、迷って人に確かめたいことは、STATE の「ぼくくんの判断待ち」に、番号・選択肢・おすすめをつけて出します（ぼくくんに直接は聞かない）。
 3. **触るファイル**：予定の作業で触るのは next/ と auto/、それに作り直しの版の remake/ です（PLAN.md の流れ 7・2章「2つの版」）。このファイルを変えるのは、ぼくくんに頼まれたときだけにします。
-4. **確かめの手順（作る側への指示）**：起動・テスト・スクリーンショットの手順は、AGENTS.md の「動かす」と PLAN.md の流れ 5 にあります（`node tests.js`・`node bot.js`・`node serve.js`・`node tools/check.js`・`node tools/screens.js --shots`）。
+4. **確かめの手順（作る側への指示）**：起動・テスト・スクリーンショットの手順は、AGENTS.md の「動かす」と PLAN.md の流れ 5 にあります。試作版は `cd next` してから動かします（`node tests.js`・`node tools/check.js --runs 6 --sizes 1366x650,1920x910,375x812`・`node tools/screens.js --shots`）。作り直しの版は `cd remake` してから（`node tools/check.js --runs 6 --speed 3` など。STATE の「次」を見る）。repo のいちばん上で動かすと安定版を確かめてしまうので注意。
 5. **レビュー（レビュー側への指示）**：開発は Claude、レビューは Codex（PLAN.md 決定18・19・27）。自分の確かめだけで「レビュー済み」にはしません。
 
 ## 教訓（追記していく）

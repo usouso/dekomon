@@ -2,6 +2,7 @@
 // 使い方：node tools/check.js [--runs 6] [--sizes 1366x650,1920x910,375x812] [--speed 3] [--seed 1301] [--port 8793] [--timeout 600]
 // やること：serve.js を 立てて ?auto=1&mute=1（自動モード）で 周回を 回し、ページの 中で 120ミリ秒ごとに 見る：
 //   重なり（ちがう 文字どうしの 箱が 重なる）・ページの スクロール（PC）・中の スクロール（戦いの きろく・ことばの ページは のぞく）・
+//   （ページが スクロールする 大きさ では、fixed の 帯と その 下を 流れる 中身の 重なりは 数えない）
 //   横の はみ出し・小さい 文字（12px 未満）・画面と 計算の ずれ（戦いの おわりの 体力の 数が sim.js の 結果と 同じか）・エラー。
 // 合格の 条件：重なり 0・横 0・はみ出し 0・小さい 文字 0・ずれ 0・エラー 0・PC の ページの スクロール 0・--inner0 の 大きさ（既定 1920x910）の 中の スクロール 0。
 // 表の 全部の 数を 読む こと（終了コード 0 だけで 合格に しない）。透け（決定 19 の 透け）は まだ 見て いない。
@@ -33,6 +34,8 @@ function watcher() {
     }
     return r;
   }
+  // position:fixed の 帯（#tip など）の 中か。ページが スクロールする とき（スマホ）は、下の 中身は スクロールで 帯の 下から 出せる ので 重なりに 数えない
+  function fixedOf(el) { for (var a = el; a && a !== document.body; a = a.parentElement) if (getComputedStyle(a).position === 'fixed') return a; return null; }
   function name(el) { return (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '') || el.tagName.toLowerCase(); }
   function sample() {
     var scr = document.querySelector('.screen.on'); if (!scr) return;
@@ -61,13 +64,14 @@ function watcher() {
           if (rc.width < 2 || rc.height < 2) return;
           var r = clipRect(el, { l: rc.left, t: rc.top, r: rc.right, b: rc.bottom }); if (!r) return;
           if (rc.right > innerWidth + 1 || rc.left < -1) { if (r.r > innerWidth + 1 || r.l < -1) inc(W.clip, key + ' ' + name(el)); }
-          boxes.push({ el: el, r: r });
+          boxes.push({ el: el, r: r, fixed: fixedOf(el) });
         });
       }
     });
     // 重なり：ちがう 要素の 文字の 箱が、小さい ほうの 3わり 以上 重なる（同じ 要素の 中は 見ない）
     for (var i = 0; i < boxes.length; i++) for (var j = i + 1; j < boxes.length; j++) {
       var a = boxes[i], b = boxes[j]; if (a.el === b.el) continue;
+      if (ps > 0 && a.fixed !== b.fixed) continue;
       var w = Math.min(a.r.r, b.r.r) - Math.max(a.r.l, b.r.l), h = Math.min(a.r.b, b.r.b) - Math.max(a.r.t, b.r.t);
       if (w < 3 || h < 3) continue;
       var sa = (a.r.r - a.r.l) * (a.r.b - a.r.t), sb = (b.r.r - b.r.l) * (b.r.b - b.r.t);

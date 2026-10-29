@@ -157,6 +157,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   .bw > * { min-width:0; } .bw .card .nm { flex-wrap:wrap; } /* ながい 名前＋「てごわい」で カードが ひろがって 横に はみ出さない（「てごわい」は つぎの 行へ） */
   .bw .card .stat b { font-size:1rem; }
   .kotgrid { grid-template-columns: 1fr; }
+  body[data-scr="battle"] #tip:not(.tipon) { display:none; } /* スマホの 戦いは 下の 帯が 自分の 体力に かぶる → タップした ときだけ 出す */
   .kw.knew { white-space:normal; border-radius:.7rem; } .kw .kwn { display:block; margin-left:0; }
 }
 </style>
@@ -220,7 +221,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
   if (G.run && G.run.over) { recordHall(G.run); G.run = null; lsSet('run', null); }
 
-  function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); window.scrollTo(0, 0); }
+  function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); document.body.setAttribute('data-scr', id); $('tip').classList.remove('tipon'); window.scrollTo(0, 0); }
   function save() { lsSet('run', G.run); }
 
   // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
@@ -375,7 +376,11 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   }
   function findTip(t) { while (t && t !== document.body) { if (t.getAttribute && (t.getAttribute('data-kw') || t.getAttribute('data-part') || t.getAttribute('data-waza') || t.getAttribute('data-stat'))) return t; t = t.parentNode; } return null; }
   document.addEventListener('mouseover', function (e) { var t = findTip(e.target); var h = tipFor(t); if (h) $('tip').innerHTML = h; });
-  document.addEventListener('click', function (e) { var t = findTip(e.target); var h = tipFor(t); if (h) $('tip').innerHTML = h; }, true);
+  document.addEventListener('click', function (e) {
+    var t = findTip(e.target); var h = tipFor(t); if (h) $('tip').innerHTML = h;
+    // スマホの 戦い：帯は タップした ときだけ（ほかを タップすると とじる。帯 そのものの タップでも とじる）
+    if (document.body.getAttribute('data-scr') === 'battle') $('tip').classList.toggle('tipon', !!h && e.target !== $('tip') && !$('tip').contains(e.target));
+  }, true);
 
   // ---------- 上の 帯 ----------
   function hearts(n) { var s = ''; for (var i = 0; i < C.hearts; i++) s += i < n ? '♥' : '<span class="off">♥</span>'; return s; }

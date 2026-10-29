@@ -47,14 +47,15 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 .kw.born { box-shadow: 0 0 0 2px #fff3 inset; }
 /* はじめての ことば：ひとこと（MTG の 注釈文。3戦 会ったら 消える） */
 .kw.knew { white-space:nowrap; }
-.kw .kwn { font-weight:800; font-size:.78rem; color:var(--ink); margin-left:.3rem; }
+.kw .kwn { font-weight:800; font-size:.8rem; color:var(--ink); margin-left:.3rem; }
 @media (min-width: 701px) and (max-height: 700px) { .card .pic { height:5rem; } }
 /* ことばの ページ（いつでも 引ける） */
 .kbtn { margin-left:auto; padding:.2rem .7rem; font-size:.95rem; }
 #kotoba { position:fixed; inset:0; background:#0b0e16f2; z-index:30; display:none; padding:.8rem 1rem; overflow-y:auto; }
 #kotoba.on { display:block; }
 .kotw { max-width: 72rem; margin:0 auto; }
-.kothead { display:flex; align-items:center; gap:1rem; margin-bottom:.4rem; }
+.kothead { display:flex; align-items:center; gap:1rem; margin-bottom:.4rem; position:sticky; top:-.8rem; background:#0b0e16; padding:.3rem 0; z-index:1; }
+.kothead h2, .kothead .btn { white-space:nowrap; flex:none; }
 .kothead .sub { color:var(--dim); font-weight:700; font-size:.95rem; }
 .kotgrid { display:grid; grid-template-columns: repeat(3, 1fr); gap:.35rem .6rem; }
 .kote { background:var(--panel); border-radius:.6rem; padding:.3rem .5rem; border-left:6px solid #555d70; }
@@ -198,7 +199,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 </div>
 <div id="result" class="screen"><div class="resw" id="resw"></div></div>
 <div id="kotoba"><div class="kotw">
-  <div class="kothead"><h2 style="margin:0">📖 ことば</h2><span class="sub">カードの まるい ことばの いみ。はじめての ことばは、カードにも ひとことが でるよ（3かい たたかうと きえる）。</span><button class="btn" id="bKotobaX" style="margin-left:auto">✕ とじる</button></div>
+  <div class="kothead"><h2 style="margin:0">📖 ことば</h2><span class="sub">カードの まるい ことばの いみ。はじめての ことばは、カードにも ひとことが でるよ（その ことばに 3かい たたかいで あうと きえる）。</span><button class="btn" id="bKotobaX" style="margin-left:auto">✕ とじる</button></div>
   <div class="kotleg" id="kotLeg"></div>
   <div class="kotgrid" id="kotGrid"></div>
 </div></div>
@@ -287,15 +288,16 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   function glyph(id) { return '<svg viewBox="0 0 40 40"><g stroke="#1b1f2a" stroke-width="2" stroke-linejoin="round">' + (GLYPH[id] || '') + '</g></svg>'; }
   function ptile(id, extra, cls) { var p = S.PART_BY_ID[id]; return '<div class="ptile ' + p.role + (cls ? ' ' + cls : '') + '" data-part="' + id + '"' + (extra || '') + '>' + glyph(id) + '<span class="pname">' + (p.short || p.name) + '</span></div>'; }
   // ことばの ひとこと（層①：10文字 くらい。くわしい 文は 帯＝d.text()）。はじめての あいだ（会った 戦いが KW_NEW 未満）は カードに そえる
-  var KW_SHORT = { ren: '2かい たたく', charge: '3手ごとに つよい', heavy: 'つよいが おそい', nerai: 'じょうたいに つよい', ranged: 'やりかえされない',
-    poison: 'じわじわ へらす', stagger: 'あいてを よわく', brittle: 'きずを ふやす', hard: 'きずが へる', counter: 'うけたら やりかえす',
+  var KW_SHORT = { ren: '2かい たたく', charge: C.chargeEvery + '手ごとに つよい', heavy: 'つよいが おそい', nerai: 'よわりめに つよい', ranged: 'やりかえされない',
+    poison: 'じわじわ へらす', stagger: 'あいての つぎを よわく', brittle: 'きずを ふやす', hard: 'きずが へる', counter: 'うけたら やりかえす',
     regen: 'すこしずつ なおる', leech: 'あてて なおる', immune: 'どくなどが きかない', fast: 'さきに うごく', sharp: 'かいしんが でやすい',
     hirari: 'よけやすい', yokeru: 'ときどき よける', sure: 'かならず あたる' };
   var KW_NEW = 3;
-  function kwSeen() { var o = lsGet('kwSeen', {}); return (o && typeof o === 'object') ? o : {}; }
+  function kwSeen() { var o = lsGet('kwSeen', {}); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; }
   var SEEN = kwSeen();
   function kwIsNew(k) { return (SEEN[k] || 0) < KW_NEW; }
-  function kwBadge(k, born) { var d = S.KW_BY_ID[k], nw = kwIsNew(k); return '<span class="kw ' + d.role + (born ? ' born' : '') + (nw ? ' knew' : '') + '" data-kw="' + k + '">' + d.name + (nw ? '<span class="kwn">' + KW_SHORT[k] + '</span>' : '') + '</span>'; }
+  var KW_NOTE_MAX = 2, NOTE_LEFT = 99; // 1まいの カードに ひとことは 2つまで（多いと 画面に 入らない・読みきれない）
+  function kwBadge(k, born) { var d = S.KW_BY_ID[k], nw = kwIsNew(k) && NOTE_LEFT > 0; if (nw) NOTE_LEFT--; return '<span class="kw ' + d.role + (born ? ' born' : '') + (nw ? ' knew' : '') + '" data-kw="' + k + '">' + d.name + (nw ? '<span class="kwn">' + KW_SHORT[k] + '</span>' : '') + '</span>'; }
   // 戦いに 出た ことば（自分＋相手）を 1つずつ 数える
   function countSeen(run, equip, road) {
     var sp = S.SPECIES_BY_ID[run.species], d = S.enemyDef(road.idx), ks = {};
@@ -312,7 +314,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     KW_GROUPS.forEach(function (g) { S.KW.filter(function (k) { return k.role === g.id; }).forEach(function (k) {
       var n = SEEN[k.id] || 0;
       h += '<div class="kote ' + k.role + (n ? '' : ' unmet') + '"><div class="k1"><span class="kw ' + k.role + '" data-kw="' + k.id + '">' + k.name + '</span><span class="ks">' + KW_SHORT[k.id] + '</span></div>' +
-        '<div class="kl">' + k.text() + '　' + (n ? '（' + n + 'かい あった）' : '（まだ あって いない）') + '</div></div>';
+        '<div class="kl">' + k.text() + '　' + (n ? '（たたかいで ' + n + 'かい あった）' : '（まだ たたかいで あって いない）') + '</div></div>';
     }); });
     $('kotGrid').innerHTML = h;
     $('kotoba').classList.add('on');
@@ -332,11 +334,12 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
       if (o.cmp && typeof v === 'number') { var df = v - o.cmp[s.id]; if (df) d = '<span class="d ' + (df > 0 ? 'up' : 'dn') + '">' + (df > 0 ? '+' : '') + df + '</span>'; }
       return '<div class="stat" data-stat="' + s.id + '"><span class="ic">' + STAT_SHORT[s.id] + '</span><b>' + v + '</b>' + (d || '<span class="d"></span>') + '</div>';
     }).join('');
-    var kwHtml = '';
+    var kwHtml = ''; NOTE_LEFT = KW_NOTE_MAX;
     if (o.born) kwHtml += kwBadge(o.born, true);
     (o.innate || []).forEach(function (k) { kwHtml += kwBadge(k, true); });
     var seen = {}; if (o.born) seen[o.born] = 1; (o.innate || []).forEach(function (k) { seen[k] = 1; });
     (o.parts || []).forEach(function (pid) { S.PART_BY_ID[pid].kw.forEach(function (k) { if (!seen[k]) { seen[k] = 1; kwHtml += kwBadge(k); } }); });
+    NOTE_LEFT = 99;
     var tiles = (o.parts || []).map(function (p) { return ptile(p); }).join('');
     var wz = (o.waza || []).map(function (w) { return '<span class="wz" data-waza="' + w + '">' + S.WAZA_BY_ID[w].name + '</span>'; }).join('');
     return '<div class="card ' + (o.kind === 'me' ? 'me' : '') + (o.hard ? ' hard' : '') + '">' +
@@ -500,6 +503,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     $('bSkip').onclick = function () { fast = true; };
     G.playing = true;
     function step() {
+      if ($('kotoba').classList.contains('on')) { setTimeout(step, 200); return; } // ことばの ページを 見て いる あいだは 戦いを 止める
       if (i >= ev.length) { G.playing = false; setTimeout(function () { drawResult(out, before); }, (fast ? 100 : 700) / SPEED); return; }
       var e = ev[i++], delay = 0;
       var who = e.who === 'p' ? 'p' : 'e', cls = e.who === 'p' ? 'p' : 'e', nm = NAMEP(e.who, d.name, me);
@@ -591,7 +595,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 
   $('bStart').onclick = function () { drawSpecies(); };
   $('bCont').onclick = function () { if (G.run) drawFork(); };
-  window.__re = { G: G, S: S };
+  window.__re = { G: G, S: S, KW_SHORT: KW_SHORT };
   drawTitle();
   if (AUTO) { $('bStart').click(); startRun(S.SPECIES[0].id); autoNext(); }
 })();

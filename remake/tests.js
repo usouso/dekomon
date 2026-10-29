@@ -212,6 +212,13 @@ var hz = S.hirameki(hr, { hard: false });
 ok(hz === 'chikara' && hr.learned[0] === 'chikara' && hr.nare.heavy === 0 && hr.nare.charge === 0, '満タンなら かならず ひらめく（なれは 0）');
 ok(S.hirameki(hr, { hard: false }) === null, 'もう 覚えた 技の キーワードしか ないと ひらめかない');
 var lv = S.levelUp(hr, 'def'); ok(lv.def === 1, 'ひらめいた 技の ステータス（てっぺき＝まもり）は かならず +1');
+// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +1）
+var oc = C.hira.chance, op = C.hira.perLuck; C.hira.chance = 0; C.hira.perLuck = 1;
+var lk = S.newRun(14, 'koron'); lk.stats.luck = 0; lk.equip = { atk: null, def: null, mov: 'wing' };
+var lk2 = S.newRun(14, 'koron'); lk2.stats.luck = 0; lk2.equip = { atk: null, def: null, mov: 'longleg' };
+var g1 = S.hirameki(lk, { hard: false }), g2 = S.hirameki(lk2, { hard: false });
+C.hira.chance = oc; C.hira.perLuck = op;
+ok(g1 && !g2, 'ひらめき：はねの うん +1 も 確率に 入る（画面の うんと 同じ）');
 // 前の 保存（その1）：nare・learned が なくても 戦える
 var old = S.newRun(13, 'pyun'); delete old.nare; delete old.learned;
 var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && typeof old.nare === 'object', '前の 保存（nare・learned なし）でも 戦える');

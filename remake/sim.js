@@ -416,7 +416,7 @@
     if (!cand.length) return null;
     var full = cand.filter(function (k) { return (run.nare[k] || 0) >= CFG.hira.nareMax; }), pick = null;
     if (full.length) pick = full.slice().sort(function (a, b) { return (run.nare[b] || 0) - (run.nare[a] || 0); })[0];
-    else { var p = CFG.hira.chance + CFG.hira.perLuck * run.stats.luck + (road.hard ? CFG.hira.hard : 0); if (rng() < p) pick = cand[Math.floor(rng() * cand.length)]; }
+    else { var p = CFG.hira.chance + CFG.hira.perLuck * statsOf(playerSrc(run, run.equip)).luck + /* 画面と 同じ パーツ込みの うん */ (road.hard ? CFG.hira.hard : 0); if (rng() < p) pick = cand[Math.floor(rng() * cand.length)]; }
     if (!pick) return null;
     var w = LEARN_BY_KW[pick];
     run.learned.push(w.id);

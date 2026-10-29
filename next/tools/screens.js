@@ -197,6 +197,7 @@ async function shotSpark(browser, size) {
   await page.evaluate(function () { var c = document.querySelector('#plist .kv-card[data-id="claw"]'); if (c) c.click(); });
   await page.waitForTimeout(100);
   await page.click('#fightBtn');
+  if (await page.evaluate(function () { return window.__dekomon.G.screen === 'pre'; })) { await page.waitForTimeout(700); await page.click('#fightBtn'); } // 決定 21-a：わくが 空いていると 1回目は「まだ つけられるよ」
   var got = false, t0 = Date.now(), text = '';
   while (Date.now() - t0 < 30000) {
     await page.waitForTimeout(60);

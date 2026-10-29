@@ -212,6 +212,45 @@ var hz = S.hirameki(hr, { hard: false });
 ok(hz === 'chikara' && hr.learned[0] === 'chikara' && hr.nare.heavy === 0 && hr.nare.charge === 0, '満タンなら かならず ひらめく（なれは 0）');
 ok(S.hirameki(hr, { hard: false }) === null, 'もう 覚えた 技の キーワードしか ないと ひらめかない');
 var lv = S.levelUp(hr, 'def'); ok(lv.def === 1, 'ひらめいた 技の ステータス（てっぺき＝まもり）は かならず +1');
+// ひらめきの 成長：5能力とも +1（対応する 能力と、種類の 成長率で 上がる 能力）
+var hiraGrowthCases = [
+  { w: 'chikara', part: 'weight', kw: 'heavy', stat: 'atk' },
+  { w: 'kakenuke', part: 'claw', kw: 'ren', stat: 'spd' },
+  { w: 'todome', part: 'eye', kw: 'nerai', stat: 'atk' },
+  { w: 'shitsukoi', part: 'fang', kw: 'poison', stat: 'luck' },
+  { w: 'fuiuchi', part: 'longleg', kw: 'ranged', stat: 'spd' },
+  { w: 'teppeki', part: 'scale', kw: 'hard', stat: 'def' },
+  { w: 'fukkatsu', part: 'longtail', kw: 'regen', stat: 'hp' },
+  { w: 'mikawashi', part: 'fur', kw: 'immune', stat: 'luck' }
+];
+S.SPECIES.forEach(function (sp) {
+  [1, 2].forEach(function (seed) {
+    hiraGrowthCases.forEach(function (c) {
+      var gr = S.newRun(seed, sp.id), eq = { atk: null, def: null, mov: null };
+      eq[S.PART_BY_ID[c.part].role] = c.part; gr.owned = [c.part]; gr.nare[c.kw] = C.hira.nareMax;
+      gr.stats.hp = 999; gr.stats.atk = 999;
+      var before = Object.assign({}, gr.stats), out = S.fight(gr, 0, eq);
+      ok(out.win && out.hira === c.w && out.level && out.level[c.stat] === 1 &&
+        S.STATS.every(function (s) { var up = out.level[s.id] || 0; return (up === 0 || up === 1) && gr.stats[s.id] - before[s.id] === up; }) &&
+        gr.levels.length === 1 && JSON.stringify(gr.levels[0]) === JSON.stringify(out.level),
+        sp.name + '・seed ' + seed + '・' + c.w + '：対応する 能力は +1、ほかの 成長も +1（保存する 値と 同じ）');
+    });
+  });
+});
+// 同じ seed の 旧モードは HP +2 の まま。切り替えても 成長する 能力と、HP 以外の 増分は 同じ
+var growthOn = C.hira.on;
+try {
+  S.SPECIES.forEach(function (sp) {
+    var onRun = S.newRun(2, sp.id), offRun = S.newRun(2, sp.id);
+    onRun.stats.hp = offRun.stats.hp = 999; onRun.stats.atk = offRun.stats.atk = 999;
+    var eq = { atk: null, def: 'longtail', mov: null }; onRun.nare.regen = C.hira.nareMax;
+    C.hira.on = true; var onOut = S.fight(onRun, 0, eq);
+    C.hira.on = false; var offOut = S.fight(offRun, 0, eq);
+    ok(onOut.hira === 'fukkatsu' && onOut.level.hp === 1 && offOut.win && !offOut.hira && offOut.level.hp === C.hpUp &&
+      offRun.stats.hp === 999 + C.hpUp && S.STATS.every(function (s) { return s.id === 'hp' || onOut.level[s.id] === offOut.level[s.id]; }),
+      sp.name + '：ひらめきは HP +1、旧モードは HP +' + C.hpUp + '（ほかの 成長は 同じ）');
+  });
+} finally { C.hira.on = growthOn; }
 // ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +1）
 var oc = C.hira.chance, op = C.hira.perLuck; C.hira.chance = 0; C.hira.perLuck = 1;
 var lk = S.newRun(14, 'koron'); lk.stats.luck = 0; lk.equip = { atk: null, def: null, mov: 'wing' };

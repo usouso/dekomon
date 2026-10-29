@@ -34,7 +34,7 @@
     stageHp: 0.25, stageAtk: 0.18, stageDefEvery: 4,
     hard: { hp: 1.2, atk: 1 },     // てごわい：たいりょく ×1.2・こうげき +1
     boss: { hp: 1.3, atk: 1 },
-    hpUp: 2,               // レベルアップの たいりょくは +2（ほかは +1）
+    hpUp: 2,               // 旧モードの レベルアップの たいりょくは +2（ほかは +1）
     startParts: 3,         // はじめの もちもの（役割ごとに 1つ）
     // その2：ひらめき（技を 覚える）。on＝false で その1 の「勝つたび レベルアップ」に もどる
     //   なれ：戦うたび（勝ち・負け）つけた パーツの キーワードごとに +1（てごわい +2）。nareMax で 満タン。
@@ -390,12 +390,13 @@
     }
     return out;
   }
-  // レベルアップ（FE 式）：ステータスごとに 成長率の 確率で +1（たいりょくは +2）。1つも 上がらなければ いちばん 成長率の 高い ものを +1。
+  // レベルアップ（FE 式）：ステータスごとに 成長率の 確率で +1（旧モードの たいりょくは CFG.hpUp）。1つも 上がらなければ いちばん 成長率の 高い ものを +1。
   // must：かならず 上がる ステータス（ひらめいた 技の stat）
   function levelUp(run, must) {
     var sp = SPECIES_BY_ID[run.species], rng = rngFrom(mix(run.seed, 9000 + run.wins)), up = {}, any = false;
-    STATS.forEach(function (s) { if (rng() < sp.grow[s.id] || s.id === must) { up[s.id] = s.id === 'hp' ? CFG.hpUp : 1; any = true; } });
-    if (!any) { var best = STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].id; up[best] = best === 'hp' ? CFG.hpUp : 1; }
+    var hpUp = CFG.hira.on ? 1 : CFG.hpUp;
+    STATS.forEach(function (s) { if (rng() < sp.grow[s.id] || s.id === must) { up[s.id] = s.id === 'hp' ? hpUp : 1; any = true; } });
+    if (!any) { var best = STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].id; up[best] = best === 'hp' ? hpUp : 1; }
     Object.keys(up).forEach(function (k) { run.stats[k] += up[k]; });
     run.levels.push(up);
     return up;

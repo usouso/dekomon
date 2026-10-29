@@ -102,6 +102,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .slot { display:flex; gap:.5rem; align-items:center; padding:.35rem; border-radius:.7rem; margin-bottom:.35rem; background:#151a27; }
 .slot .rn { width:3.6rem; font-weight:900; text-align:center; border-radius:.5rem; padding:.2rem 0; }
 .slot.atk .rn { background:var(--atk); } .slot.def .rn { background:var(--def); } .slot.mov .rn { background:var(--mov); }
+.slot.free .rn { background:var(--luck); color:#1b1f2a; } .slot.free.locked { opacity:.75; } .slot.free.locked .ptile.empty { width:auto; padding:0 .6rem; font-size:.85rem; }
+.slot.free.fx-new { box-shadow:0 0 0 3px var(--luck); }
+.slot .fh { font-size:.85rem; font-weight:800; color:#ffe9a0; }
+.ptile.fx-free { box-shadow:0 0 0 3px var(--luck); } /* じゆうの 枠に ついて いる パーツ */
+.fx-open { display:inline-block; margin:.2rem 0; padding:.15rem .7rem; border-radius:.6rem; background:var(--luck); color:#1b1f2a; font-weight:900; }
 .owned { display:flex; gap:.3rem; flex-wrap:wrap; flex:1; }
 .owned .ptile { cursor:pointer; opacity:.55; }
 .owned .ptile.eq { opacity:1; box-shadow:0 0 0 3px #fff inset; }
@@ -452,24 +457,42 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     show('fork');
   }
 
-  // ---------- じゅんび（役割の 枠 3つ） ----------
-  var HOVER = null;
+  // ---------- じゅんび（役割の 枠 3つ ＋ 5しょうで ひらく じゆうの 枠） ----------
+  var HOVER = null; // マウスを 合わせて いる パーツ
+  // パーツを 押した あとの 形：ついて いれば はずす。役割の 枠が 空なら そこへ。うまって いて じゆうの 枠が ひらいて 空なら じゆうへ（「せめを 2つ」）。
+  //   どちらも うまって いれば 役割の 枠を いれかえる。同じ パーツは 1つの 枠だけ
+  function previewEquip(run, eq, id) {
+    var o = Object.assign({}, eq), r = S.PART_BY_ID[id].role, had = false;
+    S.SLOT_KEYS.forEach(function (k) { if (o[k] === id) { o[k] = null; had = true; } });
+    if (had) return o;
+    if (!o[r]) o[r] = id; else if (S.freeOpen(run) && !o.free) o.free = id; else o[r] = id;
+    return o;
+  }
+  // 4つ目の 行：ひらく まえは 🔒、ひらいたら いま じゆうに ついて いる パーツ（押すと はずす）か「あき」
+  function freeRow(run, eq) {
+    if (!S.CFG.free.on) return '';
+    if (!S.freeOpen(run)) return '<div class="slot free locked"><div class="rn">じゆう</div><div class="owned"><div class="ptile empty">🔒 ' + S.CFG.free.at + 'しょうで ひらく</div></div></div>';
+    return '<div class="slot free' + (G.freeNew ? ' fx-new' : '') + '"><div class="rn">じゆう</div><div class="owned">' +
+      (eq.free ? ptile(eq.free, ' data-pick="' + eq.free + '" data-slot="free"', 'eq') : '<div class="ptile empty">あき</div>') + '</div><span class="fh">' + (eq.free ? 'じゆうに ついて いる' : 'どの やくわりでも もう 1つ つけられる') + '</span>' +
+      (G.hint && !G.hint.free && eq.free ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
+  }
   function drawPrep() {
     var run = G.run; topBar('p');
     var road = run.fork.roads[G.road];
     var eq = run.equip;
-    var preview = HOVER ? Object.assign({}, eq, (function () { var o = {}; o[S.PART_BY_ID[HOVER].role] = eq[S.PART_BY_ID[HOVER].role] === HOVER ? null : HOVER; return o; })()) : eq;
+    var preview = HOVER ? previewEquip(run, eq, HOVER) : eq;
     var cmp = HOVER ? S.statsOf(S.playerSrc(run, eq)) : (G.lastCmp || null);
     $('pMe').outerHTML = '<div id="pMe">' + meCard(run, preview, cmp) + '</div>';
     $('pFoe').innerHTML = foeCard(road, run.fork.stage);
-    $('slots').innerHTML = '<h2>もちもの（役割ごとに 1つ）</h2>' + S.ROLES.map(function (r) {
+    var fOpen = S.freeOpen(run);
+    $('slots').innerHTML = '<h2>もちもの（役割ごとに 1つ' + (fOpen ? '＋じゆうに 1つ' : '') + '）</h2>' + S.ROLES.map(function (r) {
       var own = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; });
       return '<div class="slot ' + r.id + '"><div class="rn">' + r.name + '</div><div class="owned">' +
-        (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : '') + (G.hint && G.hint[r.id] === p ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
-    }).join('') + '<div class="sub" style="color:var(--dim);font-size:.85rem">パーツを おすと つける／はずす。合わせると つよさが どう かわるか 見えるよ。</div>';
+        (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : eq.free === p ? 'eq fx-free' : '') + (G.hint && (G.hint[r.id] === p || G.hint.free === p) ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
+    }).join('') + freeRow(run, eq) + '<div class="sub" style="color:var(--dim);font-size:.85rem">パーツを おすと つける／はずす。' + (fOpen ? 'やくわりが うまって いたら じゆうに 入るよ。' : '合わせると つよさが どう かわるか 見えるよ。') + '</div>';
     Array.prototype.forEach.call($('slots').querySelectorAll('[data-pick]'), function (el) {
       var id = el.getAttribute('data-pick');
-      el.onclick = function () { var r = S.PART_BY_ID[id].role; G.lastCmp = S.statsOf(S.playerSrc(run, run.equip)); G.clicked = id; run.equip[r] = run.equip[r] === id ? null : id; HOVER = null; save(); drawPrep(); };
+      el.onclick = function () { G.lastCmp = S.statsOf(S.playerSrc(run, run.equip)); G.clicked = id; run.equip = previewEquip(run, run.equip, id); HOVER = null; G.freeNew = false; save(); drawPrep(); };
       el.onmouseenter = function () { if (G.clicked === id) return; if (matchMedia('(hover: hover)').matches) { HOVER = id; G.lastCmp = null; drawPrepCardsOnly(); } };
       el.onmouseleave = function () { if (G.clicked === id) { G.clicked = null; return; } HOVER = null; drawPrepCardsOnly(); };
     });
@@ -479,8 +502,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
   function drawPrepCardsOnly() {
     var run = G.run, eq = run.equip;
-    var preview = HOVER ? Object.assign({}, eq) : eq;
-    if (HOVER) { var r = S.PART_BY_ID[HOVER].role; preview[r] = eq[r] === HOVER ? null : HOVER; }
+    var preview = HOVER ? previewEquip(run, eq, HOVER) : eq;
     $('pMe').innerHTML = meCard(run, preview, HOVER ? S.statsOf(S.playerSrc(run, eq)) : (G.lastCmp || null));
   }
   $('bBack').onclick = function () { drawFork(); };
@@ -602,6 +624,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     var run = G.run, h = '', d = S.enemyDef(out.road.idx);
     if (out.win) {
       h += '<h1>' + (out.clear ? 'ぬしを たおした！ クリア！' : 'かった！') + '</h1>';
+      if (out.freeOpened) h += '<div class="fx-open">🔓 じゆうの わくが ひらいた！ つぎから パーツを 4つ</div>';
       if (out.reward && out.reward.length) h += '<h2>あたらしい パーツ</h2><div class="ptiles" style="justify-content:center">' + out.reward.map(function (p) { return ptile(p); }).join('') + '</div><div class="sub" style="color:var(--dim)">' + out.reward.map(function (p) { var pp = S.PART_BY_ID[p]; return pp.name + '（' + pp.kw.map(function (k) { return S.KW_BY_ID[k].name; }).join('・') + '）'; }).join('、') + '</div>';
       if (out.hira) { var hw = S.WAZA_BY_ID[out.hira]; h += '<h2 class="hira">✨ ひらめいた！「' + hw.name + '」を おぼえた</h2><div class="sub">' + hw.text + '（' + hw.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('か ') + 'の パーツを つけると つかえる）</div>'; }
       else h += nareHtml(run, before.equip);
@@ -622,10 +645,10 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
         if (run.lossStreak >= 2) h += '<div class="sub" style="color:#ffe066;font-weight:800;margin-top:.4rem">💡 じゅんびの 画面に「ヒント」が でたよ</div>';
       }
     }
-    h += '<div class="sub" style="color:var(--dim);margin-top:.6rem">たたかいの きろく（' + out.res.events.filter(function (e) { return e.t === 'hit'; }).length + 'かいの こうげき）は ▼</div><div class="logw' + (out.hira || !out.win ? ' fx-short' : '') + '" id="log2" style="text-align:left">' + $('log').innerHTML + '</div>';
+    h += '<div class="sub" style="color:var(--dim);margin-top:.6rem">たたかいの きろく（' + out.res.events.filter(function (e) { return e.t === 'hit'; }).length + 'かいの こうげき）は ▼</div><div class="logw' + (out.hira || !out.win || out.freeOpened ? ' fx-short' : '') + '" id="log2" style="text-align:left">' + $('log').innerHTML + '</div>';
     $('resw').innerHTML = h;
     show('result');
-    if ($('bNext')) $('bNext').onclick = function () { setLast(null); if (run.over) endRun(); else drawFork(); };
+    if ($('bNext')) $('bNext').onclick = function () { setLast(null); if (out.freeOpened) G.freeNew = true; if (run.over) endRun(); else drawFork(); };
     if ($('bAgain')) $('bAgain').onclick = function () { setLast(null); drawPrep(); };
     if ($('bOther')) $('bOther').onclick = function () { setLast(null); G.road = 1 - G.road; G.hint = null; drawPrep(); };
     if (AUTO) autoNext();

@@ -264,5 +264,46 @@ var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && type
 // ひらめきの ない 勝ちでは レベルアップしない／off なら 勝つたび
 C.hira.on = false; var of = S.newRun(6, 'doshin'); of.stats.atk = 99; of.stats.hp = 999; var ow = S.fight(of, 0, of.equip); C.hira.on = true;
 ok(ow.win && ow.level && !ow.hira, 'CFG.hira.on＝false：その1 の まま 勝つたび レベルアップ');
+// ---------- その2 の 2つ目：自由枠（CFG.free） ----------
+var fr = S.newRun(21, 'gotsun'); fr.owned = ['horn', 'eye', 'shell', 'wing', 'claw', 'scale'];
+fr.wins = C.free.at - 1; ok(!S.freeOpen(fr) && S.slotCount(fr) === 3, '自由枠：' + (C.free.at - 1) + 'しょうでは まだ ひらかない（枠 3）');
+fr.wins = C.free.at; ok(S.freeOpen(fr) && S.slotCount(fr) === 4, '自由枠：' + C.free.at + 'しょうで ひらく（枠 4）');
+var ce = S.cleanEquip(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' });
+ok(ce.free === 'eye' && S.equipList(ce).length === 4, '自由枠：せめを 2つ（ツノ＋ひかるめ）つけられる');
+ok(S.cleanEquip(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'horn' }).free === null, '自由枠：ほかの 枠と 同じ パーツは 入らない');
+ok(S.cleanEquip(fr, { atk: 'shell', def: 'scale', mov: 'wing', free: 'fang' }).atk === null && S.cleanEquip(fr, { atk: 'horn', free: 'fang' }).free === null, '役割の 枠は その 役割だけ・もって いない パーツは 入らない');
+fr.wins = C.free.at - 1; ok(!('free' in S.cleanEquip(fr, { atk: 'horn', free: 'eye' })), '自由枠：ひらく まえは 4つ目を すてる');
+// 4つ目の パーツの つよさが 戦いに 入る（ひかるめ こうげき +1）
+fr.wins = C.free.at;
+var st3 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing' })), st4 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' }));
+ok(st4.atk === st3.atk + 1, '自由枠の パーツの ボーナスも 入る（ひかるめ こうげき +1）');
+// 覚えた 技で 使えるのは 枠の 数まで（覚えた 順）
+var wc = S.newRun(22, 'koron'); wc.owned = ['horn', 'eye', 'shell', 'wing']; wc.learned = ['chikara', 'teppeki', 'kakenuke', 'mikawashi', 'todome'];
+var born = S.SPECIES_BY_ID.koron.waza.length;
+var w3 = S.wazaFor(wc, { atk: 'horn', def: 'shell', mov: 'wing' });
+ok(w3.length === born + 3 && w3.slice(born).join() === 'chikara,teppeki,kakenuke', '枠 3：覚えた 技は 3つまで（覚えた 順。4つ 使える 形でも）');
+wc.wins = C.free.at;
+var w4 = S.wazaFor(wc, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' });
+ok(w4.length === born + 4 && w4.slice(born).join() === 'chikara,teppeki,kakenuke,mikawashi', '枠 4：覚えた 技は 4つまで');
+C.free.on = false; var wOff = S.wazaFor(wc, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' }); C.free.on = true;
+ok(wOff.length === born + 4, 'CFG.free.on＝false：数の 上限なし・4つ目は 数えない（その2 の 1つ目の まま）');
+// fight：5しょうめで「ひらいた」・ひらいた あとは 4つ目で 戦う
+var fo = S.newRun(23, 'doshin'); fo.stats.hp = 999; fo.stats.atk = 99; var opened = [], usedFree = false;
+while (!fo.over && fo.wins < C.runBattles) {
+  var eq = { atk: fo.owned.filter(function (p) { return S.PART_BY_ID[p].role === 'atk'; })[0] || null, def: null, mov: null };
+  var spare = fo.owned.filter(function (p) { return p !== eq.atk; })[0]; eq.free = spare;
+  var o5 = S.fight(fo, 0, eq); if (o5.freeOpened) opened.push(fo.wins);
+  if (fo.equip.free) usedFree = usedFree || (S.equipList(fo.equip).indexOf(spare) >= 0 && fo.history[fo.history.length - 1].s > C.free.at);
+  if (fo.wins <= C.free.at && fo.equip.free) { usedFree = 'early'; break; }
+}
+ok(opened.join() === String(C.free.at) && usedFree === true, '自由枠：' + C.free.at + 'しょうめの 勝ちで 1回だけ「ひらいた」・' + (C.free.at + 1) + '戦目から 4つ目で 戦う');
+// 前の 保存（equip に free が ない）でも 戦える
+var ofr = S.newRun(24, 'pyun'); ofr.wins = C.free.at; ofr.fork = S.makeFork(ofr); delete ofr.equip.free;
+var oo2 = S.fight(ofr, 0, ofr.equip); ok(oo2 && ofr.equip.free === null, '前の 保存（free なし）でも 戦える');
+// ヒント：ひらいた あとは 4つ目も えらぶ（ほかの 枠と ちがう パーツ か なし）
+var be = S.newRun(25, 'gotsun'); be.owned = S.PART_IDS.slice(); be.wins = C.free.at; be.fork = S.makeFork(be);
+var bb = S.bestEquip(be, 0, 3).equip;
+ok('free' in bb && (bb.free === null || (bb.free !== bb.atk && bb.free !== bb.def && bb.free !== bb.mov)), 'ヒント：4つ目も えらぶ（同じ パーツは 2つに しない）');
+be.wins = C.free.at - 1; ok(!('free' in S.bestEquip(be, 0, 2).equip), 'ヒント：ひらく まえは 3つだけ');
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

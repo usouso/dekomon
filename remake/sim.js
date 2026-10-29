@@ -2,8 +2,9 @@
 // ブラウザ（index.html）と Node（bot.js・tests.js）の両方から同じファイルを読む。
 // 設計書：https://claude.ai/artifact/GGMbMbeSY1gf7wLvytHtyb （キーワード・5つの ステータス・うん・役割の 枠・ハート）
 // その1（2026-10-29）：キーワードの パーツ 16・相手 10＋ぬし・種類 4（1つの テーマ）・ハート 3・負けの 理由・ヒント。
-//   自由枠・卵・場所 は まだ。
+//   卵・場所 は まだ。
 // その2 の 1つ目（2026-10-30）：キーワードごとの なれ・ひらめきで 技を 覚える（その キーワードの パーツで 使える）・ひらめき＝レベルアップ（CFG.hira.on）。
+// その2 の 2つ目（2026-10-30）：自由枠（CFG.free。at 勝 したら 4つ目の 枠が 開く・どの 役割でも 1つ・覚えた 技を 使える 数＝枠の 数）。
 (function (root, factory) {
   var api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -40,6 +41,9 @@
     //   なれ：戦うたび（勝ち・負け）つけた パーツの キーワードごとに +1（てごわい +2）。nareMax で 満タン。
     //   勝ったら 1回 ためす：満タンの キーワードが あれば かならず、なければ chance ＋ うん×perLuck（てごわい ＋hard）。
     hira: { on: true, nareMax: 3, nareHard: 2, chance: 0.15, perLuck: 0.02, hard: 0.15, bossHp: 0.8 }, // bossHp：on の ときの ぬしの たいりょく（off は boss.hp）。勝つたびの レベルアップが なくなる ぶん 下げる（ボット）
+    // その2 の 2つ目：自由枠。at 勝 したら（at+1 戦目から）4つ目の 枠 free が 開く（どの 役割の パーツでも 1つ）。
+    //   wazaCap：覚えた 技で 戦いに 使えるのは 枠の 数（3 か 4）まで（覚えた 順）。on＝false で その2 の 1つ目に もどる
+    free: { on: true, at: 5, wazaCap: true },
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -193,12 +197,25 @@
   }
   // 戦いで 使える 技：うまれつき 2つ ＋ 覚えた 技の うち、いまの パーツに その キーワードが ある もの
   function canUse(w, equip) { var ks = {}; equipList(equip).forEach(function (pid) { PART_BY_ID[pid].kw.forEach(function (k) { ks[k] = true; }); }); return w.kw.some(function (k) { return ks[k]; }); }
+  //   自由枠（CFG.free.wazaCap）：覚えた 技で 使えるのは 枠の 数まで（覚えた 順）
   function wazaFor(run, equip) {
-    var out = SPECIES_BY_ID[run.species].waza.slice();
-    (run.learned || []).forEach(function (id) { var w = WAZA_BY_ID[id]; if (w && canUse(w, equip)) out.push(id); });
+    var out = SPECIES_BY_ID[run.species].waza.slice(), cap = (CFG.free.on && CFG.free.wazaCap) ? slotCount(run) : Infinity, n = 0;
+    (run.learned || []).forEach(function (id) { var w = WAZA_BY_ID[id]; if (w && n < cap && canUse(w, equip)) { out.push(id); n++; } });
     return out;
   }
-  function equipList(equip) { var e = equip || {}; return ['atk', 'def', 'mov'].map(function (r) { return e[r]; }).filter(function (x) { return !!x; }); }
+  // 自由枠：at 勝 したら 開く。枠の 数は 3 か 4
+  function freeOpen(run) { return !!(CFG.free.on && run && run.wins >= CFG.free.at); }
+  function slotCount(run) { return freeOpen(run) ? 4 : 3; }
+  var SLOT_KEYS = ['atk', 'def', 'mov', 'free'];
+  // つけた パーツ（せめ・まもり・うごき・じゆう の 順。同じ パーツは 1回だけ）
+  function equipList(equip) { var e = equip || {}, out = []; (CFG.free.on ? SLOT_KEYS : SLOT_KEYS.slice(0, 3)).forEach(function (r) { if (e[r] && out.indexOf(e[r]) < 0) out.push(e[r]); }); return out; }
+  // 枠に 入れて よい 形に そろえる：役割の 枠は その 役割の もって いる パーツ、自由枠は 開いて いる ときだけ・ほかの 枠と ちがう パーツ
+  function cleanEquip(run, equip) {
+    var e = equip || {}, out = { atk: null, def: null, mov: null };
+    ['atk', 'def', 'mov'].forEach(function (r) { var p = e[r]; if (p && PART_BY_ID[p] && PART_BY_ID[p].role === r && (!run.owned || run.owned.indexOf(p) >= 0)) out[r] = p; });
+    if (freeOpen(run)) { var f = e.free; out.free = (f && PART_BY_ID[f] && (!run.owned || run.owned.indexOf(f) >= 0) && f !== out.atk && f !== out.def && f !== out.mov) ? f : null; }
+    return out;
+  }
 
   // ---------- 戦い ----------
   // 1手＝どちらか 片方の 番。1まわり（round）に 両方が 1手ずつ。はやい ほうが 先（同じなら じぶん）。maxRounds で 時間ぎれ＝のこりの たいりょくの わりあいで 決める（同じなら あいての かち）。
@@ -369,7 +386,7 @@
   function fight(run, roadIndex, equip) {
     var road = run.fork.roads[roadIndex];
     var s = run.fork.stage, d = enemyDef(road.idx);
-    run.equip = { atk: equip.atk || null, def: equip.def || null, mov: equip.mov || null };
+    run.equip = CFG.free.on ? cleanEquip(run, equip) : { atk: equip.atk || null, def: equip.def || null, mov: equip.mov || null };
     if (!run.nare) run.nare = {}; if (!run.learned) run.learned = []; // 前の 保存（その1）にも 足す
     var res = battle(playerSrc(run, run.equip), enemySrc(road.idx, s, road.hard), battleSeed(run, road), { waza: wazaFor(run, run.equip), eName: d.name });
     if (CFG.hira.on) addNare(run, road.hard);
@@ -380,7 +397,9 @@
       out.reward.forEach(function (p) { run.owned.push(p); });
       if (CFG.hira.on) { out.hira = hirameki(run, road); if (out.hira) out.level = levelUp(run, WAZA_BY_ID[out.hira].stat); }
       else out.level = levelUp(run);
+      var wasOpen = freeOpen(run);
       run.wins++; run.tries = 0; run.lossStreak = 0;
+      if (!wasOpen && freeOpen(run)) { out.freeOpened = true; run.equip.free = null; } // 5勝目：じゆうの わくが ひらいた
       if (run.wins >= CFG.runBattles) { run.clear = true; run.over = true; out.clear = true; }
       else run.fork = makeFork(run);
     } else {
@@ -438,11 +457,21 @@
       var fw = Math.floor(w), fb = Math.floor(bestScore);
       if (fw > fb || (fw === fb && (n > bestN || (n === bestN && w > bestScore)))) { bestScore = w; best = eq; bestN = n; }
     }); }); });
+    // 自由枠：3つを 決めた あと、のこりの パーツを 1つずつ 4つ目に ためす（組み合わせが ふえすぎない ように）
+    if (best && freeOpen(run)) {
+      best = Object.assign({}, best, { free: null });
+      run.owned.forEach(function (p) {
+        if (p === best.atk || p === best.def || p === best.mov) return;
+        var eq = Object.assign({}, best, { free: p }), w = 0, pSrc = playerSrc(run, eq), waza = wazaFor(run, eq);
+        for (var i = 0; i < tries; i++) { var r = battle(pSrc, eSrc, mix(4242 + i, s), { waza: waza }); if (r.win) w += 1; else w += 0.001 * (1 - r.eHp / r.eMax); }
+        if (Math.floor(w) > Math.floor(bestScore) || (Math.floor(w) === Math.floor(bestScore) && (!best.free || w > bestScore))) { bestScore = w; best = eq; }
+      });
+    }
     return { equip: best, rate: Math.floor(bestScore) / tries };
   }
 
   return { CFG: CFG, KW: KW, KW_BY_ID: KW_BY_ID, ROLES: ROLES, ROLE_COLOR: ROLE_COLOR, STATS: STATS, PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS,
-    WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, LEARN: LEARN, LEARN_BY_KW: LEARN_BY_KW, wazaFor: wazaFor, canUse: canUse, addNare: addNare, hirameki: hirameki, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDef: enemyDef,
+    WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, LEARN: LEARN, LEARN_BY_KW: LEARN_BY_KW, wazaFor: wazaFor, canUse: canUse, freeOpen: freeOpen, slotCount: slotCount, cleanEquip: cleanEquip, SLOT_KEYS: SLOT_KEYS, addNare: addNare, hirameki: hirameki, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDef: enemyDef,
     rngFrom: rngFrom, mix: mix, statsOf: statsOf, enemyBase: enemyBase, enemySrc: enemySrc, playerSrc: playerSrc, equipList: equipList,
     battle: battle, loseReason: loseReason, REASONS: REASONS, newRun: newRun, makeFork: makeFork, rewardsFor: rewardsFor, fight: fight, levelUp: levelUp, bestEquip: bestEquip };
 });

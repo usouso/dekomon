@@ -41,10 +41,10 @@ fs.mkdirSync(OUT, { recursive: true });
       var t0 = await tipOv(); var tipBad = t0.ov; if (tipBad) bad++;
       console.log((tipBad ? '✕ ' : '○ ') + tag + ' 戦いの 下の 帯：' + (t0.shown ? 'でて いる' : 'でて いない') + '・体力の 数に かぶる ' + (t0.ov ? 'はい' : 'いいえ'));
       if (sz[0] <= 700) {
-        await page.click('#bMe [data-kw]'); var t1 = await tipOv();
-        await page.click('#arena', { position: { x: 5, y: 5 } }); var t2 = await tipOv();
-        var tapBad = !t1.shown || t2.shown; if (tapBad) bad++;
-        console.log((tapBad ? '✕ ' : '○ ') + tag + ' ことばを タップ → 帯 ' + (t1.shown ? 'でた' : 'でない') + '・ほかを タップ → ' + (t2.shown ? 'のこる' : 'とじた'));
+        await page.click('#bMe [data-kw]'); var t1 = await tipOv(); await page.screenshot({ path: path.join(OUT, 're1_battle_tip_' + tag + '.png') });
+        await page.click('#bMe', { position: { x: 4, y: 4 } }); var t2 = await tipOv();
+        var tapBad = !t1.shown || t1.ov || t2.shown; // 出た 帯も 体力に かぶらない if (tapBad) bad++;
+        console.log((tapBad ? '✕ ' : '○ ') + tag + ' ことばを タップ → 帯 ' + (t1.shown ? 'でた' : 'でない') + (t1.ov ? '（体力に かぶる）' : '（体力に かぶらない）') + '・ほかを タップ → ' + (t2.shown ? 'のこる' : 'とじた'));
       }
       await page.waitForSelector('#result.on', { timeout: 60000 }); await snap('result');
       // 負けを 見る：ちから 0 に して 戦う

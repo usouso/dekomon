@@ -5,7 +5,7 @@
 'use strict';
 var { chromium } = require('playwright'), { spawn } = require('child_process'), path = require('path'), fs = require('fs');
 var OUT = process.argv[2] || path.join(__dirname, '..', 'screenshots');
-var SIZES = [[1366, 650], [1920, 910], [375, 812]], PORT = 8793;
+var SIZES = [[1366, 650], [1920, 910], [375, 812]], PORT = 8794;
 fs.mkdirSync(OUT, { recursive: true });
 (async function () {
   var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: 'ignore' });
@@ -58,15 +58,27 @@ fs.mkdirSync(OUT, { recursive: true });
       var af = await page.evaluate(function (fid) { var G = window.__re.G, S = window.__re.S; return { free: G.run.equip.free, n: S.equipList(G.run.equip).length, atk2: document.querySelectorAll('#slots .slot.atk .ptile.eq').length, freeTile: !!document.querySelector('#slots .slot.free [data-pick="' + fid + '"]'), glow: !!document.querySelector('#slots .slot.free.fx-new'), meParts: document.querySelectorAll('#pMe .ptile').length }; }, fid);
       check(af.free === fid && af.n === 4 && af.atk2 === 2 && af.freeTile && !af.glow && af.meParts === 4, 'せめの 2つ目 ' + fid + ' → じゆうに 入った（つけた パーツ ' + af.n + '・せめの 行の しるし ' + af.atk2 + '・カードの パーツ ' + af.meParts + '・光は きえる）');
       await snap('prep_four');
+      var col = await page.evaluate(function (fid) { var a = getComputedStyle(document.querySelector('#slots .slot.atk [data-pick="' + fid + '"]')).borderColor, b = getComputedStyle(document.querySelector('#slots .slot.atk .ptile.eq:not(.fx-free)')).borderColor; return { free: a, role: b }; }, fid);
+      check(col.free === 'rgb(232, 185, 35)' && col.role !== col.free, 'じゆうの パーツは 黄色の わく（' + col.free + '）・せめの 枠の パーツは ちがう 色（' + col.role + '）');
       // じゆうの 行の 札を 押すと はずれる
       await page.click('#slots .slot.free [data-pick="' + fid + '"]');
       var mv = await page.evaluate(function () { var G = window.__re.G; return { free: G.run.equip.free, empty: !!document.querySelector('#slots .slot.free .ptile.empty') }; });
       check(!mv.free && mv.empty, 'じゆうの 札を 押すと はずれる（「あき」に もどる）');
+      // 覚えた 技が わくの 数より 多い：使えない 技に「わくが たりない」の 説明
+      await page.evaluate(function () { var G = window.__re.G; G.run.learned = ['chikara', 'teppeki', 'kakenuke', 'mikawashi', 'todome']; G.run.equip = { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' }; });
+      await page.evaluate(function () { document.getElementById('bBack').click(); }); await page.click('.road[data-road="0"] button'); // スマホは 下の 帯が ボタンに かかる ので 直接（前から 同じ）
+      var cp = await page.evaluate(function () { var e = document.querySelector('#pMe [data-cap]'); return { n: document.querySelectorAll('#pMe [data-cap]').length, id: e ? e.getAttribute('data-waza') : '' }; });
+      if (cp.id) { await page.click('#pMe [data-waza="' + cp.id + '"]'); }
+      var cpt = await page.evaluate(function () { return document.getElementById('tip').textContent; });
+      if (!pc) await page.click('#pMe', { position: { x: 4, y: 4 } }); // スマホは 帯を とじる
+      check(cp.n === 1 && cp.id === 'todome' && cpt.indexOf('わくが たりなくて') >= 0, 'わざが わくの 数（4）より 多い：' + cp.n + 'つ（' + cp.id + '）に「' + cpt.slice(0, 30) + '…」');
       // もう一度 じゆうに つけて 4つで 戦う
-      await page.click('#slots .slot.atk [data-pick="' + fid + '"]');
+      await page.evaluate(function () { var G = window.__re.G; G.run.learned = []; G.run.equip = { atk: 'horn', def: 'shell', mov: 'wing', free: null }; });
+      await page.evaluate(function () { document.getElementById('bBack').click(); }); await page.click('.road[data-road="0"] button'); // スマホは 下の 帯が ボタンに かかる ので 直接（前から 同じ）
+      await page.click('#slots .slot.atk [data-pick="eye"]');
       await page.click('#bFight'); await page.waitForTimeout(400);
-      var bt = await page.evaluate(function () { var G = window.__re.G, S = window.__re.S; return { n: S.equipList(G.run.equip).length, me: document.querySelectorAll('#bMe .ptile').length }; });
-      check(bt.n === 4, '4つで 戦う（つけた パーツ ' + bt.n + '・戦いの カードの パーツ ' + bt.me + '）');
+      var bt = await page.evaluate(function () { var G = window.__re.G, S = window.__re.S; return { eq: JSON.stringify(G.run.equip), n: S.equipList(G.run.equip).length, me: document.querySelectorAll('#bMe .ptile').length }; });
+      check(bt.n === 4, '4つで 戦う（つけた パーツ ' + bt.n + '・戦いの カードの パーツ ' + bt.me + '）' + bt.eq);
       await snap('battle_four');
       if (errs.length) { bad++; console.log('✕ エラー ' + errs.join(' / ')); }
       await ctx.close();

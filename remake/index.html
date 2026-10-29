@@ -77,6 +77,8 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 .wz.learn { background:#4a3a12; border-color:#ffd166; }
 .wz.learn.off { opacity:.45; border-style:dashed; }
 .wz.oya { background:#1f3a3a; border-color:#7fe0c8; }
+.eggnote { margin:.5rem auto 0; font-weight:800; }
+.eggnote:empty { display:none; }
 .eggbar { max-width:52rem; margin:.2rem auto .6rem; padding:.45rem .8rem; border:3px solid #7fe0c8; border-radius:.9rem; background:#17302e; text-align:center; font-weight:800; }
 .eggbar.off { opacity:.55; border-style:dashed; }
 .eggbar .btn { margin-left:.5rem; }
@@ -198,6 +200,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   <div id="titlePic" style="height:9rem;margin:.6rem 0;display:flex;justify-content:center"></div>
   <div class="howto" id="howto"></div>
   <div class="actions"><button class="big" id="bStart">▶ はじめる</button><button class="big" id="bCont" style="display:none">つづきから</button><button class="btn" data-kotoba="1">📖 ことば</button></div>
+  <div class="eggnote" id="eggNote"></div>
   <div class="hall" id="hall"></div>
 </div>
 <div id="species" class="screen">
@@ -440,7 +443,8 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('howto').innerHTML = ['🧩 パーツを つける', '👀 たたかいを みまもる', '⛰ ' + C.runBattles + 'かい かつと クリア', '<b style="color:var(--heart)">♥</b> ' + C.hearts + 'かい まけると おわり'].map(function (t) { return '<span>' + t + '</span>'; }).join('');
     $('bCont').style.display = G.run ? '' : 'none';
     var h = lsGet('hall', []).filter(function (x) { return !(G.run && G.last && G.run.hallAt && x.at === G.run.hallAt); }); // さいごの 戦いを まだ 見て いない 周回は 見る まで 出さない（けっかを 先に 知らせない）
-    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう' + (x.from ? '　🥚' + x.from + 'の こ' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '　→ たまごに「' + S.WAZA_BY_ID[x.egg].name + '」' : ''); }).join('<br>') : '';
+    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう' + (x.from ? '　🥚' + x.from + 'の こ' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '　→ 🥚' + S.WAZA_BY_ID[x.egg].name : ''); }).join('<br>') : '';
+    var en = eggNow(); $('eggNote').innerHTML = en ? '🥚 たまご：「' + S.WAZA_BY_ID[en.waza].name + '」　<span style="display:inline-block">つかうと つぎの 子が おぼえる</span>' : ''; // 見えなければ 無いのと 同じ（原則 2）。くわしくは 種類を 選ぶ 画面の 帯（タイトルは 説明の 帯が ない ので 札に しない）
     show('title');
   }
   var NAMES = ['ころ', 'もち', 'ぽん', 'ぴこ', 'むぎ', 'てつ', 'るる', 'ごん', 'さく', 'のの'];

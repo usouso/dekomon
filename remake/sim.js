@@ -102,11 +102,11 @@
     { id: 'oonaguri', name: 'おおなぐり', text: '4手ごとに、つぎに あたる 1げきが ×2' },
     { id: 'ikari',   name: 'いかり',     text: 'たいりょくが 半分より すくないと こうげき +2' },
     // ひらめきで 覚える 技（その2）。kw の どれかを もつ パーツを つけて いる ときだけ 使える。stat＝ひらめいた ときに かならず +1
-    { id: 'chikara', learn: true, kw: ['heavy', 'charge'],   stat: 'atk',  name: 'ちからこめ', text: '4手ごとに、つぎに あたる 1げき +3' },
+    { id: 'chikara', learn: true, kw: ['heavy', 'charge'],   stat: 'atk',  name: 'ちからこめ', text: '4手ごとに、つぎに じぶんの こうげきで あたる 1げき +3（はんげきは のぞく）' },
     { id: 'kakenuke', learn: true, kw: ['ren', 'fast'],      stat: 'spd',  name: 'かけぬけ',   text: 'あいてより はやければ 1げき +1' },
     { id: 'todome',  learn: true, kw: ['nerai', 'sure'],     stat: 'atk',  name: 'とどめ',     text: 'あいての たいりょくが 半分より すくないと 1げき +2' },
     { id: 'shitsukoi', learn: true, kw: ['poison', 'brittle'], stat: 'luck', name: 'しつこい', text: 'あてた どく・もろいが 1手 ながく つづく' },
-    { id: 'fuiuchi', learn: true, kw: ['stagger', 'ranged'], stat: 'spd',  name: 'ふいうち',   text: 'さいしょに あたる 1げき +3' },
+    { id: 'fuiuchi', learn: true, kw: ['stagger', 'ranged'], stat: 'spd',  name: 'ふいうち',   text: 'じぶんの こうげきで さいしょに あたる 1げき +3（はんげきは のぞく）' },
     { id: 'teppeki', learn: true, kw: ['hard', 'counter'],   stat: 'def',  name: 'てっぺき',   text: 'さいしょに うける 1げきは 1 ダメージ' },
     { id: 'fukkatsu', learn: true, kw: ['regen', 'leech'],   stat: 'hp',   name: 'ふっかつ',   text: 'たいりょくが 半分より すくない 最初の手の はじめに たいりょく +5' },
     { id: 'mikawashi', learn: true, kw: ['immune', 'hirari'], stat: 'luck', name: 'みかわし', text: 'よけるたび たいりょく +2' }
@@ -238,9 +238,10 @@
         var raw = atk * m;
         if (a.sp.weightPlus) raw += 1;
         if (a.gaman) { raw += a.gaman; a.gaman = 0; }
-        if (a.plusPending) { raw += a.plusPending; a.plusPending = 0; }
-        if (a.waza.indexOf('kakenuke') >= 0 && a.st.spd > d.st.spd) raw += 1;
-        if (a.waza.indexOf('todome') >= 0 && d.hp * 2 < d.maxHp) raw += 2;
+        var wz = []; // この 1げきに のった 覚えた 技（ログで 見せる）
+        if (a.plusPending) { raw += a.plusPending; a.plusPending = 0; wz = wz.concat(a.plusSrc || []); a.plusSrc = []; }
+        if (a.waza.indexOf('kakenuke') >= 0 && a.st.spd > d.st.spd) { raw += 1; wz.push('kakenuke'); }
+        if (a.waza.indexOf('todome') >= 0 && d.hp * 2 < d.maxHp) { raw += 2; wz.push('todome'); }
         var status = d.poison > 0 || d.stagger || d.brittle > 0;
         if (a.kw.nerai && status) raw += CFG.neraiPlus;
         if (d.brittle > 0) raw += CFG.brittlePlus;
@@ -252,14 +253,14 @@
         if (wall) { dmg = 1; log({ t: 'waza', who: d.side, w: 'teppeki' }); }
         dmgTo(d, dmg, charged ? 'charge' : 'hit', a.side);
         dealtSum += dmg;
-        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, wall: wall, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def > 0), hp: d.hp });
+        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, wall: wall, wz: wz, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def > 0), hp: d.hp });
         if (d.waza.indexOf('gaman') >= 0 && d.gaman < 3) d.gaman++;
         if (d.hp > 0) {
           // じょうたいを かける
           if (!d.kw.immune) {
-            if (a.kw.poison) { if (d.poison > 0 && a.sp.fangGrow) { d.poisonPow++; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'poison', n: d.poison }); }
+            if (a.kw.poison) { if (d.poison > 0 && a.sp.fangGrow) { d.poisonPow++; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'poison', n: d.poison, long: a.waza.indexOf('shitsukoi') >= 0 }); }
             if (a.kw.stagger) { d.stagger = true; log({ t: 'status', who: d.side, st: 'stagger' }); }
-            if (a.kw.brittle) { d.brittle = CFG.brittleHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'brittle', n: d.brittle }); }
+            if (a.kw.brittle) { d.brittle = CFG.brittleHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'brittle', n: d.brittle, long: a.waza.indexOf('shitsukoi') >= 0 }); }
           } else if (a.kw.poison || a.kw.stagger || a.kw.brittle) log({ t: 'kw', who: d.side, kw: 'immune' });
           // はんげき
           if (d.kw.counter && !a.kw.ranged) {
@@ -280,11 +281,11 @@
     function turn(a, d) {
       a.hands++;
       log({ t: 'hand', who: a.side, n: a.hands });
+      if (a.waza.indexOf('fukkatsu') >= 0 && !a.fukkatsuUsed && a.hp * 2 < a.maxHp) { a.fukkatsuUsed = true; log({ t: 'waza', who: a.side, w: 'fukkatsu' }); heal(a, 5, 'fukkatsu'); } // 手の はじめ（かいふくより 先に 見る）
       if (a.kw.regen) heal(a, CFG.regenHeal, 'regen');
       if (a.waza.indexOf('hitoiki') >= 0 && a.hands % 4 === 0) { log({ t: 'waza', who: a.side, w: 'hitoiki' }); heal(a, 3, 'hitoiki'); }
-      if (a.waza.indexOf('fukkatsu') >= 0 && !a.fukkatsuUsed && a.hp * 2 < a.maxHp) { a.fukkatsuUsed = true; log({ t: 'waza', who: a.side, w: 'fukkatsu' }); heal(a, 5, 'fukkatsu'); }
-      if (a.waza.indexOf('chikara') >= 0 && a.hands % 4 === 0) { a.plusPending = (a.plusPending || 0) + 3; log({ t: 'waza', who: a.side, w: 'chikara' }); }
-      if (a.waza.indexOf('fuiuchi') >= 0 && a.hands === 1) { a.plusPending = (a.plusPending || 0) + 3; log({ t: 'waza', who: a.side, w: 'fuiuchi' }); }
+      if (a.waza.indexOf('chikara') >= 0 && a.hands % 4 === 0) { a.plusPending = (a.plusPending || 0) + 3; a.plusSrc = (a.plusSrc || []).concat('chikara'); log({ t: 'waza', who: a.side, w: 'chikara' }); }
+      if (a.waza.indexOf('fuiuchi') >= 0 && a.hands === 1) { a.plusPending = (a.plusPending || 0) + 3; a.plusSrc = (a.plusSrc || []).concat('fuiuchi'); log({ t: 'waza', who: a.side, w: 'fuiuchi' }); }
       var hits = 1;
       if (a.kw.ren) hits = (a.sp.claw3 && a.st.spd > d.st.spd) ? 3 : 2;
       var forceCrit1 = false, mult1 = 0;

@@ -186,6 +186,16 @@ noLuck(function () {
     r = S.battle(P({ atk: 0, hp: 40 }, ['wing']), E({ atk: 3, hp: 300 }), 3, { waza: ['mikawashi'] });
     var dg = r.events.filter(function (e) { return e.t === 'dodge' && e.who === 'p'; }).length, mh = r.events.filter(function (e) { return e.t === 'waza' && e.w === 'mikawashi'; }).length;
     ok(dg > 0 && dg === mh, 'みかわし：よけるたび（' + dg + 'かい）');
+    var mhe = r.events.filter(function (e) { return e.t === 'heal' && e.src === 'mikawashi'; });
+    ok(mhe.length > 0 && mhe.every(function (e) { return e.n > 0 && e.n <= 2; }) && mhe.some(function (e) { return e.n === 2; }), 'みかわし：たいりょく +2（満タンの ときは ふえない）');
+    C.dodgePerLuck = 0;
+    // ふっかつは かいふく より 先に 見る（ながいしっぽ）
+    r = S.battle(P({ atk: 0, hp: 20, spd: 1 }, ['longtail']), E({ atk: 6, spd: 9, hp: 300 }), 1, { waza: ['fukkatsu'] });
+    ok(r.events.some(function (e) { return e.t === 'heal' && e.src === 'fukkatsu'; }), 'ふっかつ：かいふくの パーツでも 出る（かいふくより 先）');
+    // ログで 見える：かけぬけ・とどめ・ふいうち・ちからこめ は のった 1げきに 印
+    r = S.battle(P({ atk: 10, spd: 9 }), E({ atk: 0, spd: 1, hp: 30 }), 1, { waza: ['kakenuke', 'todome', 'fuiuchi'] });
+    var hh = hits(r, 'p');
+    ok(hh[0].wz.indexOf('kakenuke') >= 0 && hh[0].wz.indexOf('fuiuchi') >= 0 && hh[0].wz.indexOf('todome') < 0 && hh[hh.length - 1].wz.indexOf('todome') >= 0, 'かけぬけ・とどめ・ふいうち：のった 1げきの ログに 印');
   } finally { C.dodgePerLuck = D; }
 });
 // 技を 使える 条件：その キーワードの パーツを つけて いる ときだけ

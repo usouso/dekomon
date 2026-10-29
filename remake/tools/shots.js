@@ -35,6 +35,9 @@ fs.mkdirSync(OUT, { recursive: true });
       var htWrap = await page.evaluate(function () { return Array.prototype.some.call(document.querySelectorAll('#howto span'), function (e) { return e.getBoundingClientRect().height > parseFloat(getComputedStyle(e).fontSize) * 2; }); });
       var htBad = ht.n !== 4 || !ht.ok || htWrap; if (htBad) bad++; // htWrap＝1つの ひとことが 2行に わかれた
       console.log((htBad ? '✕ ' : '○ ') + tag + ' タイトルの ひとこと ' + ht.n + 'つ：' + ht.txt);
+      var ttip = await page.evaluate(function () { return getComputedStyle(document.getElementById('tip')).display; }); // タイトルでは 下の 帯を 出さない
+      if (ttip !== 'none') bad++;
+      console.log((ttip !== 'none' ? '✕ ' : '○ ') + tag + ' タイトルの 下の 帯：' + (ttip === 'none' ? 'でて いない' : 'でて いる'));
       await page.click('#bStart'); await snap('species');
       await page.click('[data-go="koron"]'); await snap('fork');
       await page.click('.road[data-road="0"] button'); await snap('prep');

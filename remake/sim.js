@@ -102,11 +102,11 @@
     { id: 'oonaguri', name: 'おおなぐり', text: '4手ごとに、つぎに あたる 1げきが ×2' },
     { id: 'ikari',   name: 'いかり',     text: 'たいりょくが 半分より すくないと こうげき +2' },
     // ひらめきで 覚える 技（その2）。kw の どれかを もつ パーツを つけて いる ときだけ 使える。stat＝ひらめいた ときに かならず +1
-    { id: 'chikara', learn: true, kw: ['heavy', 'charge'],   stat: 'atk',  name: 'ちからこめ', text: '4手ごとに、つぎに じぶんの こうげきで あたる 1げき +3（はんげきは のぞく）' },
+    { id: 'chikara', learn: true, kw: ['heavy', 'charge'],   stat: 'atk',  name: 'ちからこめ', text: '4手ごとに、つぎに あたる 1げき +3（はんげきは のぞく）' },
     { id: 'kakenuke', learn: true, kw: ['ren', 'fast'],      stat: 'spd',  name: 'かけぬけ',   text: 'あいてより はやければ 1げき +1' },
     { id: 'todome',  learn: true, kw: ['nerai', 'sure'],     stat: 'atk',  name: 'とどめ',     text: 'あいての たいりょくが 半分より すくないと 1げき +2' },
     { id: 'shitsukoi', learn: true, kw: ['poison', 'brittle'], stat: 'luck', name: 'しつこい', text: 'あてた どく・もろいが 1手 ながく つづく' },
-    { id: 'fuiuchi', learn: true, kw: ['stagger', 'ranged'], stat: 'spd',  name: 'ふいうち',   text: 'じぶんの こうげきで さいしょに あたる 1げき +3（はんげきは のぞく）' },
+    { id: 'fuiuchi', learn: true, kw: ['stagger', 'ranged'], stat: 'spd',  name: 'ふいうち',   text: 'さいしょに あたる 1げき +3（はんげきは のぞく）' },
     { id: 'teppeki', learn: true, kw: ['hard', 'counter'],   stat: 'def',  name: 'てっぺき',   text: 'さいしょに うける 1げきは 1 ダメージ' },
     { id: 'fukkatsu', learn: true, kw: ['regen', 'leech'],   stat: 'hp',   name: 'ふっかつ',   text: 'たいりょくが 半分より すくない 最初の手の はじめに たいりょく +5' },
     { id: 'mikawashi', learn: true, kw: ['immune', 'hirari'], stat: 'luck', name: 'みかわし', text: 'よけるたび たいりょく +2' }
@@ -267,12 +267,13 @@
             // はんげきも「1げき」：うける 側の もろい（+2）・はんげきする 側の ねらいうち（+2）が のる
             var craw = Math.round(d.st.atk * CFG.counterRatio) + (a.brittle > 0 ? CFG.brittlePlus : 0) + (d.kw.nerai && (a.poison > 0 || a.stagger || a.brittle > 0) ? CFG.neraiPlus : 0)
               + (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd ? 1 : 0) + (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp ? 2 : 0); // 覚えた 技の「1げき +」も のる
+            var cwz = []; if (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd) cwz.push('kakenuke'); if (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp) cwz.push('todome');
             var c = Math.max(1, craw - a.st.def);
             if (a.waza.indexOf('teppeki') >= 0 && a.hitTaken === 0) { c = 1; log({ t: 'waza', who: a.side, w: 'teppeki' }); }
             a.hitTaken++;
             dmgTo(a, c, 'counter', d.side);
             if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
-            log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp });
+            log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp, wz: cwz });
           }
         }
       }

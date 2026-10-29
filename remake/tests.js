@@ -190,7 +190,7 @@ noLuck(function () {
     ok(mhe.length > 0 && mhe.every(function (e) { return e.n > 0 && e.n <= 2; }) && mhe.some(function (e) { return e.n === 2; }), 'みかわし：たいりょく +2（満タンの ときは ふえない）');
     C.dodgePerLuck = 0;
     // ふっかつは かいふく より 先に 見る（ながいしっぽ）
-    r = S.battle(P({ atk: 0, hp: 20, spd: 1 }, ['longtail']), E({ atk: 6, spd: 9, hp: 300 }), 1, { waza: ['fukkatsu'] });
+    r = S.battle(P({ atk: 0, hp: 20, spd: 1 }, ['longtail']), E({ atk: 12, spd: 9, hp: 300 }), 1, { waza: ['fukkatsu'] }); // 22 → 10、かいふくで 12（前の 順なら 出ない）
     ok(r.events.some(function (e) { return e.t === 'heal' && e.src === 'fukkatsu'; }), 'ふっかつ：かいふくの パーツでも 出る（かいふくより 先）');
     // ログで 見える：かけぬけ・とどめ・ふいうち・ちからこめ は のった 1げきに 印
     r = S.battle(P({ atk: 10, spd: 9 }), E({ atk: 0, spd: 1, hp: 30 }), 1, { waza: ['kakenuke', 'todome', 'fuiuchi'] });

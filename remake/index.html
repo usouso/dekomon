@@ -570,7 +570,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
         case 'status': addLog(cls === 'p' ? 'e' : 'p', nm + 'は ' + STN[e.st] + 'に なった' + (e.long ? '（✨' + WZ.shitsukoi.name + '：' + e.n + '手）' : ''), e.st === 'brittle' ? 'brittle' : e.st); glowKw(e.who === 'p' ? 'e' : 'p', e.st === 'brittle' ? 'brittle' : e.st); if (e.long) glow(e.who === 'p' ? 'e' : 'p', '[data-waza="shitsukoi"]'); delay = 200; break;
         case 'counter':
           if (e.to === 'e') { eHp = e.hp; setHp('f', eHp, eMax); } else { pHp = e.hp; setHp('m', pHp, pMax); }
-          floatDmg(e.to, e.dmg, '#ffb0aa'); addLog(cls, nm + 'の はんげき → ' + e.dmg, 'counter'); glowKw(who, 'counter'); delay = 380; break;
+          floatDmg(e.to, e.dmg, '#ffb0aa'); addLog(cls, nm + 'の はんげき → ' + e.dmg + (e.wz || []).map(function (w) { return '（✨' + WZ[w].name + '）'; }).join(''), 'counter'); glowKw(who, 'counter'); (e.wz || []).forEach(function (w) { glow(who, '[data-waza="' + w + '"]'); }); delay = 380; break;
         case 'poison':
           if (e.who === 'e') { eHp = e.hp; setHp('f', eHp, eMax); } else { pHp = e.hp; setHp('m', pHp, pMax); }
           floatDmg(e.who, e.dmg, '#c77dff'); addLog(cls, nm + 'は どくで ' + e.dmg, 'poison'); delay = 320; break;

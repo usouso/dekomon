@@ -229,6 +229,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   var TIP0 = $('tip').innerHTML; // 画面が かわったら 帯は 最初の 文に もどす（前の 画面の 説明を 残さない）
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
   if (G.run && G.run.over) { recordHall(G.run); G.run = null; lsSet('run', null); }
+  // 見て いる とちゅうの 戦い（結果は もう 保存ずみ）。とじて 開きなおしたら「つづきから」で もう一度 見られる（勝ちの 画面・もらった パーツを 見のがさない）
+  function runKey(run) { return run.seed + ':' + run.history.length; }
+  function setLast(L) { G.last = L; lsSet('last', L); }
+  G.last = lsGet('last', null);
+  if (!(G.run && G.last && G.last.key === runKey(G.run))) { G.last = null; lsSet('last', null); } // 周回が おわった・ちがう 戦いの ものは すてる
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）
   function save() { lsSet('run', G.run); }
@@ -416,7 +421,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
   function startRun(sp) {
     var seed = Q.get('seed') ? parseInt(Q.get('seed'), 10) : Math.floor(Math.random() * 1e9);
-    G.run = S.newRun(seed, sp);
+    G.run = S.newRun(seed, sp); setLast(null);
     G.run.name = NAMES[seed % NAMES.length] + S.SPECIES_BY_ID[sp].name.slice(0, 1);
     save(); drawFork();
   }
@@ -481,6 +486,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     var equip = Object.assign({}, run.equip), before = JSON.parse(JSON.stringify(run));
     var out = S.fight(run, G.road, equip);
     save();
+    if (!run.over) setLast({ key: runKey(run), out: out, before: before, equip: equip, road: G.road }); // おわった 周回は 開きなおすと 殿堂に のる（いままで どおり）
+    showBattle(out, before, equip, G.road, true);
+  }
+  function showBattle(out, before, equip, roadIdx, first) {
+    var road = before.fork.roads[roadIdx], stage = before.fork.stage, d = S.enemyDef(road.idx);
     var sp = S.SPECIES_BY_ID[before.species];
     $('bHearts').innerHTML = hearts(before.hearts); $('bStage').textContent = (stage >= C.runBattles ? 'ちょうじょう' : stage + '戦目') + '／' + C.runBattles;
     $('bMe').innerHTML = meCard(before, equip) + hpHtml('m', out.res.pMax);
@@ -490,7 +500,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('log').innerHTML = ''; $('pop').textContent = ''; $('pop').className = 'pop'; $('handN').textContent = ''; // 前の 戦いの「○手め」を 残さない（dot の QA P3）
     Array.prototype.forEach.call(document.querySelectorAll('#arena .dmg'), function (el) { el.remove(); }); // 前の 戦いの 浮かぶ 数字も（確認役）
     show('battle');
-    countSeen(before, equip, road); // カードを かいた あとに 数える（その 戦いの あいだは ひとことが 残る）
+    if (first) countSeen(before, equip, road); // カードを かいた あとに 数える（その 戦いの あいだは ひとことが 残る。見なおしでは 数えない）
     play(out, before, equip, d);
   }
   function hpHtml(p, max) { return '<div class="hpnum"><span class="chgmark" id="' + p + 'Chg"></span><span id="' + p + 'HpN">' + max + ' / ' + max + '</span></div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }
@@ -591,16 +601,16 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     h += '<div class="sub" style="color:var(--dim);margin-top:.6rem">たたかいの きろく（' + out.res.events.filter(function (e) { return e.t === 'hit'; }).length + 'かいの こうげき）は ▼</div><div class="logw" id="log2" style="text-align:left">' + $('log').innerHTML + '</div>';
     $('resw').innerHTML = h;
     show('result');
-    if ($('bNext')) $('bNext').onclick = function () { if (run.over) endRun(); else drawFork(); };
-    if ($('bAgain')) $('bAgain').onclick = function () { drawPrep(); };
-    if ($('bOther')) $('bOther').onclick = function () { G.road = 1 - G.road; G.hint = null; drawPrep(); };
+    if ($('bNext')) $('bNext').onclick = function () { setLast(null); if (run.over) endRun(); else drawFork(); };
+    if ($('bAgain')) $('bAgain').onclick = function () { setLast(null); drawPrep(); };
+    if ($('bOther')) $('bOther').onclick = function () { setLast(null); G.road = 1 - G.road; G.hint = null; drawPrep(); };
     if (AUTO) autoNext();
   }
   function endRun() {
     var run = G.run;
     recordHall(run);
     if (AUTO) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts);
-    G.run = null; lsSet('run', null);
+    G.run = null; lsSet('run', null); setLast(null);
     drawTitle();
     if (AUTO) setTimeout(function () { $('bStart').click(); setTimeout(function () { var sps = S.SPECIES; drawSpecies(); startRun(sps[(lsGet('hall', []).length) % sps.length].id); autoNext(); }, 50); }, 200);
   }
@@ -615,7 +625,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
 
   $('bStart').onclick = function () { drawSpecies(); };
-  $('bCont').onclick = function () { if (G.run) drawFork(); };
+  $('bCont').onclick = function () { if (!G.run) return; var L = G.last; if (L) { G.road = L.road; G.hint = null; showBattle(L.out, L.before, L.equip, L.road, false); } else drawFork(); }; // 見て いる とちゅうで とじた 戦いは はじめから もう一度 見せる
   window.__re = { G: G, S: S, KW_SHORT: KW_SHORT };
   drawTitle();
   if (AUTO) { $('bStart').click(); startRun(S.SPECIES[0].id); autoNext(); }

@@ -32,7 +32,8 @@ fs.mkdirSync(OUT, { recursive: true });
       await snap('title');
       // タイトルに 何を する ゲームか（4つの ひとこと。数は CFG と 同じ）
       var ht = await page.evaluate(function () { var C = window.DekoRe.CFG, t = document.getElementById('howto'); return { n: t ? t.children.length : 0, txt: t ? t.textContent : '', ok: !!t && t.textContent.indexOf(C.runBattles + 'かい かつ') >= 0 && t.textContent.indexOf(C.hearts + 'かい まける') >= 0 }; });
-      var htBad = ht.n !== 4 || !ht.ok; if (htBad) bad++;
+      var htWrap = await page.evaluate(function () { return Array.prototype.some.call(document.querySelectorAll('#howto span'), function (e) { return e.getBoundingClientRect().height > parseFloat(getComputedStyle(e).fontSize) * 2; }); });
+      var htBad = ht.n !== 4 || !ht.ok || htWrap; if (htBad) bad++; // htWrap＝1つの ひとことが 2行に わかれた
       console.log((htBad ? '✕ ' : '○ ') + tag + ' タイトルの ひとこと ' + ht.n + 'つ：' + ht.txt);
       await page.click('#bStart'); await snap('species');
       await page.click('[data-go="koron"]'); await snap('fork');

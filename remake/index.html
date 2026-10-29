@@ -140,8 +140,9 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 @keyframes fxin { to { opacity:1; } }
 #titlePic svg { height:100%; }
 #log2 { height: 6.5rem; }
-.howto { display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem; margin:0 auto .6rem; max-width:44rem; }
-.howto span { background:var(--panel); border:1px solid var(--panel2); border-radius:.6rem; padding:.3rem .6rem; font-weight:800; font-size:1rem; }
+.howto { display:grid; grid-template-columns:repeat(2, auto); justify-content:center; gap:.25rem 1.4rem; margin:0 auto .7rem; }
+.howto span { font-weight:800; font-size:1rem; text-align:left; } /* わくを つけない（ボタンに 見えない ように） */
+@media (max-width: 520px) { .howto { grid-template-columns:auto; gap:.15rem; } }
 .hall { max-width: 40rem; margin:.6rem auto; text-align:left; font-size:.9rem; color:var(--dim); }
 @media (max-width: 700px) {
   .spgrid { grid-template-columns: repeat(2, 1fr); }

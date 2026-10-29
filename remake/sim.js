@@ -46,8 +46,9 @@
     //   wazaCap：覚えた 技で 戦いに 使えるのは 枠の 数（3 か 4）まで（覚えた 順）。on＝false で その2 の 1つ目に もどる
     free: { on: true, at: 5, wazaCap: true },
     // その2 の 3つ目：たまご。周回の おわりに 覚えた 技を 1つ えらんで のこす → 次の 子は その 技を 覚えた 状態で 始まる（ステータスは 継がない）。on＝false で たまごを 使わない
-    //   hatchLevel：継いだ 技の ぶん、うまれた ときに 1回 レベルアップ（その 技の stat は かならず +1）。ないと 継いだ 技の ぶん ひらめきが 1回 へって 弱く なる（ボット）
-    egg: { on: true, hatchLevel: true },
+    //   oyaLevel：継いだ 技を 使える パーツで はじめて 勝った とき（ひらめかなかった 戦い）に 1回 レベルアップ（その 技の stat は かならず +1）＝「なじんだ！」。
+    //   ないと 継いだ 技の ぶん ひらめきが 1回 へって 弱く なる（ボット）。戦いの あとに 見せる（原則 3）・その キーワードの パーツが 要る（原則 5）
+    egg: { on: true, oyaLevel: true },
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -365,8 +366,7 @@
     var owned = ROLES.map(function (r) { var c = PARTS.filter(function (p) { return p.role === r.id; }); return c[Math.floor(rng() * c.length)].id; });
     var run = { v: 1, seed: seed >>> 0, species: sp.id, stats: JSON.parse(JSON.stringify(sp.base)), hearts: CFG.hearts, wins: 0,
       owned: owned, equip: { atk: owned[0], def: owned[1], mov: owned[2] }, tries: 0, lossStreak: 0, levels: [], nare: {}, learned: [], history: [], over: false, clear: false };
-    if (CFG.egg.on && egg && WAZA_BY_ID[egg.waza] && WAZA_BY_ID[egg.waza].learn) { run.learned = [egg.waza]; run.inherit = { waza: egg.waza, parent: egg.parent || '', sp: egg.sp || '' };
-      if (CFG.egg.hatchLevel && CFG.hira.on) run.inherit.level = levelUp(run, WAZA_BY_ID[egg.waza].stat, 8800); }
+    if (CFG.egg.on && egg && WAZA_BY_ID[egg.waza] && WAZA_BY_ID[egg.waza].learn) { run.learned = [egg.waza]; run.inherit = { waza: egg.waza, parent: egg.parent || '', sp: egg.sp || '', fit: false }; }
     run.fork = makeFork(run);
     return run;
   }
@@ -408,7 +408,9 @@
     if (res.win) {
       out.reward = rewardsFor(run, road);
       out.reward.forEach(function (p) { run.owned.push(p); });
-      if (CFG.hira.on) { out.hira = hirameki(run, road); if (out.hira) out.level = levelUp(run, WAZA_BY_ID[out.hira].stat); }
+      var oyaOn = run.inherit && !run.inherit.fit && wazaFor(run, run.equip).indexOf(run.inherit.waza) >= 0; // 継いだ 技を 使って 戦った（ひらめきの 前に 見る）
+      if (CFG.hira.on) { out.hira = hirameki(run, road); if (out.hira) out.level = levelUp(run, WAZA_BY_ID[out.hira].stat);
+        else if (CFG.egg.on && CFG.egg.oyaLevel && oyaOn) { run.inherit.fit = true; out.oya = run.inherit.waza; out.level = levelUp(run, WAZA_BY_ID[run.inherit.waza].stat, 8800 + run.wins); } } // なじんだ
       else out.level = levelUp(run);
       var wasOpen = freeOpen(run);
       run.wins++; run.tries = 0; run.lossStreak = 0;

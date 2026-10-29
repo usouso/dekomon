@@ -49,7 +49,11 @@ fs.mkdirSync(OUT, { recursive: true });
       var eg = await page.evaluate(function () { return { on: document.querySelector('.screen.on').id, n: document.querySelectorAll('#eggw [data-egg]').length, h: document.querySelector('#eggw h1').textContent, want: window.__re.G.run.learned.length }; });
       check(eg.on === 'egg' && eg.n === eg.want, 'クリアの あと：' + eg.h + '（えらべる 技 ' + eg.n + '＝覚えた 技 ' + eg.want + '。さいごの 勝ちで ひらめく ことも ある）');
       await snap('egg_pick');
-      // 2. とじて 開きなおす → つづきから → 同じ たまごの 画面
+      // 2. とじて 開きなおす →「はじめる」でも 先に たまごの 画面（だまって 消さない）→ もう一度 とじて「つづきから」
+      await page.goto(URL);
+      await page.click('#bStart');
+      var st = await page.evaluate(function () { return { on: document.querySelector('.screen.on').id, egg: localStorage.getItem('remake.egg') }; });
+      check(st.on === 'egg' && (st.egg === null || st.egg === 'null'), 'とじて 開きなおして「はじめる」：先に たまごの 画面（たまごは まだ 消えない）');
       await page.goto(URL);
       var cont = await page.evaluate(function () { return getComputedStyle(document.getElementById('bCont')).display !== 'none'; });
       await page.click('#bCont');
@@ -63,9 +67,11 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.click('#bStart');
       var bar = await page.evaluate(function () { var b = document.querySelector('#eggbar .eggbar'); return b ? b.textContent : ''; });
       check(bar.indexOf('かけぬけ') >= 0 && bar.indexOf('どの 子も') >= 0, '種類を 選ぶ：帯「' + bar.slice(0, 40) + '」');
+      var cards = await page.evaluate(function () { return document.querySelectorAll('#spgrid .wz.oya').length; });
+      check(cards === 4, '種類の カード 4枚 ぜんぶに 🥚 の 技（' + cards + '）');
       await snap('species_egg');
       await page.click('#bEggUse');
-      var off = await page.evaluate(function () { var b = document.querySelector('#eggbar .eggbar'); return b.classList.contains('off') && b.textContent.indexOf('つかわない') >= 0; });
+      var off = await page.evaluate(function () { var b = document.querySelector('#eggbar .eggbar'); return b.classList.contains('off') && b.textContent.indexOf('つかわない') >= 0 && !document.querySelector('#spgrid .wz.oya'); });
       await page.click('#bEggUse');
       var on2 = await page.evaluate(function () { return !document.querySelector('#eggbar .eggbar').classList.contains('off'); });
       check(off && on2, '帯の ボタンで つかわない ⇄ つかう');
@@ -80,8 +86,18 @@ fs.mkdirSync(OUT, { recursive: true });
       check(oya === '🥚かけぬけ' && tip.indexOf('おやから うけついだ') >= 0, 'じゅんびの カード：「' + oya + '」・帯「' + tip.slice(0, 26) + '…」');
       if (!pc) await page.click('#pMe', { position: { x: 4, y: 4 } });
       await snap('prep_oya');
+      // 4b. 継いだ 技を 使える パーツ（はやい＝ばねあし）で 勝つ → 「なじんだ！」と レベルアップ（ひらめかない ように する）
+      await page.evaluate(function () { var G = window.__re.G, S = window.__re.S, run = G.run; S.CFG.hira.chance = 0; S.CFG.hira.perLuck = 0; S.CFG.hira.hard = 0; run.owned = ['longtail', 'spring']; run.equip = { atk: null, def: 'longtail', mov: 'spring' }; run.stats.hp = 999; run.stats.atk = 80; run.nare = {}; if (run.fork.roads[0].hard) run.fork.roads.reverse(); });
+      await page.evaluate(function () { document.getElementById('bBack').click(); }); await page.click('.road[data-road="0"] button');
+      await page.click('#bFight'); await page.click('#bSkip');
+      await page.waitForSelector('#result.on', { timeout: 60000 });
+      var nj = await page.evaluate(function () { var h = document.querySelector('#resw h2.hira'); return { h: h ? h.textContent : '', up: document.querySelectorAll('#resw .lvl .fx-up').length, spd: (document.querySelector('#resw .lvl') || {}).textContent || '' }; });
+      check(nj.h.indexOf('なじんだ') >= 0 && /はやさ|💨/.test(nj.spd), '継いだ 技で はじめて 勝つ：「' + nj.h + '」と レベルアップの 行');
+      await snap('result_najimu');
+      await page.click('#bNext');
+      await page.click('.road[data-road="0"] button');
       // 5. ハート 0 で おわる → たまごの 画面 →「のこさない」→ 前の たまごは のこる
-      await page.evaluate(function () { localStorage.setItem('remake.egg', JSON.stringify({ waza: 'teppeki', parent: 'まえの子', sp: 'gotsun' })); var G = window.__re.G; G.run.hearts = 1; G.run.stats.hp = 1; G.run.stats.def = 0; G.run.learned = ['kakenuke', 'fuiuchi']; });
+      await page.evaluate(function () { localStorage.setItem('remake.egg', JSON.stringify({ waza: 'teppeki', parent: 'まえの子', sp: 'gotsun' })); var G = window.__re.G; G.run.hearts = 1; G.run.stats.hp = 1; G.run.stats.def = 0; G.run.stats.atk = 1; G.run.learned = ['kakenuke', 'fuiuchi']; });
       await page.click('#bFight'); await page.click('#bSkip');
       await page.waitForSelector('#result.on', { timeout: 60000 });
       await page.click('#bNext');

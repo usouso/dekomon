@@ -43,8 +43,8 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       ok(t.scr === 'title' && t.cont && t.hallTxt.indexOf('しょう') < 0, tag + '：タイトルに「つづきから」・けっかは まだ 出さない（殿堂の 文「' + t.hallTxt + '」）');
       ok(await hallN() === h0, tag + '：開きなおしても 殿堂は ふえない');
       await page.click('#bCont');
-      var b = await page.evaluate(function () { var L = document.getElementById('log'); return { scr: document.body.getAttribute('data-scr'), first: (L.firstElementChild || {}).textContent || '' }; });
-      ok(b.scr === 'battle' && b.first.indexOf('もう一度 見る') >= 0, tag + '：つづきから → 戦いを はじめから 見る（' + b.scr + '・「' + b.first + '」）');
+      var b = await page.evaluate(function () { var L = document.getElementById('log'); return { scr: document.body.getAttribute('data-scr'), first: (L.firstElementChild || {}).textContent || '', stage: document.getElementById('bStage').textContent }; });
+      ok(b.scr === 'battle' && b.first.indexOf('もう一度 見る') >= 0 && b.stage.indexOf('▶ もう一度') >= 0, tag + '：つづきから → 戦いを はじめから 見る（' + b.scr + '・「' + b.first + '」・上の 帯「' + b.stage + '」）');
       await page.click('#bSkip').catch(function () {});
       if (!(await page.waitForSelector('#result.on', { timeout: 20000 }).then(function () { return true; }, function () { return false; }))) { ok(false, tag + '：結果の 画面に 行かない'); await ctx.close(); continue; }
       var r = await page.evaluate(function () { var G = window.__re.G, L2 = document.getElementById('log2'); return { h1: (document.querySelector('#resw h1') || {}).textContent, owned: G.run.owned.length, wins: G.run.wins, hearts: G.run.hearts, log2: L2.children.length, endLine: /かった|まけた/.test((L2.lastElementChild || {}).textContent || '') }; });

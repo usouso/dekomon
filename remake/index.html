@@ -505,7 +505,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     Array.prototype.forEach.call(document.querySelectorAll('#arena .dmg'), function (el) { el.remove(); }); // 前の 戦いの 浮かぶ 数字も（確認役）
     show('battle');
     if (first) countSeen(before, equip, road); // カードを かいた あとに 数える（その 戦いの あいだは ひとことが 残る。見なおしでは 数えない）
-    else addLog('hl', '▶ さっきの たたかいを もう一度 見るよ（けっかは おなじ）');
+    else { addLog('hl', '▶ さっきの たたかいを もう一度 見るよ（けっかは おなじ）'); $('bStage').textContent += '　▶ もう一度'; } // 上の 帯にも（ログの 1行目は 流れて 見えなく なる）
     play(out, before, equip, d);
   }
   function hpHtml(p, max) { return '<div class="hpnum"><span class="chgmark" id="' + p + 'Chg"></span><span id="' + p + 'HpN">' + max + ' / ' + max + '</span></div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }

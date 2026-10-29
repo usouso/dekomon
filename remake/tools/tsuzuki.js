@@ -1,10 +1,10 @@
 // 作り直しの 版 — 戦いを 見て いる とちゅうで とじても「つづきから」で その 戦いを もう一度 見て、結果の 画面まで 行けるか。
 // 実際の クリック（タイトル → 種類 → 道 → たたかう）で 進め、戦いの とちゅうで 開きなおす。node tools/tsuzuki.js
-// ためす 形：win＝ふつうに 勝つ／lose＝負ける（ハート のこる）／over＝さいごの ハートで 負ける／clear＝ぬしを たおす
+// ためす 形：win＝ふつうに 勝つ／lose＝負ける（ハート のこる）／over＝さいごの ハートで 負ける（0しょう）／overw＝2しょう して さいごの ハートで 負ける／clear＝ぬしを たおす
 'use strict';
 var { chromium } = require('playwright'), { spawn } = require('child_process'), path = require('path');
 var PORT = 8792;
-var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['lose', 23], ['over', 11], ['over', 4], ['clear', 11], ['clear', 23]];
+var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['lose', 23], ['over', 11], ['over', 4], ['overw', 11], ['clear', 11], ['clear', 23]];
 (async function () {
   var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: 'ignore' });
   await new Promise(function (r) { setTimeout(r, 800); });
@@ -25,15 +25,16 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       // 用意（クリック では ない）：負けは パーツを はずして 体力 1・はやさ 0、ぬしは 9しょうに して 道を ぬしに、強く する
       await page.evaluate(function (kind) {
         var G = window.__re.G, S = window.__re.S;
-        if (kind === 'over') G.run.hearts = 1;
+        if (kind === 'over' || kind === 'overw') G.run.hearts = 1;
+        if (kind === 'overw') { G.run.wins = 2; G.run.fork = S.makeFork(G.run); }
         if (kind === 'clear') { G.run.wins = S.CFG.runBattles - 1; G.run.fork = S.makeFork(G.run); G.run.stats.hp = 999; G.run.stats.atk = 99; G.run.stats.spd = 99; }
       }, kind);
       await page.click('#forkw .road button');
-      if (kind === 'lose' || kind === 'over') await page.evaluate(function () { var G = window.__re.G; G.run.equip = { atk: null, def: null, mov: null }; G.run.stats.hp = 1; G.run.stats.spd = 0; });
+      if (kind === 'lose' || kind === 'over' || kind === 'overw') await page.evaluate(function () { var G = window.__re.G; G.run.equip = { atk: null, def: null, mov: null }; G.run.stats.hp = 1; G.run.stats.spd = 0; });
       await page.click('#bFight');
       await page.waitForTimeout(300); // 戦いの とちゅう
       var st = await page.evaluate(function () { var G = window.__re.G; return { scr: document.body.getAttribute('data-scr'), owned: G.run.owned.length, wins: G.run.wins, hearts: G.run.hearts, last: !!G.last, over: G.run.over, clear: G.run.clear }; });
-      var wantOver = kind === 'over' || kind === 'clear';
+      var wantOver = kind === 'over' || kind === 'overw' || kind === 'clear';
       ok(st.scr === 'battle' && st.over === wantOver && (kind !== 'clear' || st.clear) && (kind === 'win' || kind === 'clear' ? st.hearts === 3 : st.hearts < 3), tag + '：戦いの とちゅう（' + st.scr + '・ハート ' + st.hearts + (st.over ? '・周回 おわり' : '') + '）');
       ok(st.last, tag + '：見て いる 戦いが 保存されて いる');
       var h0 = await hallN();
@@ -50,6 +51,7 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       var r = await page.evaluate(function () { var G = window.__re.G, L2 = document.getElementById('log2'); return { h1: (document.querySelector('#resw h1') || {}).textContent, owned: G.run.owned.length, wins: G.run.wins, hearts: G.run.hearts, log2: L2.children.length, endLine: /かった|まけた/.test((L2.lastElementChild || {}).textContent || '') }; });
       var wantH1 = kind === 'win' ? /かった/ : kind === 'clear' ? /クリア/ : /まけた/;
       ok(wantH1.test(r.h1 || ''), tag + '：結果の 画面「' + r.h1 + '」');
+      if (kind === 'over' || kind === 'overw') { var on = await page.evaluate(function () { return (document.getElementById('overNote') || {}).textContent || ''; }); var w0 = r.wins === 0; ok(on.indexOf('ここまで') >= 0 && (w0 ? on.indexOf('0しょう') < 0 && on.indexOf('めざそう') >= 0 : on.indexOf('（' + r.wins + 'しょう）') >= 0 && on.indexOf('めざそう') < 0), tag + '：おわりの 文（' + r.wins + 'しょう）「' + on + '」'); } // 0しょうは 数を 出さず つぎの めあて
       ok(r.owned === st.owned && r.wins === st.wins && r.hearts === st.hearts, tag + '：見なおしで 結果は 変わらない（パーツ ' + r.owned + '・' + r.wins + 'しょう・ハート ' + r.hearts + '）');
       ok(r.log2 >= 3 && r.endLine, tag + '：結果の 画面に 戦いの きろく（' + r.log2 + '行・さいごは 勝ち負け）');
       ok(await hallN() === h0, tag + '：見なおしで 殿堂は ふえない');

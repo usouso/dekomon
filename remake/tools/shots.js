@@ -19,12 +19,14 @@ fs.mkdirSync(OUT, { recursive: true });
         var m = await page.evaluate(function () {
           var de = document.documentElement, out = { pageScroll: de.scrollHeight - innerHeight, wide: de.scrollWidth - innerWidth, clip: [] };
           document.querySelectorAll('.screen.on *').forEach(function (el) { var r = el.getBoundingClientRect(); if (r.width && (r.right > innerWidth + 1 || r.left < -1)) out.clip.push(el.className || el.tagName); });
-          out.clip = out.clip.slice(0, 5); return out;
+          out.clip = out.clip.slice(0, 5);
+          var ko = document.getElementById('kotoba'); out.kot = (ko && ko.classList.contains('on')) ? ko.scrollHeight - ko.clientHeight : 0;
+          return out;
         });
         var pc = sz[0] > 700;
-        var fail = m.wide > 0 || m.clip.length || (pc && m.pageScroll > 0);
+        var fail = m.wide > 0 || m.clip.length || (pc && (m.pageScroll > 0 || m.kot > 0));
         if (fail) bad++;
-        console.log((fail ? '✕ ' : '○ ') + tag + ' ' + name + ' ページの スクロール ' + m.pageScroll + ' 横 ' + m.wide + (m.clip.length ? ' はみ出し ' + m.clip.join(',') : ''));
+        console.log((fail ? '✕ ' : '○ ') + tag + ' ' + name + ' ページの スクロール ' + m.pageScroll + ' 横 ' + m.wide + (m.kot ? ' ことばの 中の スクロール ' + m.kot : '') + (m.clip.length ? ' はみ出し ' + m.clip.join(',') : ''));
         await page.screenshot({ path: path.join(OUT, 're1_' + name + '_' + tag + '.png') });
       }
       await snap('title');
@@ -32,6 +34,7 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.click('[data-go="koron"]'); await snap('fork');
       await page.click('.road[data-road="0"] button'); await snap('prep');
       await page.hover('#slots [data-pick]').catch(function () {}); await snap('prep_hover');
+      await page.click('#prep .kbtn'); await snap('kotoba'); await page.click('#bKotobaX');
       await page.click('#bFight'); await page.waitForTimeout(600); await snap('battle');
       await page.waitForSelector('#result.on', { timeout: 60000 }); await snap('result');
       // 負けを 見る：ちから 0 に して 戦う

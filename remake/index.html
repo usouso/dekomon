@@ -76,6 +76,16 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 .wz { font-size:.8rem; font-weight:900; padding:.1rem .45rem; border-radius:.35rem; background:#3b2f55; border:2px solid #9b7fe0; cursor:help; }
 .wz.learn { background:#4a3a12; border-color:#ffd166; }
 .wz.learn.off { opacity:.45; border-style:dashed; }
+.wz.oya { background:#1f3a3a; border-color:#7fe0c8; }
+.eggbar { max-width:52rem; margin:.2rem auto .6rem; padding:.45rem .8rem; border:3px solid #7fe0c8; border-radius:.9rem; background:#17302e; text-align:center; font-weight:800; }
+.eggbar.off { opacity:.55; border-style:dashed; }
+.eggbar .btn { margin-left:.5rem; }
+.eggw { max-width:40rem; margin:0 auto; text-align:center; }
+@media (max-width: 700px) { .eggw h1 { font-size:1.6rem; } }
+.eggpick { display:grid; grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr)); gap:.6rem; margin:.8rem 0; }
+.eggpick button { text-align:left; padding:.6rem .8rem; border-radius:.8rem; border:3px solid #ffd166; background:#4a3a12; color:inherit; font:inherit; cursor:pointer; }
+.eggpick button:hover { border-color:#fff; }
+.eggpick b { font-size:1.15rem; } .eggpick .sub { display:block; margin-top:.2rem; color:var(--dim); }
 .hira { font-size:1.15rem; font-weight:900; color:#ffe066; }
 .nare { display:flex; flex-wrap:wrap; gap:.3rem .9rem; justify-content:center; font-size:1.05rem; font-weight:800; }
 .nare .dots { color:#ffd166; letter-spacing:.1rem; }
@@ -192,6 +202,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 </div>
 <div id="species" class="screen">
   <h2 class="center">どの 子と いっしょに のぼる？</h2>
+  <div id="eggbar"></div>
   <div class="spgrid" id="spgrid"></div>
 </div>
 <div id="fork" class="screen">
@@ -220,6 +231,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   </div>
 </div>
 <div id="result" class="screen"><div class="resw" id="resw"></div></div>
+<div id="egg" class="screen"><div class="eggw" id="eggw"></div></div>
 <div id="kotoba"><div class="kotw">
   <div class="kothead"><h2 style="margin:0">📖 ことば</h2><span class="sub">カードの まるい ことばの いみ。はじめての ことばは、カードにも ひとことが でるよ（その ことばに 3かい たたかいで あうと きえる）。</span><button class="btn" id="bKotobaX" style="margin-left:auto">✕ とじる</button></div>
   <div class="kotleg" id="kotLeg"></div>
@@ -247,16 +259,17 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   G.last = lsGet('last', null);
   if (!(G.run && G.last && G.last.key === runKey(G.run))) { G.last = null; lsSet('last', null); } // ちがう 戦いの ものは すてる
   // おわった 周回：殿堂には 1回だけ のせる（hallDone）。さいごの 戦いを 見て いない ときだけ 「つづきから」で 見せる
-  if (G.run && G.run.over) { if (!G.run.hallDone) { recordHall(G.run); G.run.hallDone = true; save(); } if (!G.last) { G.run = null; lsSet('run', null); } }
+  if (G.run && G.run.over) { if (!G.run.hallDone) { recordHall(G.run); G.run.hallDone = true; save(); } if (!G.last && !eggPending(G.run)) { G.run = null; lsSet('run', null); } } // たまごを まだ えらんで いない 周回は「つづきから」で えらべる
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）
   function save() { lsSet('run', G.run); }
+  function eggPending(run) { return !!(run && run.over && !run.eggDone && S.eggChoices(run).length); }
 
   // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
   function recordHall(run) {
     var hall = lsGet('hall', []);
     var at = Date.now();
-    hall.push({ name: run.name, sp: S.SPECIES_BY_ID[run.species].name, wins: run.wins, clear: run.clear, parts: run.owned.slice(), at: at });
+    hall.push({ name: run.name, sp: S.SPECIES_BY_ID[run.species].name, wins: run.wins, clear: run.clear, parts: run.owned.slice(), waza: (run.learned || []).slice(), from: run.inherit ? run.inherit.parent : null, at: at });
     lsSet('hall', hall.slice(-50));
     run.hallAt = at;
   }
@@ -375,7 +388,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     (o.parts || []).forEach(function (pid) { S.PART_BY_ID[pid].kw.forEach(function (k) { if (!seen[k]) { seen[k] = 1; kwHtml += kwBadge(k); } }); });
     NOTE_LEFT = 99;
     var tiles = (o.parts || []).map(function (p) { return ptile(p); }).join('');
-    var wz = (o.waza || []).map(function (w) { var L = S.WAZA_BY_ID[w].learn, off = L && o.wazaOn && o.wazaOn.indexOf(w) < 0, cap = off && (o.wazaCapped || []).indexOf(w) >= 0; return '<span class="wz' + (L ? ' learn' : '') + (off ? ' off' : '') + '" data-waza="' + w + '"' + (cap ? ' data-cap="' + o.wazaMax + '"' : '') + '>' + (L ? '✨' : '') + S.WAZA_BY_ID[w].name + '</span>'; }).join('');
+    var wz = (o.waza || []).map(function (w) { var L = S.WAZA_BY_ID[w].learn, off = L && o.wazaOn && o.wazaOn.indexOf(w) < 0, cap = off && (o.wazaCapped || []).indexOf(w) >= 0; var oya = L && o.oya === w; return '<span class="wz' + (L ? ' learn' : '') + (oya ? ' oya' : '') + (off ? ' off' : '') + '" data-waza="' + w + '"' + (cap ? ' data-cap="' + o.wazaMax + '"' : '') + (oya ? ' data-oya="1"' : '') + '>' + (oya ? '🥚' : L ? '✨' : '') + S.WAZA_BY_ID[w].name + '</span>'; }).join('');
     return '<div class="card ' + (o.kind === 'me' ? 'me' : '') + (o.hard ? ' hard' : '') + '">' +
       '<div class="nm"><span>' + o.name + '</span>' + (o.hard ? '<span class="tag hard">てごわい</span>' : '') + '</div>' +
       (o.sub ? '<div class="sub">' + o.sub + '</div>' : '') +
@@ -389,7 +402,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   function cappedWaza(run, equip) { var on = S.wazaFor(run, equip); return (run.learned || []).filter(function (w) { return on.indexOf(w) < 0 && S.canUse(S.WAZA_BY_ID[w], equip); }); }
   function meCard(run, equip, cmp) {
     var sp = S.SPECIES_BY_ID[run.species];
-    return card({ kind: 'me', name: run.name || sp.name, sub: sp.name + '・' + sp.theme, shape: sp.shape, color: sp.color, src: S.playerSrc(run, equip), born: sp.kw, parts: S.equipList(equip), waza: sp.waza.concat(run.learned || []), wazaOn: S.wazaFor(run, equip), wazaCapped: cappedWaza(run, equip), wazaMax: S.slotCount(run), cmp: cmp });
+    return card({ kind: 'me', name: run.name || sp.name, sub: sp.name + '・' + sp.theme, shape: sp.shape, color: sp.color, src: S.playerSrc(run, equip), born: sp.kw, parts: S.equipList(equip), waza: sp.waza.concat(run.learned || []), wazaOn: S.wazaFor(run, equip), wazaCapped: cappedWaza(run, equip), wazaMax: S.slotCount(run), oya: run.inherit ? run.inherit.waza : null, cmp: cmp });
   }
   function foeCard(road, stage) {
     var d = S.enemyDef(road.idx);
@@ -403,7 +416,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if (w && cp) { var cw = S.WAZA_BY_ID[w]; return '<b>' + cw.name + '</b>（おぼえた わざ）：いまは わくが たりなくて つかえない。おぼえた わざを つかえるのは わくの 数（' + cp + 'つ）まで、はやく おぼえた じゅん。' + cw.text; }
     if (k) { var d = S.KW_BY_ID[k]; return '<b>' + d.name + '</b>：' + d.text() + '（おなじ ことばが 2つ あっても 1かいぶん）'; }
     if (p) { var pp = S.PART_BY_ID[p]; return '<b>' + pp.name + '</b>（' + S.ROLES.filter(function (r) { return r.id === pp.role; })[0].name + '）：' + pp.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('・') + '／' + pp.line; }
-    if (w) { var ww = S.WAZA_BY_ID[w]; return '<b>' + ww.name + '</b>（' + (ww.learn ? 'おぼえた わざ。' + ww.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('か ') + 'の パーツを つけると つかえる' : 'うまれつきの わざ') + '）：' + ww.text; }
+    if (w) { var ww = S.WAZA_BY_ID[w]; return '<b>' + ww.name + '</b>（' + (ww.learn ? (el.getAttribute('data-oya') ? 'おやから うけついだ わざ。' : 'おぼえた わざ。') + ww.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('か ') + 'の パーツを つけると つかえる' : 'うまれつきの わざ') + '）：' + ww.text; }
     if (s) { var tx = { hp: '0 に なると まけ', atk: '1げきの つよさ', def: 'うける 1げきを へらす', spd: 'はやい ほうが さきに うごく', luck: 'かいしんと かいひの でやすさ（かいしん ' + C.critBase + '%＋うん×' + C.critPerLuck + '%・かいひ うん×' + C.dodgePerLuck + '%）。あいては うんを もたない' }; return '<b>' + STAT_LABEL[s] + '</b>：' + tx[s]; }
     return null;
   }
@@ -427,11 +440,19 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('howto').innerHTML = ['🧩 パーツを つける', '👀 たたかいを みまもる', '⛰ ' + C.runBattles + 'かい かつと クリア', '<b style="color:var(--heart)">♥</b> ' + C.hearts + 'かい まけると おわり'].map(function (t) { return '<span>' + t + '</span>'; }).join('');
     $('bCont').style.display = G.run ? '' : 'none';
     var h = lsGet('hall', []).filter(function (x) { return !(G.run && G.last && G.run.hallAt && x.at === G.run.hallAt); }); // さいごの 戦いを まだ 見て いない 周回は 見る まで 出さない（けっかを 先に 知らせない）
-    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう'; }).join('<br>') : '';
+    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう' + (x.from ? '　🥚' + x.from + 'の こ' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '　→ たまごに「' + S.WAZA_BY_ID[x.egg].name + '」' : ''); }).join('<br>') : '';
     show('title');
   }
   var NAMES = ['ころ', 'もち', 'ぽん', 'ぴこ', 'むぎ', 'てつ', 'るる', 'ごん', 'さく', 'のの'];
+  function eggNow() { var e = lsGet('egg', null); return (S.CFG.egg.on && e && S.WAZA_BY_ID[e.waza] && S.WAZA_BY_ID[e.waza].learn) ? e : null; }
+  G.useEgg = true;
+  function drawEggBar() {
+    var e = eggNow(), w = e && S.WAZA_BY_ID[e.waza];
+    $('eggbar').innerHTML = e ? '<div class="eggbar' + (G.useEgg ? '' : ' off') + '">🥚 たまご：' + e.parent + 'の わざ <span class="wz oya" data-waza="' + e.waza + '">🥚' + w.name + '</span>' + (G.useEgg ? '　どの 子も おぼえて うまれる' : '　つかわない（たまごは のこる）') + '<button class="btn" id="bEggUse">' + (G.useEgg ? 'つかわない' : 'つかう') + '</button></div>' : '';
+    if ($('bEggUse')) $('bEggUse').onclick = function () { G.useEgg = !G.useEgg; drawEggBar(); };
+  }
   function drawSpecies() {
+    drawEggBar();
     $('spgrid').innerHTML = S.SPECIES.map(function (sp) {
       return '<div data-sp="' + sp.id + '">' + card({ kind: 'me', name: sp.name, sub: '<span class="theme">' + sp.theme + '</span>　のびやすい：' + S.STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].name, shape: sp.shape, color: sp.color, src: { base: sp.base, kw: [sp.kw], parts: [] }, born: sp.kw, waza: sp.waza }) + '<div class="actions" style="margin-top:.3rem"><button class="btn" data-go="' + sp.id + '">この 子に する ▶</button></div></div>';
     }).join('');
@@ -440,7 +461,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
   function startRun(sp) {
     var seed = Q.get('seed') ? parseInt(Q.get('seed'), 10) : Math.floor(Math.random() * 1e9);
-    G.run = S.newRun(seed, sp); setLast(null);
+    var egg = G.useEgg ? eggNow() : null;
+    G.run = S.newRun(seed, sp, egg); setLast(null);
+    if (egg) lsSet('egg', null); // つかった たまごは なくなる
     G.run.name = NAMES[seed % NAMES.length] + S.SPECIES_BY_ID[sp].name.slice(0, 1);
     save(); drawFork();
   }
@@ -657,9 +680,32 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if ($('bOther')) $('bOther').onclick = function () { setLast(null); G.road = 1 - G.road; G.hint = null; drawPrep(); };
     if (AUTO) autoNext();
   }
+  // たまご：周回の おわりに 覚えた 技を 1つ えらんで 次の 子へ（設計書「子に継げる技は1つ」）
+  function drawEgg() {
+    var run = G.run, ch = S.eggChoices(run), old = eggNow();
+    var h = '<h1>🥚 たまごを のこそう</h1><div class="sub" style="font-weight:800">' + (run.name || '') + 'が おぼえた わざを 1つ、つぎの 子に つたえられる。<br>どの 子を えらんでも、その わざを おぼえて うまれるよ（つよさは つたわらない）</div>';
+    h += '<div class="eggpick">' + ch.map(function (id) { var w = S.WAZA_BY_ID[id]; return '<button data-egg="' + id + '"><b>' + ((run.inherit && run.inherit.waza === id) ? '🥚' : '✨') + w.name + '</b><span class="sub">' + w.text + '</span><span class="sub">' + w.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('・') + 'の パーツで</span></button>'; }).join('') + '</div>';
+    if (old) h += '<div class="sub" style="color:var(--dim)">いまの たまご（' + old.parent + 'の「' + S.WAZA_BY_ID[old.waza].name + '」）は、あたらしい たまごと いれかわる</div>';
+    h += '<div class="actions"><button class="btn" id="bNoEgg">のこさない</button></div>';
+    $('eggw').innerHTML = h;
+    show('egg');
+    Array.prototype.forEach.call($('eggw').querySelectorAll('[data-egg]'), function (el) { el.onclick = function () { pickEgg(el.getAttribute('data-egg')); }; });
+    $('bNoEgg').onclick = function () { pickEgg(null); };
+    if (AUTO) setTimeout(function () { var b = $('eggw').querySelector('[data-egg]'); if (b) b.click(); }, 150 / SPEED);
+  }
+  function pickEgg(id) {
+    var run = G.run, egg = id ? S.makeEgg(run, id) : null;
+    if (egg) {
+      lsSet('egg', egg);
+      var hall = lsGet('hall', []); hall.forEach(function (x) { if (x.at === run.hallAt) x.egg = id; }); lsSet('hall', hall);
+    }
+    run.eggDone = true; save();
+    endRun();
+  }
   function endRun() {
     var run = G.run;
-    if (!run.hallDone) recordHall(run);
+    if (!run.hallDone) { recordHall(run); run.hallDone = true; save(); }
+    if (eggPending(run)) { drawEgg(); return; }
     if (AUTO) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts);
     G.run = null; lsSet('run', null); setLast(null);
     drawTitle();
@@ -676,7 +722,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
 
   $('bStart').onclick = function () { drawSpecies(); };
-  $('bCont').onclick = function () { if (!G.run) return; var L = G.last; if (L) { G.road = L.road; G.hint = null; showBattle(L.out, L.before, L.equip, L.road, false); } else drawFork(); }; // 見て いる とちゅうで とじた 戦いは はじめから もう一度 見せる
+  $('bCont').onclick = function () { if (!G.run) return; var L = G.last; if (!L && eggPending(G.run)) { drawEgg(); return; } if (L) { G.road = L.road; G.hint = null; showBattle(L.out, L.before, L.equip, L.road, false); } else drawFork(); }; // 見て いる とちゅうで とじた 戦いは はじめから もう一度 見せる
   window.__re = { G: G, S: S, KW_SHORT: KW_SHORT };
   drawTitle();
   if (AUTO) { $('bStart').click(); startRun(S.SPECIES[0].id); autoNext(); }

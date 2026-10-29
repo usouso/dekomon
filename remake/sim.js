@@ -4,6 +4,7 @@
 // その1（2026-10-29）：キーワードの パーツ 16・相手 10＋ぬし・種類 4（1つの テーマ）・ハート 3・負けの 理由・ヒント。
 //   卵・場所 は まだ。
 // その2 の 1つ目（2026-10-30）：キーワードごとの なれ・ひらめきで 技を 覚える（その キーワードの パーツで 使える）・ひらめき＝レベルアップ（CFG.hira.on）。
+// その2 の 3つ目（2026-10-30）：たまご（CFG.egg。周回の おわりに 覚えた 技 1つを のこし、次の 子が 覚えた 状態で 始まる）。
 // その2 の 2つ目（2026-10-30）：自由枠（CFG.free。at 勝 したら 4つ目の 枠が 開く・どの 役割でも 1つ・覚えた 技を 使える 数＝枠の 数）。
 (function (root, factory) {
   var api = factory();
@@ -44,6 +45,8 @@
     // その2 の 2つ目：自由枠。at 勝 したら（at+1 戦目から）4つ目の 枠 free が 開く（どの 役割の パーツでも 1つ）。
     //   wazaCap：覚えた 技で 戦いに 使えるのは 枠の 数（3 か 4）まで（覚えた 順）。on＝false で その2 の 1つ目に もどる
     free: { on: true, at: 5, wazaCap: true },
+    // その2 の 3つ目：たまご。周回の おわりに 覚えた 技を 1つ えらんで のこす → 次の 子は その 技を 覚えた 状態で 始まる（ステータスは 継がない）。on＝false で たまごを 使わない
+    egg: { on: true },
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -354,14 +357,22 @@
   }
 
   // ---------- 周回 ----------
-  function newRun(seed, species) {
+  // egg：{ waza, parent, sp }（makeEgg の 形）。わたせば 子は その 技を 覚えた 状態で 始まる（run.inherit に 親を のこす）
+  function newRun(seed, species, egg) {
     var sp = SPECIES_BY_ID[species] || SPECIES[0];
     var rng = rngFrom(mix(seed, 777));
     var owned = ROLES.map(function (r) { var c = PARTS.filter(function (p) { return p.role === r.id; }); return c[Math.floor(rng() * c.length)].id; });
     var run = { v: 1, seed: seed >>> 0, species: sp.id, stats: JSON.parse(JSON.stringify(sp.base)), hearts: CFG.hearts, wins: 0,
       owned: owned, equip: { atk: owned[0], def: owned[1], mov: owned[2] }, tries: 0, lossStreak: 0, levels: [], nare: {}, learned: [], history: [], over: false, clear: false };
+    if (CFG.egg.on && egg && WAZA_BY_ID[egg.waza] && WAZA_BY_ID[egg.waza].learn) { run.learned = [egg.waza]; run.inherit = { waza: egg.waza, parent: egg.parent || '', sp: egg.sp || '' }; }
     run.fork = makeFork(run);
     return run;
+  }
+  // たまご：のこせる 技（覚えた 技。継いだ 技も もう一度 のこせる）
+  function eggChoices(run) { return (CFG.egg.on && run && run.over) ? (run.learned || []).filter(function (id) { return WAZA_BY_ID[id] && WAZA_BY_ID[id].learn; }) : []; }
+  function makeEgg(run, wazaId) {
+    if (eggChoices(run).indexOf(wazaId) < 0) return null;
+    return { waza: wazaId, parent: run.name || SPECIES_BY_ID[run.species].name, sp: run.species, wins: run.wins };
   }
   // 分かれ道：段階 s の 2つの 道（片方が てごわい）。ぬしの 段（10戦目）は 1つ。
   function makeFork(run) {
@@ -473,5 +484,5 @@
   return { CFG: CFG, KW: KW, KW_BY_ID: KW_BY_ID, ROLES: ROLES, ROLE_COLOR: ROLE_COLOR, STATS: STATS, PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS,
     WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, LEARN: LEARN, LEARN_BY_KW: LEARN_BY_KW, wazaFor: wazaFor, canUse: canUse, freeOpen: freeOpen, slotCount: slotCount, cleanEquip: cleanEquip, SLOT_KEYS: SLOT_KEYS, addNare: addNare, hirameki: hirameki, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDef: enemyDef,
     rngFrom: rngFrom, mix: mix, statsOf: statsOf, enemyBase: enemyBase, enemySrc: enemySrc, playerSrc: playerSrc, equipList: equipList,
-    battle: battle, loseReason: loseReason, REASONS: REASONS, newRun: newRun, makeFork: makeFork, rewardsFor: rewardsFor, fight: fight, levelUp: levelUp, bestEquip: bestEquip };
+    battle: battle, loseReason: loseReason, REASONS: REASONS, newRun: newRun, eggChoices: eggChoices, makeEgg: makeEgg, makeFork: makeFork, rewardsFor: rewardsFor, fight: fight, levelUp: levelUp, bestEquip: bestEquip };
 });

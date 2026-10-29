@@ -2,7 +2,8 @@
 // ブラウザ（index.html）と Node（bot.js・tests.js）の両方から同じファイルを読む。
 // 設計書：https://claude.ai/artifact/GGMbMbeSY1gf7wLvytHtyb （キーワード・5つの ステータス・うん・役割の 枠・ハート）
 // その1（2026-10-29）：キーワードの パーツ 16・相手 10＋ぬし・種類 4（1つの テーマ）・ハート 3・負けの 理由・ヒント。
-//   ひらめき（技を 覚える）・自由枠・卵・場所 は まだ（その2 以降）。かわりに 勝つと「レベルアップ」（FE 式。その2 で ひらめきに つなぐ）。
+//   自由枠・卵・場所 は まだ。
+// その2 の 1つ目（2026-10-30）：キーワードごとの なれ・ひらめきで 技を 覚える（その キーワードの パーツで 使える）・ひらめき＝レベルアップ（CFG.hira.on）。
 (function (root, factory) {
   var api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -33,8 +34,12 @@
     stageHp: 0.25, stageAtk: 0.18, stageDefEvery: 4,
     hard: { hp: 1.2, atk: 1 },     // てごわい：たいりょく ×1.2・こうげき +1
     boss: { hp: 1.3, atk: 1 },
-    hpUp: 2,               // レベルアップの たいりょくは +2（ほかは +1）
-    startParts: 3          // はじめの もちもの（役割ごとに 1つ）
+    hpUp: 2,               // 旧モードの レベルアップの たいりょくは +2（ほかは +1）
+    startParts: 3,         // はじめの もちもの（役割ごとに 1つ）
+    // その2：ひらめき（技を 覚える）。on＝false で その1 の「勝つたび レベルアップ」に もどる
+    //   なれ：戦うたび（勝ち・負け）つけた パーツの キーワードごとに +1（てごわい +2）。nareMax で 満タン。
+    //   勝ったら 1回 ためす：満タンの キーワードが あれば かならず、なければ chance ＋ うん×perLuck（てごわい ＋hard）。
+    hira: { on: true, nareMax: 3, nareHard: 2, chance: 0.15, perLuck: 0.02, hard: 0.15, bossHp: 0.8 }, // bossHp：on の ときの ぬしの たいりょく（off は boss.hp）。勝つたびの レベルアップが なくなる ぶん 下げる（ボット）
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
@@ -95,9 +100,20 @@
     { id: 'hayauchi', name: 'はやうち',  text: 'さいしょの じぶんの手は 2かい こうげき' },
     { id: 'renda',   name: 'れんだ',     text: '4手ごとに、もう1かい こうげき' },
     { id: 'oonaguri', name: 'おおなぐり', text: '4手ごとに、つぎに あたる 1げきが ×2' },
-    { id: 'ikari',   name: 'いかり',     text: 'たいりょくが 半分より すくないと こうげき +2' }
+    { id: 'ikari',   name: 'いかり',     text: 'たいりょくが 半分より すくないと こうげき +2' },
+    // ひらめきで 覚える 技（その2）。kw の どれかを もつ パーツを つけて いる ときだけ 使える。stat＝ひらめいた ときに かならず +1
+    { id: 'chikara', learn: true, kw: ['heavy', 'charge'],   stat: 'atk',  name: 'ちからこめ', text: '4手ごとに、つぎに あたる 1げき +3（はんげきは のぞく）' },
+    { id: 'kakenuke', learn: true, kw: ['ren', 'fast'],      stat: 'spd',  name: 'かけぬけ',   text: 'あいてより はやければ 1げき +1' },
+    { id: 'todome',  learn: true, kw: ['nerai', 'sure'],     stat: 'atk',  name: 'とどめ',     text: 'あいての たいりょくが 半分より すくないと 1げき +2' },
+    { id: 'shitsukoi', learn: true, kw: ['poison', 'brittle'], stat: 'luck', name: 'しつこい', text: 'あてた どく・もろいが 1手 ながく つづく' },
+    { id: 'fuiuchi', learn: true, kw: ['stagger', 'ranged'], stat: 'spd',  name: 'ふいうち',   text: 'さいしょに あたる 1げき +3（はんげきは のぞく）' },
+    { id: 'teppeki', learn: true, kw: ['hard', 'counter'],   stat: 'def',  name: 'てっぺき',   text: 'さいしょに うける 1げきは 1 ダメージ' },
+    { id: 'fukkatsu', learn: true, kw: ['regen', 'leech'],   stat: 'hp',   name: 'ふっかつ',   text: 'たいりょくが 半分より すくない 最初の手の はじめに たいりょく +5' },
+    { id: 'mikawashi', learn: true, kw: ['immune', 'hirari'], stat: 'luck', name: 'みかわし', text: 'よけるたび たいりょく +2' }
   ];
   var WAZA_BY_ID = {}; WAZA.forEach(function (w) { WAZA_BY_ID[w.id] = w; });
+  var LEARN = WAZA.filter(function (w) { return w.learn; });
+  var LEARN_BY_KW = {}; LEARN.forEach(function (w) { w.kw.forEach(function (k) { LEARN_BY_KW[k] = w; }); });
 
   // ---------- 種類 4（1つの テーマ：生まれつきの キーワード・伸びやすい ステータス） ----------
   // grow：レベルアップで その ステータスが 上がる 確率（FE の 成長率）。いまは ひらめきが まだ ないので 勝つたびに 1回。
@@ -166,7 +182,7 @@
   // 相手の 段階ごとの 基礎（s＝1〜10、hard＝てごわい）
   function enemyBase(idx, s, hard) {
     var d = enemyDef(idx);
-    var hp = d.hp * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (d.boss ? CFG.boss.hp : 1);
+    var hp = d.hp * (1 + CFG.stageHp * (s - 1)) * (hard ? CFG.hard.hp : 1) * (d.boss ? (CFG.hira.on ? CFG.hira.bossHp : CFG.boss.hp) : 1);
     var atk = d.atk * (1 + CFG.stageAtk * (s - 1)) + (hard ? CFG.hard.atk : 0) + (d.boss ? CFG.boss.atk : 0);
     return { hp: Math.round(hp), atk: Math.round(atk), def: d.def + Math.floor((s - 1) / CFG.stageDefEvery), spd: d.spd, luck: 0 };
   }
@@ -174,6 +190,13 @@
   function playerSrc(run, equip) {
     var sp = SPECIES_BY_ID[run.species];
     return { base: run.stats, kw: [sp.kw], parts: equipList(equip), enemy: false };
+  }
+  // 戦いで 使える 技：うまれつき 2つ ＋ 覚えた 技の うち、いまの パーツに その キーワードが ある もの
+  function canUse(w, equip) { var ks = {}; equipList(equip).forEach(function (pid) { PART_BY_ID[pid].kw.forEach(function (k) { ks[k] = true; }); }); return w.kw.some(function (k) { return ks[k]; }); }
+  function wazaFor(run, equip) {
+    var out = SPECIES_BY_ID[run.species].waza.slice();
+    (run.learned || []).forEach(function (id) { var w = WAZA_BY_ID[id]; if (w && canUse(w, equip)) out.push(id); });
+    return out;
   }
   function equipList(equip) { var e = equip || {}; return ['atk', 'def', 'mov'].map(function (r) { return e[r]; }).filter(function (x) { return !!x; }); }
 
@@ -183,7 +206,7 @@
   function fighter(side, name, src, waza) {
     var st = statsOf(src);
     return { side: side, name: name, st: st, kw: st.kw, sp: st.specials, hp: st.hp, maxHp: st.hp, hands: 0,
-      poison: 0, poisonPow: 0, stagger: false, brittle: 0, waza: waza || [], kokozoUsed: false, luckyNext: false, gaman: 0 };
+      poison: 0, poisonPow: 0, stagger: false, brittle: 0, waza: waza || [], kokozoUsed: false, luckyNext: false, gaman: 0, hitTaken: 0, fukkatsuUsed: false };
   }
   function battle(pSrc, eSrc, seed, opts) {
     opts = opts || {};
@@ -210,11 +233,15 @@
       for (var h = 0; h < hits && !dead(); h++) {
         // かいひ
         var dodge = a.kw.sure ? 0 : d.st.dodge;
-        if (dodge > 0 && rng() * 100 < dodge) { dodged[d.side]++; log({ t: 'dodge', who: d.side, by: d.kw.yokeru ? 'yokeru' : d.kw.hirari ? 'hirari' : 'luck' }); if (d.waza.indexOf('lucky') >= 0) d.luckyNext = true; continue; }
+        if (dodge > 0 && rng() * 100 < dodge) { dodged[d.side]++; log({ t: 'dodge', who: d.side, by: d.kw.yokeru ? 'yokeru' : d.kw.hirari ? 'hirari' : 'luck' }); if (d.waza.indexOf('lucky') >= 0) d.luckyNext = true; if (d.waza.indexOf('mikawashi') >= 0) { log({ t: 'waza', who: d.side, w: 'mikawashi' }); heal(d, 2, 'mikawashi'); } continue; }
         var m = mult * (charged ? CFG.chargeMult : 1) * (st ? CFG.staggerMult : 1) * (a.multPending || 1); a.multPending = 0;
         var raw = atk * m;
         if (a.sp.weightPlus) raw += 1;
         if (a.gaman) { raw += a.gaman; a.gaman = 0; }
+        var wz = []; // この 1げきに のった 覚えた 技（ログで 見せる）
+        if (a.plusPending) { raw += a.plusPending; a.plusPending = 0; wz = wz.concat(a.plusSrc || []); a.plusSrc = []; }
+        if (a.waza.indexOf('kakenuke') >= 0 && a.st.spd > d.st.spd) { raw += 1; wz.push('kakenuke'); }
+        if (a.waza.indexOf('todome') >= 0 && d.hp * 2 < d.maxHp) { raw += 2; wz.push('todome'); }
         var status = d.poison > 0 || d.stagger || d.brittle > 0;
         if (a.kw.nerai && status) raw += CFG.neraiPlus;
         if (d.brittle > 0) raw += CFG.brittlePlus;
@@ -222,25 +249,31 @@
         var dmg = Math.max(1, Math.round(raw) - def);
         var crit = a.critPending || rng() * 100 < a.st.crit; a.critPending = false;
         if (crit) dmg *= CFG.critMult;
+        var wall = d.waza.indexOf('teppeki') >= 0 && d.hitTaken === 0; d.hitTaken++;
+        if (wall) { dmg = 1; log({ t: 'waza', who: d.side, w: 'teppeki' }); }
         dmgTo(d, dmg, charged ? 'charge' : 'hit', a.side);
         dealtSum += dmg;
-        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def > 0), hp: d.hp });
+        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, wall: wall, wz: wz, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def > 0), hp: d.hp });
         if (d.waza.indexOf('gaman') >= 0 && d.gaman < 3) d.gaman++;
         if (d.hp > 0) {
           // じょうたいを かける
           if (!d.kw.immune) {
-            if (a.kw.poison) { if (d.poison > 0 && a.sp.fangGrow) { d.poisonPow++; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands; log({ t: 'status', who: d.side, st: 'poison' }); }
+            if (a.kw.poison) { if (d.poison > 0 && a.sp.fangGrow) { d.poisonPow++; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'poison', n: d.poison, long: a.waza.indexOf('shitsukoi') >= 0 }); }
             if (a.kw.stagger) { d.stagger = true; log({ t: 'status', who: d.side, st: 'stagger' }); }
-            if (a.kw.brittle) { d.brittle = CFG.brittleHands; log({ t: 'status', who: d.side, st: 'brittle' }); }
+            if (a.kw.brittle) { d.brittle = CFG.brittleHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'brittle', n: d.brittle, long: a.waza.indexOf('shitsukoi') >= 0 }); }
           } else if (a.kw.poison || a.kw.stagger || a.kw.brittle) log({ t: 'kw', who: d.side, kw: 'immune' });
           // はんげき
           if (d.kw.counter && !a.kw.ranged) {
             // はんげきも「1げき」：うける 側の もろい（+2）・はんげきする 側の ねらいうち（+2）が のる
-            var craw = Math.round(d.st.atk * CFG.counterRatio) + (a.brittle > 0 ? CFG.brittlePlus : 0) + (d.kw.nerai && (a.poison > 0 || a.stagger || a.brittle > 0) ? CFG.neraiPlus : 0);
+            var craw = Math.round(d.st.atk * CFG.counterRatio) + (a.brittle > 0 ? CFG.brittlePlus : 0) + (d.kw.nerai && (a.poison > 0 || a.stagger || a.brittle > 0) ? CFG.neraiPlus : 0)
+              + (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd ? 1 : 0) + (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp ? 2 : 0); // 覚えた 技の「1げき +」も のる
+            var cwz = []; if (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd) cwz.push('kakenuke'); if (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp) cwz.push('todome');
             var c = Math.max(1, craw - a.st.def);
+            if (a.waza.indexOf('teppeki') >= 0 && a.hitTaken === 0) { c = 1; log({ t: 'waza', who: a.side, w: 'teppeki' }); }
+            a.hitTaken++;
             dmgTo(a, c, 'counter', d.side);
             if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
-            log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp });
+            log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp, wz: cwz });
           }
         }
       }
@@ -249,8 +282,11 @@
     function turn(a, d) {
       a.hands++;
       log({ t: 'hand', who: a.side, n: a.hands });
+      if (a.waza.indexOf('fukkatsu') >= 0 && !a.fukkatsuUsed && a.hp * 2 < a.maxHp) { a.fukkatsuUsed = true; log({ t: 'waza', who: a.side, w: 'fukkatsu' }); heal(a, 5, 'fukkatsu'); } // 手の はじめ（かいふくより 先に 見る）
       if (a.kw.regen) heal(a, CFG.regenHeal, 'regen');
       if (a.waza.indexOf('hitoiki') >= 0 && a.hands % 4 === 0) { log({ t: 'waza', who: a.side, w: 'hitoiki' }); heal(a, 3, 'hitoiki'); }
+      if (a.waza.indexOf('chikara') >= 0 && a.hands % 4 === 0) { a.plusPending = (a.plusPending || 0) + 3; a.plusSrc = (a.plusSrc || []).concat('chikara'); log({ t: 'waza', who: a.side, w: 'chikara' }); }
+      if (a.waza.indexOf('fuiuchi') >= 0 && a.hands === 1) { a.plusPending = (a.plusPending || 0) + 3; a.plusSrc = (a.plusSrc || []).concat('fuiuchi'); log({ t: 'waza', who: a.side, w: 'fuiuchi' }); }
       var hits = 1;
       if (a.kw.ren) hits = (a.sp.claw3 && a.st.spd > d.st.spd) ? 3 : 2;
       var forceCrit1 = false, mult1 = 0;
@@ -306,7 +342,7 @@
     var rng = rngFrom(mix(seed, 777));
     var owned = ROLES.map(function (r) { var c = PARTS.filter(function (p) { return p.role === r.id; }); return c[Math.floor(rng() * c.length)].id; });
     var run = { v: 1, seed: seed >>> 0, species: sp.id, stats: JSON.parse(JSON.stringify(sp.base)), hearts: CFG.hearts, wins: 0,
-      owned: owned, equip: { atk: owned[0], def: owned[1], mov: owned[2] }, tries: 0, lossStreak: 0, levels: [], history: [], over: false, clear: false };
+      owned: owned, equip: { atk: owned[0], def: owned[1], mov: owned[2] }, tries: 0, lossStreak: 0, levels: [], nare: {}, learned: [], history: [], over: false, clear: false };
     run.fork = makeFork(run);
     return run;
   }
@@ -334,13 +370,16 @@
     var road = run.fork.roads[roadIndex];
     var s = run.fork.stage, d = enemyDef(road.idx);
     run.equip = { atk: equip.atk || null, def: equip.def || null, mov: equip.mov || null };
-    var res = battle(playerSrc(run, run.equip), enemySrc(road.idx, s, road.hard), battleSeed(run, road), { waza: SPECIES_BY_ID[run.species].waza, eName: d.name });
+    if (!run.nare) run.nare = {}; if (!run.learned) run.learned = []; // 前の 保存（その1）にも 足す
+    var res = battle(playerSrc(run, run.equip), enemySrc(road.idx, s, road.hard), battleSeed(run, road), { waza: wazaFor(run, run.equip), eName: d.name });
+    if (CFG.hira.on) addNare(run, road.hard);
     var out = { res: res, win: res.win, stage: s, road: road };
     run.history.push({ s: s, e: d.id, hard: road.hard, win: res.win, try: run.tries });
     if (res.win) {
       out.reward = rewardsFor(run, road);
       out.reward.forEach(function (p) { run.owned.push(p); });
-      out.level = levelUp(run);
+      if (CFG.hira.on) { out.hira = hirameki(run, road); if (out.hira) out.level = levelUp(run, WAZA_BY_ID[out.hira].stat); }
+      else out.level = levelUp(run);
       run.wins++; run.tries = 0; run.lossStreak = 0;
       if (run.wins >= CFG.runBattles) { run.clear = true; run.over = true; out.clear = true; }
       else run.fork = makeFork(run);
@@ -351,23 +390,48 @@
     }
     return out;
   }
-  // レベルアップ（FE 式）：ステータスごとに 成長率の 確率で +1（たいりょくは +2）。1つも 上がらなければ いちばん 成長率の 高い ものを +1。
-  function levelUp(run) {
+  // レベルアップ（FE 式）：ステータスごとに 成長率の 確率で +1（旧モードの たいりょくは CFG.hpUp）。1つも 上がらなければ いちばん 成長率の 高い ものを +1。
+  // must：かならず 上がる ステータス（ひらめいた 技の stat）
+  function levelUp(run, must) {
     var sp = SPECIES_BY_ID[run.species], rng = rngFrom(mix(run.seed, 9000 + run.wins)), up = {}, any = false;
-    STATS.forEach(function (s) { if (rng() < sp.grow[s.id]) { up[s.id] = s.id === 'hp' ? CFG.hpUp : 1; any = true; } });
-    if (!any) { var best = STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].id; up[best] = best === 'hp' ? CFG.hpUp : 1; }
+    var hpUp = CFG.hira.on ? 1 : CFG.hpUp;
+    STATS.forEach(function (s) { if (rng() < sp.grow[s.id] || s.id === must) { up[s.id] = s.id === 'hp' ? hpUp : 1; any = true; } });
+    if (!any) { var best = STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].id; up[best] = best === 'hp' ? hpUp : 1; }
     Object.keys(up).forEach(function (k) { run.stats[k] += up[k]; });
     run.levels.push(up);
     return up;
+  }
+  // なれ：つけた パーツの キーワードごとに +1（てごわい +nareHard）。満タンを こえない。もう 覚えた 技の キーワードは ためない
+  function addNare(run, hard) {
+    var seen = {};
+    equipList(run.equip).forEach(function (pid) { PART_BY_ID[pid].kw.forEach(function (k) {
+      if (seen[k] || !LEARN_BY_KW[k] || run.learned.indexOf(LEARN_BY_KW[k].id) >= 0) return; seen[k] = true;
+      run.nare[k] = Math.min(CFG.hira.nareMax, (run.nare[k] || 0) + (hard ? CFG.hira.nareHard : 1));
+    }); });
+  }
+  // ひらめき（勝った あと 1回）：まだ 覚えて いない 技の キーワードで、なれが 満タンの ものが あれば かならず（いちばん 多い・同じなら パーツの 順）。
+  // なければ chance ＋ うん×perLuck（てごわい ＋hard）の 確率で、つけた キーワードから 1つ。覚えたら その 技の キーワードの なれは 0。返すもの：技の id か null
+  function hirameki(run, road) {
+    var rng = rngFrom(mix(run.seed, 9500 + run.wins * 3 + run.tries)), cand = [];
+    equipList(run.equip).forEach(function (pid) { PART_BY_ID[pid].kw.forEach(function (k) { var w = LEARN_BY_KW[k]; if (w && run.learned.indexOf(w.id) < 0 && cand.indexOf(k) < 0) cand.push(k); }); });
+    if (!cand.length) return null;
+    var full = cand.filter(function (k) { return (run.nare[k] || 0) >= CFG.hira.nareMax; }), pick = null;
+    if (full.length) pick = full.slice().sort(function (a, b) { return (run.nare[b] || 0) - (run.nare[a] || 0); })[0];
+    else { var p = CFG.hira.chance + CFG.hira.perLuck * statsOf(playerSrc(run, run.equip)).luck + /* 画面と 同じ パーツ込みの うん */ (road.hard ? CFG.hira.hard : 0); if (rng() < p) pick = cand[Math.floor(rng() * cand.length)]; }
+    if (!pick) return null;
+    var w = LEARN_BY_KW[pick];
+    run.learned.push(w.id);
+    w.kw.forEach(function (k) { run.nare[k] = 0; });
+    return w.id;
   }
   // ヒント（2回 続けて 負けたとき）：もちものの 組み合わせを 全部 ためして、いちばん 勝ちやすい 組を 返す
   function bestEquip(run, roadIndex, tries) {
     tries = tries || 12;
     var road = run.fork.roads[roadIndex], s = run.fork.stage;
     var byRole = {}; ROLES.forEach(function (r) { byRole[r.id] = [null].concat(run.owned.filter(function (p) { return PART_BY_ID[p].role === r.id; })); });
-    var best = null, bestScore = -1, bestN = -1, eSrc = enemySrc(road.idx, s, road.hard), waza = SPECIES_BY_ID[run.species].waza;
+    var best = null, bestScore = -1, bestN = -1, eSrc = enemySrc(road.idx, s, road.hard);
     byRole.atk.forEach(function (a) { byRole.def.forEach(function (d) { byRole.mov.forEach(function (m) {
-      var eq = { atk: a, def: d, mov: m }, w = 0, pSrc = playerSrc(run, eq);
+      var eq = { atk: a, def: d, mov: m }, w = 0, pSrc = playerSrc(run, eq), waza = wazaFor(run, eq);
       for (var i = 0; i < tries; i++) { var r = battle(pSrc, eSrc, mix(4242 + i, s), { waza: waza }); if (r.win) w += 1; else w += 0.001 * (1 - r.eHp / r.eMax); }
       // 同じ くらいなら パーツが 多い 組（「はずす」を むやみに すすめない）
       var n = (a ? 1 : 0) + (d ? 1 : 0) + (m ? 1 : 0);
@@ -378,7 +442,7 @@
   }
 
   return { CFG: CFG, KW: KW, KW_BY_ID: KW_BY_ID, ROLES: ROLES, ROLE_COLOR: ROLE_COLOR, STATS: STATS, PARTS: PARTS, PART_BY_ID: PART_BY_ID, PART_IDS: PART_IDS,
-    WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDef: enemyDef,
+    WAZA: WAZA, WAZA_BY_ID: WAZA_BY_ID, LEARN: LEARN, LEARN_BY_KW: LEARN_BY_KW, wazaFor: wazaFor, canUse: canUse, addNare: addNare, hirameki: hirameki, SPECIES: SPECIES, SPECIES_BY_ID: SPECIES_BY_ID, ENEMIES: ENEMIES, BOSS: BOSS, ENEMY_BY_ID: ENEMY_BY_ID, enemyDef: enemyDef,
     rngFrom: rngFrom, mix: mix, statsOf: statsOf, enemyBase: enemyBase, enemySrc: enemySrc, playerSrc: playerSrc, equipList: equipList,
     battle: battle, loseReason: loseReason, REASONS: REASONS, newRun: newRun, makeFork: makeFork, rewardsFor: rewardsFor, fight: fight, levelUp: levelUp, bestEquip: bestEquip };
 });

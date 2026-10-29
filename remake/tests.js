@@ -135,7 +135,7 @@ S.fight(run, 0, run.equip); S.fight(run, 1, run.equip);
 ok(run.hearts === 0 && run.over && !run.clear, 'ハート 0 で 周回 おわり');
 var run2 = S.newRun(6, 'doshin'); run2.stats.atk = 99; run2.stats.hp = 999;
 var w = S.fight(run2, 0, run2.equip);
-ok(w.win && run2.wins === 1 && w.reward.length === (w.road.hard ? 2 : 1) && w.level && run2.fork.stage === 2, '勝つと もらえる（てごわいは 2つ）・レベルアップ・つぎの 分かれ道');
+ok(w.win && run2.wins === 1 && w.reward.length === (w.road.hard ? 2 : 1) && (C.hira.on ? (!!w.hira === !!w.level) : !!w.level) && run2.fork.stage === 2, '勝つと もらえる（てごわいは 2つ）・ひらめいたら レベルアップ・つぎの 分かれ道');
 for (var k = 0; k < 9; k++) S.fight(run2, 0, run2.equip);
 ok(run2.clear && run2.over && run2.history[9].e === 'boss', '10戦目は ぬし・勝てば クリア');
 // 同じ 種で 同じ 結果（画面と ボットが そろう）
@@ -145,5 +145,124 @@ ok(JSON.stringify(x1.res.events) === JSON.stringify(x2.res.events), '同じ 種�
 // パーツの 数・キーワードの 数
 ok(S.PARTS.length === 16 && S.ENEMIES.length === 10, 'パーツ 16・相手 10');
 ok(S.PARTS.every(function (p) { return p.kw.every(function (k) { return !!S.KW_BY_ID[k]; }); }), 'パーツの キーワードは 一覧に ある');
+
+// ---------- その2：ひらめきで 覚える 技（札の 文 どおり） ----------
+function hasW(res, who, w) { return res.events.some(function (e) { return e.t === 'waza' && e.who === who && e.w === w; }); }
+noLuck(function () {
+  var D = C.dodgePerLuck; C.dodgePerLuck = 0;
+  try {
+    // ちからこめ：4手ごとに つぎに あたる 1げき +3
+    var r = S.battle(P({ atk: 5 }), E({ atk: 0, hp: 300 }), 1, { waza: ['chikara'] });
+    ok(handHits(r, 'p', 3)[0].dmg === 5 && handHits(r, 'p', 4)[0].dmg === 8 && hasW(r, 'p', 'chikara'), 'ちからこめ：4手めの 1げき +3');
+    // かけぬけ：あいてより はやければ 1げき +1（おそい ときは ふえない）
+    r = S.battle(P({ atk: 5, spd: 9 }), E({ atk: 0, spd: 1, hp: 300 }), 1, { waza: ['kakenuke'] });
+    var r0 = S.battle(P({ atk: 5, spd: 1 }), E({ atk: 0, spd: 9, hp: 300 }), 1, { waza: ['kakenuke'] });
+    ok(hits(r, 'p')[0].dmg === 6 && hits(r0, 'p')[0].dmg === 5, 'かけぬけ：はやければ 1げき +1');
+    // とどめ：あいての たいりょくが 半分より すくないと 1げき +2
+    r = S.battle(P({ atk: 10 }), E({ atk: 0, hp: 30 }), 1, { waza: ['todome'] });
+    var th = hits(r, 'p'); // 30 → 20 → 10（半分より すくない）→ 12
+    ok(th[0].dmg === 10 && th[1].dmg === 10 && th[2].dmg === 12, 'とどめ：あいてが 半分より すくないと +2');
+    // しつこい：あてた どく・もろいが 1手 ながく（どく 3 → 4手・もろい 3 → 4手）
+    var stN = function (res, st) { var e = res.events.filter(function (x) { return x.t === 'status' && x.st === st; })[0]; return e && e.n; };
+    r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, hp: 300 }), 1, { waza: ['shitsukoi'] }); r0 = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, hp: 300 }), 1, {});
+    ok(stN(r, 'poison') === C.poisonHands + 1 && stN(r0, 'poison') === C.poisonHands, 'しつこい：どくが 1手 ながい');
+    r = S.battle(P({ atk: 1 }, ['crush']), E({ atk: 0, hp: 300 }), 1, { waza: ['shitsukoi'] }); r0 = S.battle(P({ atk: 1 }, ['crush']), E({ atk: 0, hp: 300 }), 1, {});
+    ok(stN(r, 'brittle') === C.brittleHands + 1 && stN(r0, 'brittle') === C.brittleHands, 'しつこい：もろいが 1手 ながい');
+    // ふいうち：さいしょに あたる 1げき +3
+    r = S.battle(P({ atk: 5 }), E({ atk: 0, hp: 300 }), 1, { waza: ['fuiuchi'] });
+    ok(handHits(r, 'p', 1)[0].dmg === 8 && handHits(r, 'p', 2)[0].dmg === 5, 'ふいうち：さいしょに あたる 1げき +3');
+    // てっぺき：さいしょに うける 1げきは 1（はんげきでも）
+    r = S.battle(P({ atk: 0, spd: 1, hp: 300 }), E({ atk: 9, spd: 9, hp: 300 }), 1, { waza: ['teppeki'] });
+    var eh = hits(r, 'e'); ok(eh[0].dmg === 1 && eh[1].dmg === 9, 'てっぺき：さいしょに うける 1げきは 1 ダメージ');
+    r = S.battle(P({ atk: 5, spd: 9, hp: 300 }), E({ atk: 10, spd: 1, hp: 300 }, ['spike']), 1, { waza: ['teppeki'] });
+    var cs = r.events.filter(function (e) { return e.t === 'counter'; });
+    ok(cs[0].dmg === 1 && hits(r, 'e')[0].dmg === 10, 'てっぺき：さいしょが はんげきでも 1（つぎの 1げきは ふつう）');
+    // ふっかつ：たいりょくが 半分より すくない 最初の手の はじめに +5（1かいだけ）
+    r = S.battle(P({ atk: 0, hp: 20 }), E({ atk: 6, hp: 300 }), 1, { waza: ['fukkatsu'] });
+    var fk = r.events.filter(function (e) { return e.t === 'heal' && e.src === 'fukkatsu'; });
+    ok(fk.length === 1 && fk[0].n === 5, 'ふっかつ：半分より すくない 最初の手に たいりょく +5（1かい）');
+    // みかわし：よけるたび +2
+    C.dodgePerLuck = D;
+    r = S.battle(P({ atk: 0, hp: 40 }, ['wing']), E({ atk: 3, hp: 300 }), 3, { waza: ['mikawashi'] });
+    var dg = r.events.filter(function (e) { return e.t === 'dodge' && e.who === 'p'; }).length, mh = r.events.filter(function (e) { return e.t === 'waza' && e.w === 'mikawashi'; }).length;
+    ok(dg > 0 && dg === mh, 'みかわし：よけるたび（' + dg + 'かい）');
+    var mhe = r.events.filter(function (e) { return e.t === 'heal' && e.src === 'mikawashi'; });
+    ok(mhe.length > 0 && mhe.every(function (e) { return e.n > 0 && e.n <= 2; }) && mhe.some(function (e) { return e.n === 2; }), 'みかわし：たいりょく +2（満タンの ときは ふえない）');
+    C.dodgePerLuck = 0;
+    // ふっかつは かいふく より 先に 見る（ながいしっぽ）
+    r = S.battle(P({ atk: 0, hp: 20, spd: 1 }, ['longtail']), E({ atk: 12, spd: 9, hp: 300 }), 1, { waza: ['fukkatsu'] }); // 22 → 10、かいふくで 12（前の 順なら 出ない）
+    ok(r.events.some(function (e) { return e.t === 'heal' && e.src === 'fukkatsu'; }), 'ふっかつ：かいふくの パーツでも 出る（かいふくより 先）');
+    // ログで 見える：かけぬけ・とどめ・ふいうち・ちからこめ は のった 1げきに 印
+    r = S.battle(P({ atk: 10, spd: 9 }), E({ atk: 0, spd: 1, hp: 30 }), 1, { waza: ['kakenuke', 'todome', 'fuiuchi'] });
+    var hh = hits(r, 'p');
+    ok(hh[0].wz.indexOf('kakenuke') >= 0 && hh[0].wz.indexOf('fuiuchi') >= 0 && hh[0].wz.indexOf('todome') < 0 && hh[hh.length - 1].wz.indexOf('todome') >= 0, 'かけぬけ・とどめ・ふいうち：のった 1げきの ログに 印');
+  } finally { C.dodgePerLuck = D; }
+});
+// 技を 使える 条件：その キーワードの パーツを つけて いる ときだけ
+var rr = S.newRun(11, 'koron'); rr.learned = ['teppeki', 'chikara'];
+var wz1 = S.wazaFor(rr, { atk: 'weight', def: null, mov: null }), wz2 = S.wazaFor(rr, { atk: 'eye', def: 'scale', mov: null });
+ok(wz1.indexOf('chikara') >= 0 && wz1.indexOf('teppeki') < 0 && wz2.indexOf('teppeki') >= 0 && wz2.indexOf('chikara') < 0 && wz1.indexOf('kokozo') >= 0, '覚えた 技は その キーワードの パーツで だけ 使える（うまれつきは いつでも）');
+ok(S.LEARN.length === 8 && Object.keys(S.LEARN_BY_KW).length === 16 && S.PARTS.every(function (p) { return p.kw.every(function (k) { return S.LEARN_BY_KW[k]; }); }), '覚える 技 8つで パーツの キーワード 16 を 全部 おおう');
+// なれ：つけた パーツの キーワードごとに +1・てごわい +2・満タンで かならず ひらめく
+var hr = S.newRun(12, 'gotsun'); hr.equip = { atk: 'weight', def: null, mov: null };
+S.addNare(hr, false); ok(hr.nare.heavy === 1, 'なれ：つけた キーワードに +1');
+S.addNare(hr, true); ok(hr.nare.heavy === 3, 'なれ：てごわい +2（満タン 3）');
+S.addNare(hr, true); ok(hr.nare.heavy === 3, 'なれ：満タンを こえない');
+var hz = S.hirameki(hr, { hard: false });
+ok(hz === 'chikara' && hr.learned[0] === 'chikara' && hr.nare.heavy === 0 && hr.nare.charge === 0, '満タンなら かならず ひらめく（なれは 0）');
+ok(S.hirameki(hr, { hard: false }) === null, 'もう 覚えた 技の キーワードしか ないと ひらめかない');
+var lv = S.levelUp(hr, 'def'); ok(lv.def === 1, 'ひらめいた 技の ステータス（てっぺき＝まもり）は かならず +1');
+// ひらめきの 成長：5能力とも +1（対応する 能力と、種類の 成長率で 上がる 能力）
+var hiraGrowthCases = [
+  { w: 'chikara', part: 'weight', kw: 'heavy', stat: 'atk' },
+  { w: 'kakenuke', part: 'claw', kw: 'ren', stat: 'spd' },
+  { w: 'todome', part: 'eye', kw: 'nerai', stat: 'atk' },
+  { w: 'shitsukoi', part: 'fang', kw: 'poison', stat: 'luck' },
+  { w: 'fuiuchi', part: 'longleg', kw: 'ranged', stat: 'spd' },
+  { w: 'teppeki', part: 'scale', kw: 'hard', stat: 'def' },
+  { w: 'fukkatsu', part: 'longtail', kw: 'regen', stat: 'hp' },
+  { w: 'mikawashi', part: 'fur', kw: 'immune', stat: 'luck' }
+];
+S.SPECIES.forEach(function (sp) {
+  [1, 2].forEach(function (seed) {
+    hiraGrowthCases.forEach(function (c) {
+      var gr = S.newRun(seed, sp.id), eq = { atk: null, def: null, mov: null };
+      eq[S.PART_BY_ID[c.part].role] = c.part; gr.owned = [c.part]; gr.nare[c.kw] = C.hira.nareMax;
+      gr.stats.hp = 999; gr.stats.atk = 999;
+      var before = Object.assign({}, gr.stats), out = S.fight(gr, 0, eq);
+      ok(out.win && out.hira === c.w && out.level && out.level[c.stat] === 1 &&
+        S.STATS.every(function (s) { var up = out.level[s.id] || 0; return (up === 0 || up === 1) && gr.stats[s.id] - before[s.id] === up; }) &&
+        gr.levels.length === 1 && JSON.stringify(gr.levels[0]) === JSON.stringify(out.level),
+        sp.name + '・seed ' + seed + '・' + c.w + '：対応する 能力は +1、ほかの 成長も +1（保存する 値と 同じ）');
+    });
+  });
+});
+// 同じ seed の 旧モードは HP +2 の まま。切り替えても 成長する 能力と、HP 以外の 増分は 同じ
+var growthOn = C.hira.on;
+try {
+  S.SPECIES.forEach(function (sp) {
+    var onRun = S.newRun(2, sp.id), offRun = S.newRun(2, sp.id);
+    onRun.stats.hp = offRun.stats.hp = 999; onRun.stats.atk = offRun.stats.atk = 999;
+    var eq = { atk: null, def: 'longtail', mov: null }; onRun.nare.regen = C.hira.nareMax;
+    C.hira.on = true; var onOut = S.fight(onRun, 0, eq);
+    C.hira.on = false; var offOut = S.fight(offRun, 0, eq);
+    ok(onOut.hira === 'fukkatsu' && onOut.level.hp === 1 && offOut.win && !offOut.hira && offOut.level.hp === C.hpUp &&
+      offRun.stats.hp === 999 + C.hpUp && S.STATS.every(function (s) { return s.id === 'hp' || onOut.level[s.id] === offOut.level[s.id]; }),
+      sp.name + '：ひらめきは HP +1、旧モードは HP +' + C.hpUp + '（ほかの 成長は 同じ）');
+  });
+} finally { C.hira.on = growthOn; }
+// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +1）
+var oc = C.hira.chance, op = C.hira.perLuck; C.hira.chance = 0; C.hira.perLuck = 1;
+var lk = S.newRun(14, 'koron'); lk.stats.luck = 0; lk.equip = { atk: null, def: null, mov: 'wing' };
+var lk2 = S.newRun(14, 'koron'); lk2.stats.luck = 0; lk2.equip = { atk: null, def: null, mov: 'longleg' };
+var g1 = S.hirameki(lk, { hard: false }), g2 = S.hirameki(lk2, { hard: false });
+C.hira.chance = oc; C.hira.perLuck = op;
+ok(g1 && !g2, 'ひらめき：はねの うん +1 も 確率に 入る（画面の うんと 同じ）');
+// 前の 保存（その1）：nare・learned が なくても 戦える
+var old = S.newRun(13, 'pyun'); delete old.nare; delete old.learned;
+var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && typeof old.nare === 'object', '前の 保存（nare・learned なし）でも 戦える');
+// ひらめきの ない 勝ちでは レベルアップしない／off なら 勝つたび
+C.hira.on = false; var of = S.newRun(6, 'doshin'); of.stats.atk = 99; of.stats.hp = 999; var ow = S.fight(of, 0, of.equip); C.hira.on = true;
+ok(ow.win && ow.level && !ow.hira, 'CFG.hira.on＝false：その1 の まま 勝つたび レベルアップ');
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

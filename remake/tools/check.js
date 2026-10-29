@@ -83,7 +83,8 @@ function watcher() {
   }
   // 戦いの おわり（結果の 画面が 出た 瞬間）：画面の 体力の 数と 計算
   function endCheck() {
-    W.ends++; if (!W.last) return;
+    W.ends++; if (!W.last) { W.noCalc = (W.noCalc || 0) + 1; return; }
+    W.compared = (W.compared || 0) + 1;
     var m = document.getElementById('mHpN'), f = document.getElementById('fHpN');
     var want = W.last.pHp + ' / ' + W.last.pMax, want2 = W.last.eHp + ' / ' + W.last.eMax;
     if (!m || m.textContent !== want) W.mism.push('じぶん ' + (m && m.textContent) + ' ≠ ' + want);
@@ -97,6 +98,9 @@ function watcher() {
 }
 
 (async function () {
+  // ポートが 使われて いたら 止める（ほかの 版の 画面を 見て 合格に しない）
+  var busy = await new Promise(function (r) { var c = require('net').connect(PORT, '127.0.0.1'); c.on('connect', function () { c.destroy(); r(true); }); c.on('error', function () { r(false); }); });
+  if (busy) { console.log('✕ ポート ' + PORT + ' が もう 使われて いる（--port で かえる）'); process.exit(2); }
   var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: 'ignore' });
   await new Promise(function (r) { setTimeout(r, 800); });
   var browser = await chromium.launch(), bad = 0, rows = [];
@@ -115,16 +119,16 @@ function watcher() {
       await ctx.close();
       var innerBad = INNER0.indexOf(tag) >= 0 ? Object.keys(W.inner).length : 0;
       var pageBad = pc ? Object.keys(W.pageScroll).length : 0;
-      var fail = W.overN + Object.keys(W.wide).length + Object.keys(W.clip).length + Object.keys(W.small).length + W.mism.length + errs.length + pageBad + innerBad + (runs < RUNS ? 1 : 0) + (W.err ? 1 : 0);
+      var fail = W.overN + Object.keys(W.wide).length + Object.keys(W.clip).length + Object.keys(W.small).length + W.mism.length + (W.noCalc || 0) + errs.length + pageBad + innerBad + (runs < RUNS ? 1 : 0) + (W.err ? 1 : 0);
       if (fail) bad++;
       rows.push({ tag: tag, runs: runs, sec: Math.round((Date.now() - t0) / 1000), W: W, errs: errs, fail: fail, lines: lines });
     }
   } finally { await browser.close(); sv.kill(); }
   function fmt(o) { var k = Object.keys(o); return k.length ? k.map(function (x) { return x + '（' + o[x] + '）'; }).join('、') : '0'; }
-  console.log('| 大きさ | 周回 | 秒 | 見た 回数 | 戦いの おわり | 重なり | ページの スクロール | 中の スクロール | 横 | はみ出し | 小さい 文字 | ずれ | エラー |');
-  console.log('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  console.log('| 大きさ | 周回 | 秒 | 見た 回数 | 戦いの おわり | 重なり | ページの スクロール | 中の スクロール | 横 | はみ出し | 小さい 文字 | 体力を 比べた | ずれ | エラー |');
+  console.log('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   rows.forEach(function (r) {
-    console.log('| ' + r.tag + ' | ' + r.runs + ' | ' + r.sec + ' | ' + r.W.samples + ' | ' + r.W.ends + ' | ' + r.W.overN + ' | ' + fmt(r.W.pageScroll) + ' | ' + fmt(r.W.inner) + ' | ' + fmt(r.W.wide) + ' | ' + Object.keys(r.W.clip).length + ' | ' + Object.keys(r.W.small).length + ' | ' + r.W.mism.length + ' | ' + (r.errs.length + (r.W.err ? 1 : 0)) + ' |');
+    console.log('| ' + r.tag + ' | ' + r.runs + ' | ' + r.sec + ' | ' + r.W.samples + ' | ' + r.W.ends + ' | ' + r.W.overN + ' | ' + fmt(r.W.pageScroll) + ' | ' + fmt(r.W.inner) + ' | ' + fmt(r.W.wide) + ' | ' + Object.keys(r.W.clip).length + ' | ' + Object.keys(r.W.small).length + ' | ' + (r.W.compared || 0) + (r.W.noCalc ? '（比べられない ' + r.W.noCalc + '）' : '') + ' | ' + r.W.mism.length + ' | ' + (r.errs.length + (r.W.err ? 1 : 0)) + ' |');
   });
   rows.forEach(function (r) {
     console.log('\n## ' + r.tag + (r.fail ? ' ✕' : ' ○') + '　周回：' + r.lines.join('／'));
@@ -134,6 +138,7 @@ function watcher() {
     if (r.W.mism.length) console.log('ずれ：' + r.W.mism.slice(0, 5).join(' / '));
     if (r.errs.length || r.W.err) console.log('エラー：' + r.errs.concat(r.W.err ? ['見張り ' + r.W.err] : []).slice(0, 5).join(' / '));
   });
+  console.log('\n見て いない こと：透け・文字と 絵や ボタンの 重なり・小さい ほうの 3わり 未満の 重なり・枠の 中で 全部 かくれた 文字・上下の はみ出し・自動モードで 通らない 画面（タイトル・種類を 選ぶ・ヒント・ことばの ページ）。120ミリ秒ごとに 見るので、合否は --speed 3 以下で 出す（速いと「かいしん！」などの 短い 文字を 見のがす）。');
   console.log('\n' + (bad ? '不合格 ' + bad : '合格') + '（INNER0＝' + INNER0.join(',') + '。表の 全部の 数を 読む こと）');
   process.exit(bad ? 1 : 0);
 })();

@@ -294,8 +294,7 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .b-pips i.used { background: #3a3f4f; }
 .b-pips.few i:not(.used) { background: #ff9c6b; }
 .b-hand { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* 手の 数は 見えない ところで 持つ（重なりの 記録・検査用） */
-.hpBox.e .num { visibility: hidden; } /* 相手の 体力は 数字なしの バー（数は 検査用に 持つ。場所は とって 自分の バーと 高さを そろえる） */
-.hpBox.p .num { font-size: 1rem; }
+.hpBox .num { font-size: 1.05rem; } /* 2026-10-29 ぼくくん：相手の 体力にも 数字を 戻す（自分と 同じ 形） */
 .b-waza { display: flex; gap: 6px; margin-top: 5px; min-height: 30px; flex-wrap: nowrap; }
 .b-waza:empty { display: none; }
 .bw { font: inherit; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 1rem; font-weight: 800; color: #fff; background: #0007; border: 2px solid var(--sc, #fff); border-radius: 9px; padding: 1px 9px; cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: background calc(.2s * var(--spd)), color calc(.2s * var(--spd)); }
@@ -811,6 +810,8 @@ span.dendo-note { display: inline-block; margin: 2px 0 4px 8px; vertical-align: 
 .shucard .shu-name { font-size: 1.6rem; font-weight: 900; }
 .shucard .shu-st { font-size: 1.05rem; font-weight: 700; color: var(--sub); }
 .shucard .shu-st b { color: var(--ink, #f4f1ea); font-size: 1.15rem; }
+.shucard .kv-stats { justify-content: center; }
+@media (max-width: 899px) { .shucard .kv-stats { justify-content: flex-start; } }
 .shu-w { width: 100%; text-align: left; background: #0003; border-radius: 10px; padding: 4px 8px; border-left: 6px solid var(--sc, var(--accent)); }
 .shu-w .wn { font-size: 1.15rem; font-weight: 900; }
 .shu-w .wk { display: inline-block; font-size: 1rem; font-weight: 800; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: var(--panel2); color: var(--sub); }
@@ -979,18 +980,21 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 /* 強さ：アイコンと 数字 */
 .kv-stats { display: flex; gap: 6px; flex-wrap: wrap; }
 .kv-st { display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,.25); border: 2px solid rgba(255,255,255,.14); border-radius: 12px; padding: 2px 10px 2px 6px; }
-.kv-st b { font-size: 1.35rem; font-weight: 900; line-height: 1.2; }
+.kv-st b { font-size: 1.45rem; font-weight: 900; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .kv-st b.hard { color: var(--e); }
+.kv-st b.chg { color: var(--accent); }
+.kv-stats[data-side="p"] .kv-st b { color: #bfe8ff; }
+.kv-stats[data-side="e"] .kv-st b { color: #ffd0d0; }
+.kv-stats[data-side="e"] .kv-st b.hard { color: var(--e); }
+.kv-stats[data-side="p"] .kv-st b.chg { color: var(--accent); }
+span.kv-st { cursor: inherit; }
+span.kv-st:active { transform: none; }
+.kv-nopart { font-size: .95rem; font-weight: 800; color: #1b1f2a; background: #bfe8ff; border-radius: 8px; padding: 0 6px; align-self: center; }
+@media (min-width: 900px) and (max-height: 700px) { #pre .kv-st b { font-size: 1.3rem; line-height: 1.1; } }
+.shu-leg { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; margin-right: 10px; } .shu-leg svg { display: inline-block; width: 1em; height: 1em; flex: 0 0 1em; }
 /* 小さな札（相手の 性質・パーツ） */
 .kv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-/* 決定 23 の 層①：強さは 5つの 目もり（数字は 合わせる／長押し） */
-.kv-pips { display: inline-flex; gap: 2px; align-items: center; }
-.kv-pips i { display: block; width: 8px; height: 16px; border-radius: 3px; background: rgba(255,255,255,.16); }
-.kv-pips i.on { background: #f4f1ea; }
-.kv-stats[data-side="p"] .kv-pips i.on { background: #8fd8ff; }
-.kv-stats[data-side="e"] .kv-pips i.on { background: #ffb0b0; }
-.kv-pips.chg i.on { background: var(--accent) !important; }
-.kv-pips.hard i.on { background: var(--e) !important; }
+/* 2026-10-29（判断待ち 4 の 答え A）：強さは アイコン＋数字に 戻した（5つの 目もりは やめた）。自分も 相手も 同じ 形 */
 /* 決定 22：せいしつ＝丸い バッジ（うまれつき）、パーツ＝四角い 札（そうび・こわせる 印） */
 .kv-grp { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .kv-side.foe .kv-grp { justify-content: flex-end; }
@@ -1000,7 +1004,6 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-chip.part { position: relative; border-radius: 5px; padding-right: 19px; }
 .kv-crack { position: absolute; top: 1px; right: 2px; width: 14px; height: 16px; }
 .kv-waza { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
-.kv-st:has(.kv-pips) { padding: 2px 7px 2px 4px; gap: 4px; }
 .kv-chip.waza { min-width: 0; text-align: left; background: color-mix(in srgb, var(--sc, #e8a33c) 22%, #1b1f2a); border-color: var(--sc, #e8a33c); border-radius: 10px; padding: 2px 8px; flex-wrap: wrap; align-items: baseline; gap: 0 8px; line-height: 1.25; word-break: keep-all; }
 .kv-chip.waza b { color: #fff3c4; font-size: 1.05rem; }
 .kv-hito { font-size: .95rem; font-weight: 700; color: #e8e4da; letter-spacing: -.03em; }
@@ -1008,7 +1011,6 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
 .kv-fhito { color: #e8e4da; }
 .kv-arrow { color: var(--accent); margin-right: 4px; font-weight: 900; }
 @media (min-width: 900px) and (max-height: 700px) { #pre .kv-mon { height: 80px; } }
-.kv-pips.hard i { box-shadow: 0 0 0 1px #ff4d4d; }
 @media (max-width: 899px) { #pre .kv-mon { height: 76px; } #pWaza .kv-hito { display: none; } #pre .kv-gl { display: none; } #pre .kv-side.foe .kv-chips { gap: 4px; } }
 .kv-x2 { display: inline-block; margin-left: 6px; font-size: .95rem; font-weight: 900; color: #1b1f2a; background: var(--accent); border-radius: 8px; padding: 0 6px; }
 .kv-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--foe-bg); border: 2px solid rgba(255,107,107,.55); border-radius: 12px; padding: 3px 10px 3px 4px; font-size: 1.05rem; font-weight: 700; }
@@ -1902,18 +1904,19 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   var SHU_SEL = null;
   function showShu() {
     SHU_SEL = null; $('shuGo').disabled = true;
-    $('shuHow').textContent = (canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる';
+    var leg = ['hp', 'atk', 'spd'].map(function (k) { return '<span class="shu-leg">' + STAT_ICON[k] + ' ' + STAT_NAME[k] + '</span>'; }).join(''); // 確認役：強さの アイコンの 見方（PC は 下の 説明の 箱、スマホは 上の 文）
+    $('shuHow').innerHTML = (narrow() ? leg : '') + esc((canHover() && !narrow() ? 'あわせると せつめい・クリックで えらぶ' : 'タップで えらぶ・ながおしで せつめい') + '。わざは じどうで でる：そっと＝いつも きいている／ここぞ＝じょうけんが そろうと でる');
     var list = $('shuList'); list.innerHTML = '';
     S.SPECIES.forEach(function (sp) {
       var c = el('button', 'shucard'); c.type = 'button'; c.setAttribute('data-sp', sp.id); c.style.setProperty('--sc', sp.color);
       c.innerHTML = '<div class="shu-mon">' + monsterSVG('player', [], 'r', [], [], null, false, sp.color, shuShape(sp.id)) + '</div><div class="shu-t">' +
         '<div class="shu-name" style="color:' + sp.color + '">' + esc(sp.name) + '</div>' +
-        '<div class="shu-st"><span class="nw">たいりょく <b>' + sp.hp + '</b></span><span class="nw">こうげき <b>' + sp.atk + '</b></span><span class="nw">はやさ <b>' + sp.spd + '</b></span></div>' +
+        statsHTML({ hp: sp.hp, atk: sp.atk, spd: sp.spd }, 'p', 'span') + // バトル前・わかれみちと 同じ 形（アイコン＋数字）
         sp.waza.map(function (id) { var w = S.WAZA_BY_ID[id], k = w.kind === 'kokozo'; return '<div class="shu-w"><span class="wn">' + esc(w.name) + '</span><span class="wk' + (k ? ' kokozo' : '') + '">' + wazaKind(id) + '</span><div class="ws">' + esc(wazaShort(id)) + '</div></div>'; }).join('') + '</div>';
       infoTap(c, function () { showInfo('shuInfo', infoShuHTML(sp)); }, function () { selectShu(sp.id); });
       list.appendChild(c);
     });
-    $('shuInfo').innerHTML = '<div class="info empty"><div>しゅるいごとに つよさと わざ（2つ）が ちがう。たまごの 子は おやの しゅるい</div></div>';
+    $('shuInfo').innerHTML = '<div class="info empty"><div>しゅるいごとに つよさと わざ（2つ）が ちがう。たまごの 子は おやの しゅるい</div><div>' + leg + '</div></div>';
     show('shu');
     if (OPT.auto) setTimeout(function () { selectShu(S.SPECIES_IDS[G.auto.runs % S.SPECIES_IDS.length]); $('shuGo').click(); }, 300 / OPT.speed);
   }
@@ -2281,20 +2284,20 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
       if (k !== 'spd') extra += '。そだち：' + growMarks();
     }
     if (side === 'p' && val !== undefined && !isNaN(val)) t = 'いま ' + fmt(val) + '。' + t; // 層②：自分の 数字
-    if (side === 'e' && cmp) t = cmp + '。' + t;
+    if (side === 'e' && val !== undefined && !isNaN(val)) t = 'いま ' + fmt(val) + (cmp ? '（' + cmp + '）' : '') + '。' + t;
+    else if (side === 'e' && cmp) t = cmp + '。' + t;
     return '<div class="info"><div class="if-head"><span class="if-sicon">' + STAT_ICON[k] + '</span><div class="if-t"><div class="if-name">' + STAT_NAME[k] + '</div><div class="if-tags"><span class="tag ' + (side === 'p' ? 'me">じぶん' : 'foe">あいて') + '</span></div></div></div><div class="if-eff">' + t + '</div>' + (extra ? '<div class="if-note">' + esc(extra) + '</div>' : '') + '</div>';
   }
-  // 強さ（決定 23 の 層①）：アイコンと 5つの 目もり（数字は 出さない）。数字は 合わせる／長押しの 文（層②。自分だけ）。data-v に 本当の 数を 持つ（検査用）
-  var STAR_STEPS = { hp: [70, 95, 125, 165], atk: [10, 13, 17, 22], spd: [3, 7, 12, 18] }; // はやさ：相手は −16〜32 に 広がる（ばしょ・せいしつ・パーツ込み）。区切りを 広げて 1 と 5 に 寄らない ように（2026-10-28 13時の回）
-  function starN(k, v) { var s = STAR_STEPS[k], n = 1; for (var i = 0; i < s.length; i++) if (v >= s[i]) n++; return n; }
-  function pipsHTML(n, cls) { var h = '<span class="kv-pips' + (cls ? ' ' + cls : '') + '" aria-label="' + n + '／5">'; for (var i = 0; i < 5; i++) h += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return h + '</span>'; }
-  function statsHTML(v, side) {
+  // 強さ：アイコンと 数字（2026-10-29 ぼくくん 判断待ち 4 の 答え A：5つの 目もりは やめて 数字に 戻す。自分も 相手も 同じ 形で 並べて 見比べる）。data-v に 本当の 数（検査用）
+  // tag：押して 文を 出す 画面は button、種類を 選ぶ 札の 中は span（ボタンの 中に ボタンを 入れない）
+  function statsHTML(v, side, tag) {
+    tag = tag || 'button';
     return '<div class="kv-stats" data-side="' + side + '">' + ['hp', 'atk', 'spd'].map(function (k) {
-      var num = parseFloat(v[k]) || 0;
-      return '<button type="button" class="kv-st" data-st="' + k + '" data-v="' + num + '" title="' + STAT_NAME[k] + '">' + STAT_ICON[k] + pipsHTML(starN(k, num), v[k + 'Cls'] || '') + '</button>';
+      var num = parseFloat(v[k]) || 0, cls = v[k + 'Cls'] || '';
+      return '<' + tag + (tag === 'button' ? ' type="button"' : '') + ' class="kv-st" data-st="' + k + '" data-v="' + num + '" title="' + STAT_NAME[k] + '">' + STAT_ICON[k] + '<b' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(String(v[k])) + '</b></' + tag + '>';
     }).join('') + '</div>';
   }
-  // 相手の 強さは 数字を 見せず「あなたより …」（決定 23：相手の 細かい 数字は あえて 見せない）
+  // 相手の 強さの 文（合わせる／長押し）に「あなたより …」を そえる（数字は 層①に 出す）
   function cmpWord(k, ev, pv) {
     if (pv === null || isNaN(pv)) return '';
     var big = { hp: 'おおい', atk: 'つよい', spd: 'はやい' }[k], small = { hp: 'すくない', atk: 'よわい', spd: 'おそい' }[k];
@@ -2446,7 +2449,7 @@ html.eshort .shu-info .if-head, html.eshort .shu-info .sub { display: none; }
   function itemsPanel() {
     var d = myDef();
     var box = el('div', 'dr-items'); box.id = 'forkItems';
-    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p');
+    box.innerHTML = '<div class="dr-ihead"><b>じぶん ' + esc(G.run.name) + '</b><span class="sub">もちもの ' + G.owned.length + 'こ</span><span class="kv-nopart" title="パーツと ばしょで かわる。バトル前で つけると きまる">パーツなし</span></div>' + statsHTML({ hp: fmt(d.hp), atk: fmt(d.atk), spd: fmt(d.spd) }, 'p'); // 確認役：わかれみちの 自分は パーツなし・ばしょなしの 数（バトル前で かわる）
     var grid = el('div', 'dr-igrid');
     S.LOCS.forEach(function (loc) {
       G.owned.filter(function (id) { return S.PART_BY_ID[id].loc === loc.id; }).forEach(function (id) {

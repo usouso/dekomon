@@ -570,10 +570,11 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     } else {
       var r = out.reason;
       h += '<div class="hearts" style="font-size:2rem">' + hearts(run.hearts) + '</div><h1>まけた…</h1>';
+      if (out.over) h += '<div class="sub" id="overNote" style="font-weight:800">ハートが なくなった。この ぼうけんは ここまで</div>'; // 最後の 負けは「もう一度」を すすめない（つぎの ぼうけんへ）
       h += '<div class="reason"><div class="rt">' + r.text + '</div>';
       if (r.id === 'power') { var ps = out.res.pSt, es = out.res.eSt; h += '<div class="cmp"><span>じぶん ♥' + ps.hp + ' ⚔' + ps.atk + ' 🛡' + ps.def + ' 💨' + ps.spd + '</span><span>' + d.name + ' ♥' + es.hp + ' ⚔' + es.atk + ' 🛡' + es.def + ' 💨' + es.spd + '</span></div>'; }
       if (r.kw) h += '<div style="margin-top:.4rem">' + kwBadge(r.kw) + '</div>';
-      h += '<div class="rh">' + r.hope + '</div></div>';
+      h += '<div class="rh">' + (out.over ? 'つぎの ぼうけんで ' : '') + r.hope + '</div></div>';
       if (out.over) h += '<div class="actions"><button class="big" id="bNext">おわり</button></div>';
       else {
         h += '<div class="actions"><button class="big" id="bAgain">もう一度（おなじ 道）</button>' + (run.fork.roads.length > 1 ? '<button class="btn" id="bOther">もう片方の 道へ</button>' : '') + '</div>';

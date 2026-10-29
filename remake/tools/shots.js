@@ -45,8 +45,9 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.waitForSelector('#result.on', { timeout: 60000 }); await snap('lose');
       // もう一度（おなじ 道）：戦いの 始めに 前の 戦いの「○手め」が 残らない（dot の QA P3）
       await page.click('#bAgain');
-      var hn = await page.evaluate(function () { var b = document.getElementById('bFight'); var before = document.getElementById('handN').textContent; b.click(); return { before: before, after: document.getElementById('handN').textContent }; });
-      var hnBad = hn.after !== '';
+      var hn = await page.evaluate(function () { var b = document.getElementById('bFight'); var before = document.getElementById('handN').textContent; var d = document.createElement('div'); d.className = 'dmg'; d.textContent = '9'; document.getElementById('arena').appendChild(d); b.click(); return { before: before, after: document.getElementById('handN').textContent, dmg: document.querySelectorAll('#arena .dmg').length }; });
+      var hnBad = hn.before === '' || hn.after !== '' || hn.dmg !== 0; // 前が 空なら 確かめに ならない
+      console.log((hn.dmg ? '✕ ' : '○ ') + tag + ' もう一度の 始めの 浮かぶ 数字（前の 戦いの 残り）：' + hn.dmg);
       if (hnBad) bad++;
       console.log((hnBad ? '✕ ' : '○ ') + tag + ' もう一度の 始めの「手め」：前 「' + hn.before + '」→ 始め 「' + hn.after + '」');
       await page.click('#bSkip'); await page.waitForSelector('#result.on', { timeout: 60000 });

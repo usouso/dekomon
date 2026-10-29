@@ -592,7 +592,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     } else {
       var r = out.reason;
       h += '<div class="hearts" style="font-size:2rem">' + hearts(run.hearts) + '</div><h1>まけた…</h1>';
-      if (out.over) h += '<div class="sub" id="overNote" style="font-weight:800">ハートが なくなった。この ぼうけんは ここまで（' + run.wins + 'しょう）</div>'; // 最後の 負けは「もう一度」を すすめない（つぎの ぼうけんへ）
+      if (out.over) h += '<div class="sub" id="overNote" style="font-weight:800">ハートが なくなった。この ぼうけんは ここまで' + (run.wins ? '（' + run.wins + 'しょう）' : '。つぎは 1しょう めざそう！') + '</div>'; // 最後の 負けは「もう一度」を すすめない。0しょうは 数を 出さず 次の めあてを（確認役の 好み：子どもに つらい）（つぎの ぼうけんへ）
       h += '<div class="reason"><div class="rt">' + r.text + '</div>';
       if (r.id === 'power') { var ps = out.res.pSt, es = out.res.eSt; h += '<div class="cmp"><span>じぶん ♥' + ps.hp + ' ⚔' + ps.atk + ' 🛡' + ps.def + ' 💨' + ps.spd + '</span><span>' + d.name + ' ♥' + es.hp + ' ⚔' + es.atk + ' 🛡' + es.def + ' 💨' + es.spd + '</span></div>'; }
       if (r.kw) h += '<div style="margin-top:.4rem">' + kwBadge(r.kw) + '</div>';

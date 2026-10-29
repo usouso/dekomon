@@ -50,6 +50,7 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       var r = await page.evaluate(function () { var G = window.__re.G, L2 = document.getElementById('log2'); return { h1: (document.querySelector('#resw h1') || {}).textContent, owned: G.run.owned.length, wins: G.run.wins, hearts: G.run.hearts, log2: L2.children.length, endLine: /かった|まけた/.test((L2.lastElementChild || {}).textContent || '') }; });
       var wantH1 = kind === 'win' ? /かった/ : kind === 'clear' ? /クリア/ : /まけた/;
       ok(wantH1.test(r.h1 || ''), tag + '：結果の 画面「' + r.h1 + '」');
+      if (kind === 'over') { var on = await page.evaluate(function () { return (document.getElementById('overNote') || {}).textContent || ''; }); ok(on.indexOf('ここまで') >= 0 && on.indexOf('0しょう') < 0 && on.indexOf('めざそう') >= 0, tag + '：0しょうの おわりは 数を 出さない「' + on + '」'); }
       ok(r.owned === st.owned && r.wins === st.wins && r.hearts === st.hearts, tag + '：見なおしで 結果は 変わらない（パーツ ' + r.owned + '・' + r.wins + 'しょう・ハート ' + r.hearts + '）');
       ok(r.log2 >= 3 && r.endLine, tag + '：結果の 画面に 戦いの きろく（' + r.log2 + '行・さいごは 勝ち負け）');
       ok(await hallN() === h0, tag + '：見なおしで 殿堂は ふえない');

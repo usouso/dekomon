@@ -104,6 +104,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .slot.atk .rn { background:var(--atk); } .slot.def .rn { background:var(--def); } .slot.mov .rn { background:var(--mov); }
 .slot.free .rn { background:var(--luck); color:#1b1f2a; } .slot.free.locked { opacity:.75; } .slot.free.locked .ptile.empty { width:auto; padding:0 .6rem; font-size:.85rem; }
 .slot.free.fx-new { box-shadow:0 0 0 3px var(--luck); }
+.nw { white-space:nowrap; } /* かっこの 中で 行を わけない */
 .slot .fh { font-size:.85rem; font-weight:800; color:#ffe9a0; }
 .fx-open { display:inline-block; margin:.2rem 0; padding:.15rem .7rem; border-radius:.6rem; background:var(--luck); color:#1b1f2a; font-weight:900; }
 .owned { display:flex; gap:.3rem; flex-wrap:wrap; flex:1; }
@@ -488,7 +489,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('pMe').outerHTML = '<div id="pMe">' + meCard(run, preview, cmp) + '</div>';
     $('pFoe').innerHTML = foeCard(road, run.fork.stage);
     var fOpen = S.freeOpen(run);
-    $('slots').innerHTML = '<h2>もちもの（' + (fOpen ? 'やくわり 3つ＋じゆう 1つ' : '役割ごとに 1つ') + '）</h2>' + S.ROLES.map(function (r) {
+    $('slots').innerHTML = '<h2>もちもの<span class="nw">（' + (fOpen ? 'やくわり 3つ＋じゆう 1つ' : 'やくわりごとに 1つ') + '）</span></h2>' + S.ROLES.map(function (r) {
       var own = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; });
       return '<div class="slot ' + r.id + '"><div class="rn">' + r.name + '</div><div class="owned">' +
         (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : eq.free === p ? 'eq fx-free' : '') + (G.hint && (G.hint[r.id] === p || G.hint.free === p) ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';

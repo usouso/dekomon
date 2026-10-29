@@ -92,7 +92,7 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.click('#bFight'); await page.click('#bSkip');
       await page.waitForSelector('#result.on', { timeout: 60000 });
       var nj = await page.evaluate(function () { var h = document.querySelector('#resw h2.hira'); return { h: h ? h.textContent : '', up: document.querySelectorAll('#resw .lvl .fx-up').length, spd: (document.querySelector('#resw .lvl') || {}).textContent || '' }; });
-      check(nj.h.indexOf('なじんだ') >= 0 && /はやさ|💨/.test(nj.spd), '継いだ 技で はじめて 勝つ：「' + nj.h + '」と レベルアップの 行');
+      check(nj.h.indexOf('そだった') >= 0 && /はやさ|💨/.test(nj.spd), '継いだ 技で はじめて 勝つ：「' + nj.h + '」と レベルアップの 行');
       await snap('result_najimu');
       await page.click('#bNext');
       await page.click('.road[data-road="0"] button');

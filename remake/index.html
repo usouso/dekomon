@@ -471,7 +471,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     $('bFoe').innerHTML = foeCard(road, stage) + hpHtml('f', out.res.eMax);
     $('aMe').innerHTML = monSVG(sp.shape, sp.color, S.equipList(equip), 'r');
     $('aFoe').innerHTML = monSVG(d.shape, d.color, d.parts, 'l');
-    $('log').innerHTML = ''; $('pop').textContent = '';
+    $('log').innerHTML = ''; $('pop').textContent = ''; $('handN').textContent = ''; // 前の 戦いの「○手め」を 残さない（dot の QA P3）
     show('battle');
     countSeen(before, equip, road); // カードを かいた あとに 数える（その 戦いの あいだは ひとことが 残る）
     play(out, before, equip, d);

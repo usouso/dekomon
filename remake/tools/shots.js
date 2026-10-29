@@ -43,6 +43,13 @@ fs.mkdirSync(OUT, { recursive: true });
       if (await page.$('#fork.on')) await page.click('.road[data-road="0"] button');
       await page.click('#bFight'); await page.click('#bSkip');
       await page.waitForSelector('#result.on', { timeout: 60000 }); await snap('lose');
+      // もう一度（おなじ 道）：戦いの 始めに 前の 戦いの「○手め」が 残らない（dot の QA P3）
+      await page.click('#bAgain');
+      var hn = await page.evaluate(function () { var b = document.getElementById('bFight'); var before = document.getElementById('handN').textContent; b.click(); return { before: before, after: document.getElementById('handN').textContent }; });
+      var hnBad = hn.after !== '';
+      if (hnBad) bad++;
+      console.log((hnBad ? '✕ ' : '○ ') + tag + ' もう一度の 始めの「手め」：前 「' + hn.before + '」→ 始め 「' + hn.after + '」');
+      await page.click('#bSkip'); await page.waitForSelector('#result.on', { timeout: 60000 });
       if (errs.length) { bad++; console.log('✕ エラー ' + errs.join(' / ')); }
       await ctx.close();
     }

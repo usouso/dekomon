@@ -103,8 +103,9 @@ function watcher() {
   if (busy) { console.log('✕ ポート ' + PORT + ' が もう 使われて いる（--port で かえる）'); process.exit(2); }
   var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: 'ignore' });
   await new Promise(function (r) { setTimeout(r, 800); });
-  var browser = await chromium.launch(), bad = 0, rows = [];
+  var browser = null, bad = 0, rows = [];
   try {
+    browser = await chromium.launch(); // 起動に 失敗しても finally で サーバーを 止める
     for (var si = 0; si < SIZES.length; si++) {
       var sz = SIZES[si], tag = sz[0] + 'x' + sz[1], pc = sz[0] > 700;
       var ctx = await browser.newContext({ viewport: { width: sz[0], height: sz[1] }, deviceScaleFactor: 1, hasTouch: !pc }), page = await ctx.newPage();
@@ -123,7 +124,7 @@ function watcher() {
       if (fail) bad++;
       rows.push({ tag: tag, runs: runs, sec: Math.round((Date.now() - t0) / 1000), W: W, errs: errs, fail: fail, lines: lines });
     }
-  } finally { await browser.close(); sv.kill(); }
+  } finally { if (browser) await browser.close(); sv.kill(); }
   function fmt(o) { var k = Object.keys(o); return k.length ? k.map(function (x) { return x + '（' + o[x] + '）'; }).join('、') : '0'; }
   console.log('| 大きさ | 周回 | 秒 | 見た 回数 | 戦いの おわり | 重なり | ページの スクロール | 中の スクロール | 横 | はみ出し | 小さい 文字 | 体力を 比べた | ずれ | エラー |');
   console.log('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');

@@ -11,7 +11,7 @@ var t0 = Date.now();
 if (process.env.DEKO_CFG) { var o = JSON.parse(process.env.DEKO_CFG); Object.keys(o).forEach(function (k) { S.CFG[k] = o[k]; }); }
 
 function playRun(seed, species, policy) {
-  var run = S.newRun(seed, species), rng = S.rngFrom(S.mix(seed, 31337)), log = { losses: 0, reasons: {}, minHearts: 3 };
+  var run = S.newRun(seed, species), rng = S.rngFrom(S.mix(seed, 31337)), log = { losses: 0, reasons: {}, minHearts: 3, hira: 0 };
   var guard = 0;
   while (!run.over && guard++ < 60) {
     var roads = run.fork.roads, ri = 0, eq = run.equip; // start：はじめの 3つの まま・いつも 左の 道（何も 考えない＝正解の道の 物差し）
@@ -27,19 +27,20 @@ function playRun(seed, species, policy) {
       S.ROLES.forEach(function (r) { if (!eq[r.id]) { var c = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; }); eq[r.id] = c[0] || null; } });
     }
     var out = S.fight(run, ri, eq);
+    if (out.hira) log.hira++;
     if (!out.win) { log.losses++; log.reasons[out.reason.id] = (log.reasons[out.reason.id] || 0) + 1; }
   }
-  return { wins: run.wins, clear: run.clear, hearts: run.hearts, losses: log.losses, reasons: log.reasons, history: run.history };
+  return { hira: log.hira, learned: run.learned.length, wins: run.wins, clear: run.clear, hearts: run.hearts, losses: log.losses, reasons: log.reasons, history: run.history };
 }
 
 var species = ONLY === 'all' ? S.SPECIES.map(function (s) { return s.id; }) : [ONLY];
 var rows = [], byEnemy = {}, byStage = {};
 ['greedy', 'random', 'start'].forEach(function (pol) {
   species.forEach(function (sp) {
-    var clear = 0, wins = 0, losses = 0, reasons = {}, battles = 0;
+    var clear = 0, wins = 0, losses = 0, reasons = {}, battles = 0, hira = 0;
     for (var i = 0; i < N; i++) {
       var r = playRun(1000 + i, sp, pol);
-      if (r.clear) clear++; wins += r.wins; losses += r.losses;
+      if (r.clear) clear++; hira += r.hira; wins += r.wins; losses += r.losses;
       Object.keys(r.reasons).forEach(function (k) { reasons[k] = (reasons[k] || 0) + r.reasons[k]; });
       battles += r.history.length;
       if (pol === 'greedy') r.history.forEach(function (h) {
@@ -47,12 +48,12 @@ var rows = [], byEnemy = {}, byStage = {};
         byStage[h.s] = byStage[h.s] || [0, 0]; byStage[h.s][0] += h.win ? 1 : 0; byStage[h.s][1]++;
       });
     }
-    rows.push('| ' + pol + ' | ' + sp + ' | ' + (100 * clear / N).toFixed(0) + '% | ' + (wins / N).toFixed(1) + ' | ' + (losses / N).toFixed(2) + ' | ' + (battles / N).toFixed(1) + ' | ' + JSON.stringify(reasons) + ' |');
+    rows.push('| ' + pol + ' | ' + sp + ' | ' + (100 * clear / N).toFixed(0) + '% | ' + (wins / N).toFixed(1) + ' | ' + (losses / N).toFixed(2) + ' | ' + (battles / N).toFixed(1) + ' | ' + (hira / N).toFixed(1) + ' | ' + JSON.stringify(reasons) + ' |');
   });
 });
 console.log('## ボット（' + N + ' 周回ずつ）\n');
-console.log('| ボット | 種類 | クリア | 平均の 勝ち数 | 負け（ハート） | 戦った 数 | 負けの 理由 |');
-console.log('|---|---|---|---|---|---|---|');
+console.log('| ボット | 種類 | クリア | 平均の 勝ち数 | 負け（ハート） | 戦った 数 | ひらめき | 負けの 理由 |');
+console.log('|---|---|---|---|---|---|---|---|');
 rows.forEach(function (r) { console.log(r); });
 console.log('\n## 合わせボットの 相手ごとの 勝率');
 Object.keys(byEnemy).sort().forEach(function (k) { console.log('- ' + k + '：' + (100 * byEnemy[k][0] / byEnemy[k][1]).toFixed(0) + '%（' + byEnemy[k][1] + '戦）'); });

@@ -135,7 +135,7 @@ S.fight(run, 0, run.equip); S.fight(run, 1, run.equip);
 ok(run.hearts === 0 && run.over && !run.clear, 'ハート 0 で 周回 おわり');
 var run2 = S.newRun(6, 'doshin'); run2.stats.atk = 99; run2.stats.hp = 999;
 var w = S.fight(run2, 0, run2.equip);
-ok(w.win && run2.wins === 1 && w.reward.length === (w.road.hard ? 2 : 1) && w.level && run2.fork.stage === 2, '勝つと もらえる（てごわいは 2つ）・レベルアップ・つぎの 分かれ道');
+ok(w.win && run2.wins === 1 && w.reward.length === (w.road.hard ? 2 : 1) && (C.hira.on ? (!!w.hira === !!w.level) : !!w.level) && run2.fork.stage === 2, '勝つと もらえる（てごわいは 2つ）・ひらめいたら レベルアップ・つぎの 分かれ道');
 for (var k = 0; k < 9; k++) S.fight(run2, 0, run2.equip);
 ok(run2.clear && run2.over && run2.history[9].e === 'boss', '10戦目は ぬし・勝てば クリア');
 // 同じ 種で 同じ 結果（画面と ボットが そろう）
@@ -145,5 +145,68 @@ ok(JSON.stringify(x1.res.events) === JSON.stringify(x2.res.events), '同じ 種�
 // パーツの 数・キーワードの 数
 ok(S.PARTS.length === 16 && S.ENEMIES.length === 10, 'パーツ 16・相手 10');
 ok(S.PARTS.every(function (p) { return p.kw.every(function (k) { return !!S.KW_BY_ID[k]; }); }), 'パーツの キーワードは 一覧に ある');
+
+// ---------- その2：ひらめきで 覚える 技（札の 文 どおり） ----------
+function hasW(res, who, w) { return res.events.some(function (e) { return e.t === 'waza' && e.who === who && e.w === w; }); }
+noLuck(function () {
+  var D = C.dodgePerLuck; C.dodgePerLuck = 0;
+  try {
+    // ちからこめ：4手ごとに つぎに あたる 1げき +3
+    var r = S.battle(P({ atk: 5 }), E({ atk: 0, hp: 300 }), 1, { waza: ['chikara'] });
+    ok(handHits(r, 'p', 3)[0].dmg === 5 && handHits(r, 'p', 4)[0].dmg === 8 && hasW(r, 'p', 'chikara'), 'ちからこめ：4手めの 1げき +3');
+    // かけぬけ：あいてより はやければ 1げき +1（おそい ときは ふえない）
+    r = S.battle(P({ atk: 5, spd: 9 }), E({ atk: 0, spd: 1, hp: 300 }), 1, { waza: ['kakenuke'] });
+    var r0 = S.battle(P({ atk: 5, spd: 1 }), E({ atk: 0, spd: 9, hp: 300 }), 1, { waza: ['kakenuke'] });
+    ok(hits(r, 'p')[0].dmg === 6 && hits(r0, 'p')[0].dmg === 5, 'かけぬけ：はやければ 1げき +1');
+    // とどめ：あいての たいりょくが 半分より すくないと 1げき +2
+    r = S.battle(P({ atk: 10 }), E({ atk: 0, hp: 30 }), 1, { waza: ['todome'] });
+    var th = hits(r, 'p'); // 30 → 20 → 10（半分より すくない）→ 12
+    ok(th[0].dmg === 10 && th[1].dmg === 10 && th[2].dmg === 12, 'とどめ：あいてが 半分より すくないと +2');
+    // しつこい：あてた どく・もろいが 1手 ながく（どく 3 → 4手・もろい 3 → 4手）
+    var stN = function (res, st) { var e = res.events.filter(function (x) { return x.t === 'status' && x.st === st; })[0]; return e && e.n; };
+    r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, hp: 300 }), 1, { waza: ['shitsukoi'] }); r0 = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, hp: 300 }), 1, {});
+    ok(stN(r, 'poison') === C.poisonHands + 1 && stN(r0, 'poison') === C.poisonHands, 'しつこい：どくが 1手 ながい');
+    r = S.battle(P({ atk: 1 }, ['crush']), E({ atk: 0, hp: 300 }), 1, { waza: ['shitsukoi'] }); r0 = S.battle(P({ atk: 1 }, ['crush']), E({ atk: 0, hp: 300 }), 1, {});
+    ok(stN(r, 'brittle') === C.brittleHands + 1 && stN(r0, 'brittle') === C.brittleHands, 'しつこい：もろいが 1手 ながい');
+    // ふいうち：さいしょに あたる 1げき +3
+    r = S.battle(P({ atk: 5 }), E({ atk: 0, hp: 300 }), 1, { waza: ['fuiuchi'] });
+    ok(handHits(r, 'p', 1)[0].dmg === 8 && handHits(r, 'p', 2)[0].dmg === 5, 'ふいうち：さいしょに あたる 1げき +3');
+    // てっぺき：さいしょに うける 1げきは 1（はんげきでも）
+    r = S.battle(P({ atk: 0, spd: 1, hp: 300 }), E({ atk: 9, spd: 9, hp: 300 }), 1, { waza: ['teppeki'] });
+    var eh = hits(r, 'e'); ok(eh[0].dmg === 1 && eh[1].dmg === 9, 'てっぺき：さいしょに うける 1げきは 1 ダメージ');
+    r = S.battle(P({ atk: 5, spd: 9, hp: 300 }), E({ atk: 10, spd: 1, hp: 300 }, ['spike']), 1, { waza: ['teppeki'] });
+    var cs = r.events.filter(function (e) { return e.t === 'counter'; });
+    ok(cs[0].dmg === 1 && hits(r, 'e')[0].dmg === 10, 'てっぺき：さいしょが はんげきでも 1（つぎの 1げきは ふつう）');
+    // ふっかつ：たいりょくが 半分より すくない 最初の手の はじめに +5（1かいだけ）
+    r = S.battle(P({ atk: 0, hp: 20 }), E({ atk: 6, hp: 300 }), 1, { waza: ['fukkatsu'] });
+    var fk = r.events.filter(function (e) { return e.t === 'heal' && e.src === 'fukkatsu'; });
+    ok(fk.length === 1 && fk[0].n === 5, 'ふっかつ：半分より すくない 最初の手に たいりょく +5（1かい）');
+    // みかわし：よけるたび +2
+    C.dodgePerLuck = D;
+    r = S.battle(P({ atk: 0, hp: 40 }, ['wing']), E({ atk: 3, hp: 300 }), 3, { waza: ['mikawashi'] });
+    var dg = r.events.filter(function (e) { return e.t === 'dodge' && e.who === 'p'; }).length, mh = r.events.filter(function (e) { return e.t === 'waza' && e.w === 'mikawashi'; }).length;
+    ok(dg > 0 && dg === mh, 'みかわし：よけるたび（' + dg + 'かい）');
+  } finally { C.dodgePerLuck = D; }
+});
+// 技を 使える 条件：その キーワードの パーツを つけて いる ときだけ
+var rr = S.newRun(11, 'koron'); rr.learned = ['teppeki', 'chikara'];
+var wz1 = S.wazaFor(rr, { atk: 'weight', def: null, mov: null }), wz2 = S.wazaFor(rr, { atk: 'eye', def: 'scale', mov: null });
+ok(wz1.indexOf('chikara') >= 0 && wz1.indexOf('teppeki') < 0 && wz2.indexOf('teppeki') >= 0 && wz2.indexOf('chikara') < 0 && wz1.indexOf('kokozo') >= 0, '覚えた 技は その キーワードの パーツで だけ 使える（うまれつきは いつでも）');
+ok(S.LEARN.length === 8 && Object.keys(S.LEARN_BY_KW).length === 16 && S.PARTS.every(function (p) { return p.kw.every(function (k) { return S.LEARN_BY_KW[k]; }); }), '覚える 技 8つで パーツの キーワード 16 を 全部 おおう');
+// なれ：つけた パーツの キーワードごとに +1・てごわい +2・満タンで かならず ひらめく
+var hr = S.newRun(12, 'gotsun'); hr.equip = { atk: 'weight', def: null, mov: null };
+S.addNare(hr, false); ok(hr.nare.heavy === 1, 'なれ：つけた キーワードに +1');
+S.addNare(hr, true); ok(hr.nare.heavy === 3, 'なれ：てごわい +2（満タン 3）');
+S.addNare(hr, true); ok(hr.nare.heavy === 3, 'なれ：満タンを こえない');
+var hz = S.hirameki(hr, { hard: false });
+ok(hz === 'chikara' && hr.learned[0] === 'chikara' && hr.nare.heavy === 0 && hr.nare.charge === 0, '満タンなら かならず ひらめく（なれは 0）');
+ok(S.hirameki(hr, { hard: false }) === null, 'もう 覚えた 技の キーワードしか ないと ひらめかない');
+var lv = S.levelUp(hr, 'def'); ok(lv.def === 1, 'ひらめいた 技の ステータス（てっぺき＝まもり）は かならず +1');
+// 前の 保存（その1）：nare・learned が なくても 戦える
+var old = S.newRun(13, 'pyun'); delete old.nare; delete old.learned;
+var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && typeof old.nare === 'object', '前の 保存（nare・learned なし）でも 戦える');
+// ひらめきの ない 勝ちでは レベルアップしない／off なら 勝つたび
+C.hira.on = false; var of = S.newRun(6, 'doshin'); of.stats.atk = 99; of.stats.hp = 999; var ow = S.fight(of, 0, of.equip); C.hira.on = true;
+ok(ow.win && ow.level && !ow.hira, 'CFG.hira.on＝false：その1 の まま 勝つたび レベルアップ');
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

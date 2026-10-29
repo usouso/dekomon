@@ -34,6 +34,9 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.click('[data-go="koron"]'); await snap('fork');
       await page.click('.road[data-road="0"] button'); await snap('prep');
       await page.hover('#slots [data-pick]').catch(function () {}); await snap('prep_hover');
+      // じゅんびで パーツを タップ（えらぶ）しても 帯の 説明が 最初の 文に もどらない
+      var pk = await page.$('#slots [data-pick]');
+      if (pk) { await page.click('#slots [data-pick]'); var tipTxt = await page.evaluate(function () { return document.getElementById('tip').textContent; }); var pkBad = tipTxt.indexOf('ここに せつめいが でるよ') >= 0; if (pkBad) bad++; console.log((pkBad ? '✕ ' : '○ ') + tag + ' パーツを タップした あとの 帯：' + tipTxt.slice(0, 24)); }
       await page.click('#prep .kbtn'); await snap('kotoba'); await page.click('#bKotobaX');
       await page.click('#bFight'); await page.waitForTimeout(600); await snap('battle');
       // 下の 帯（#tip）が 自分の 体力に かぶらない（スマホの 戦いは タップした ときだけ 出す）

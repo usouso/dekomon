@@ -159,6 +159,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   .kotgrid { grid-template-columns: 1fr; }
   body[data-scr="battle"] #tip:not(.tipon) { display:none; } /* スマホの 戦いは 下の 帯が 自分の 体力に かぶる → タップした ときだけ 出す */
   body[data-scr="battle"] #tip.tipon { top:0; bottom:auto; border-top:0; border-bottom:2px solid #3a4256; } /* 出す ときは 上に（体力を かくさない） */
+  body.tipup[data-scr="battle"] .pop { top:2.2rem; } /* 上の 帯が 出て いる あいだは「かいしん！」を 少し 下へ */
   .kw.knew { white-space:normal; border-radius:.7rem; } .kw .kwn { display:block; margin-left:0; }
 }
 </style>
@@ -219,11 +220,12 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   function lsSet(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} }
   if (Q.get('reset') === '1') { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(KEY) === 0) localStorage.removeItem(k); }); } catch (e) {} }
   var $ = function (id) { return document.getElementById(id); };
+  function setTipOn(on) { $('tip').classList.toggle('tipon', on); document.body.classList.toggle('tipup', on); }
   var TIP0 = $('tip').innerHTML; // 画面が かわったら 帯は 最初の 文に もどす（前の 画面の 説明を 残さない）
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
   if (G.run && G.run.over) { recordHall(G.run); G.run = null; lsSet('run', null); }
 
-  function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); document.body.setAttribute('data-scr', id); $('tip').classList.remove('tipon'); $('tip').innerHTML = TIP0; window.scrollTo(0, 0); }
+  function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）
   function save() { lsSet('run', G.run); }
 
   // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
@@ -381,7 +383,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
   document.addEventListener('click', function (e) {
     var t = findTip(e.target); var h = tipFor(t); if (h) $('tip').innerHTML = h;
     // スマホの 戦い：帯は タップした ときだけ（ほかを タップすると とじる。帯 そのものの タップでも とじる）
-    if (document.body.getAttribute('data-scr') === 'battle') $('tip').classList.toggle('tipon', !!h && e.target !== $('tip') && !$('tip').contains(e.target));
+    if (document.body.getAttribute('data-scr') === 'battle') setTipOn(!!h && e.target !== $('tip') && !$('tip').contains(e.target));
   }, true);
 
   // ---------- 上の 帯 ----------

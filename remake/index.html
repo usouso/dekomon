@@ -476,7 +476,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if (!S.CFG.free.on) return '';
     if (!S.freeOpen(run)) return '<div class="slot free locked"><div class="rn">じゆう</div><div class="owned"><div class="ptile empty">🔒 ' + S.CFG.free.at + 'しょうで ひらく</div></div></div>';
     return '<div class="slot free' + (G.freeNew ? ' fx-new' : '') + '"><div class="rn">じゆう</div><div class="owned">' +
-      (eq.free ? ptile(eq.free, ' data-pick="' + eq.free + '" data-slot="free"', 'eq') : '<div class="ptile empty">あき</div>') + '</div><span class="fh">' + (eq.free ? 'じゆうに ついて いる' : 'どの やくわりでも もう 1つ つけられる') + '</span>' +
+      (eq.free ? ptile(eq.free, ' data-pick="' + eq.free + '" data-slot="free"', 'eq fx-free') : '<div class="ptile empty">あき</div>') + '</div><span class="fh">' + (eq.free ? 'じゆうに ついて いる' : 'どの やくわりでも もう 1つ つけられる') + '</span>' +
       (G.hint && !G.hint.free && eq.free ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
   }
   function drawPrep() {
@@ -488,7 +488,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('pMe').outerHTML = '<div id="pMe">' + meCard(run, preview, cmp) + '</div>';
     $('pFoe').innerHTML = foeCard(road, run.fork.stage);
     var fOpen = S.freeOpen(run);
-    $('slots').innerHTML = '<h2>もちもの（' + (fOpen ? '＋じゆう 1つ' : '役割ごとに 1つ') + '）</h2>' + S.ROLES.map(function (r) {
+    $('slots').innerHTML = '<h2>もちもの（' + (fOpen ? 'やくわり 3つ＋じゆう 1つ' : '役割ごとに 1つ') + '）</h2>' + S.ROLES.map(function (r) {
       var own = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; });
       return '<div class="slot ' + r.id + '"><div class="rn">' + r.name + '</div><div class="owned">' +
         (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : eq.free === p ? 'eq fx-free' : '') + (G.hint && (G.hint[r.id] === p || G.hint.free === p) ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';

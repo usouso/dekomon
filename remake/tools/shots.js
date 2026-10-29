@@ -64,6 +64,15 @@ fs.mkdirSync(OUT, { recursive: true });
       if (hnBad) bad++;
       console.log((hnBad ? '✕ ' : '○ ') + tag + ' もう一度の 始めの「手め」：前 「' + hn.before + '」→ 始め 「' + hn.after + '」');
       await page.click('#bSkip'); await page.waitForSelector('#result.on', { timeout: 60000 });
+      // 最後の 負け（ハート 0）：「もう一度」を すすめず「つぎの ぼうけんで」・ボタンは おわり だけ
+      { // いま ハートが のこって いれば 1 に して もう一度 まける（のこって いなければ いまの 画面が 最後の 負け）
+        if (await page.$('#bAgain')) { await page.click('#bAgain'); await page.evaluate(function () { window.__re.G.run.hearts = 1; }); await page.click('#bFight'); await page.click('#bSkip'); await page.waitForSelector('#result.on', { timeout: 60000 }); }
+        await snap('lose_over');
+        var ov = await page.evaluate(function () { var rh = document.querySelector('#resw .rh'); return { note: !!document.getElementById('overNote'), rh: rh ? rh.textContent : '', again: !!document.getElementById('bAgain'), other: !!document.getElementById('bOther'), next: !!document.getElementById('bNext') }; });
+        var ovBad = !ov.note || ov.rh.indexOf('つぎの ぼうけんで') !== 0 || /もう一度|もう片方/.test(ov.rh) || ov.again || ov.other || !ov.next;
+        if (ovBad) bad++;
+        console.log((ovBad ? '✕ ' : '○ ') + tag + ' 最後の 負け：「ここまで」' + (ov.note ? 'あり' : 'なし') + '・ひとこと「' + ov.rh + '」・もう一度 ' + (ov.again || ov.other ? 'あり' : 'なし'));
+      }
       if (errs.length) { bad++; console.log('✕ エラー ' + errs.join(' / ')); }
       await ctx.close();
     }

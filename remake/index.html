@@ -128,7 +128,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .dmg { position:absolute; font-weight:900; font-size:1.8rem; text-shadow:0 0 6px #000; pointer-events:none; animation: fxfloat 1.3s ease-out forwards; }
 @keyframes fxfloat { from { transform: translateY(0); opacity:1; } to { transform: translateY(-2.5rem); opacity:0; } }
 .logw { background:#10131d; border-radius:.8rem; height: 12.5rem; overflow-y:auto; padding:.3rem .5rem; margin-top:.5rem; font-size:.9rem; }
-.logw.fx-short { height: 6rem; } /* ひらめいた 結果は 上が 長い（1366×650 で ページの スクロール 0） */
+.logw.fx-short { height: 4.5rem; } /* ひらめいた 結果は 上が 長い（1366×650 で ページの スクロール 0） */
 .logw div { padding:.08rem 0; border-bottom:1px solid #1d2232; }
 .logw .p { color:#a9f0c6; } .logw .e { color:#ffb7a8; } .logw .s { color:#ffe066; }
 .logw .kwline { cursor:help; text-decoration: underline dotted; }
@@ -143,6 +143,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .reason .rh { margin-top:.5rem; font-size:1.1rem; color:#ffe066; font-weight:800; }
 .cmp { display:flex; justify-content:center; gap:1.4rem; margin-top:.5rem; font-weight:900; }
 .lvl { display:inline-grid; grid-template-columns: auto auto; gap:.2rem 1rem; text-align:left; font-size:1.2rem; font-weight:900; margin:.5rem auto; }
+@media (min-width: 701px) { .lvl { grid-template-columns: auto auto auto auto; } } /* PC は 2つずつ 横に（ひらめきの 行が ふえた ぶん。1366×650 で ページの スクロール 0） */
 .lvl .fx-up { color:#7ee787; opacity:0; animation: fxin .3s forwards; }
 @keyframes fxin { to { opacity:1; } }
 #titlePic svg { height:100%; }
@@ -597,7 +598,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
       if (out.hira) { var hw = S.WAZA_BY_ID[out.hira]; h += '<h2 class="hira">✨ ひらめいた！「' + hw.name + '」を おぼえた</h2><div class="sub">' + hw.text + '（' + hw.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('か ') + 'の パーツを つけると つかえる）</div>'; }
       else if (S.CFG.hira.on) { var nk = []; S.equipList(before.equip || {}).forEach(function (pid) { S.PART_BY_ID[pid].kw.forEach(function (k) { var lw = S.LEARN_BY_KW[k]; if (lw && nk.indexOf(k) < 0 && (run.learned || []).indexOf(lw.id) < 0) nk.push(k); }); });
         if (nk.length) h += '<h2>✨ なれ（いっぱいで わざを ひらめく）</h2><div class="nare">' + nk.map(function (k) { var n = (run.nare || {})[k] || 0; return '<span>' + S.KW_BY_ID[k].name + ' <span class="dots">' + '●'.repeat(n) + '○'.repeat(Math.max(0, S.CFG.hira.nareMax - n)) + '</span></span>'; }).join('') + '</div><div class="sub" style="color:var(--dim)">●が いっぱいに なると かならず ひらめく</div>'; }
-      if (out.level) h += '<h2>レベルアップ！</h2><div class="lvl">' + S.STATS.map(function (s, i) { var u = out.level[s.id]; return '<span>' + STAT_LABEL[s.id] + ' ' + (before.stats[s.id]) + (u ? ' → ' + run.stats[s.id] : '') + '</span><span class="fx-up" style="animation-delay:' + (0.25 * i / SPEED) + 's">' + (u ? '↑ +' + u : '') + '</span>'; }).join('') + '</div>';
+      if (out.level) h += (out.hira ? '' : '<h2>レベルアップ！</h2>') + '<div class="lvl">' + S.STATS.map(function (s, i) { var u = out.level[s.id]; return '<span>' + STAT_LABEL[s.id] + ' ' + (before.stats[s.id]) + (u ? ' → ' + run.stats[s.id] : '') + '</span><span class="fx-up" style="animation-delay:' + (0.25 * i / SPEED) + 's">' + (u ? '↑ +' + u : '') + '</span>'; }).join('') + '</div>';
       h += '<div class="actions"><button class="big" id="bNext">' + (out.clear ? 'おわり' : 'つぎの 道へ ▶') + '</button></div>';
     } else {
       var r = out.reason;

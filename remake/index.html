@@ -303,7 +303,9 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
     var sp = S.SPECIES_BY_ID[run.species], d = S.enemyDef(road.idx), ks = {};
     ks[sp.kw] = 1; (d.kw || []).forEach(function (k) { ks[k] = 1; });
     S.equipList(equip).concat(d.parts || []).forEach(function (pid) { S.PART_BY_ID[pid].kw.forEach(function (k) { ks[k] = 1; }); });
-    SEEN = kwSeen(); Object.keys(ks).forEach(function (k) { SEEN[k] = (SEEN[k] || 0) + 1; }); lsSet('kwSeen', SEEN);
+    // ひとことが 出て いない ことば（1まい 2つまでで あふれた もの）は 数えない＝ひとことを 見ないまま 消えない
+    var noted = {}; Array.prototype.forEach.call(document.querySelectorAll('#bMe .kw.knew, #bFoe .kw.knew'), function (el) { noted[el.getAttribute('data-kw')] = 1; });
+    SEEN = kwSeen(); Object.keys(ks).forEach(function (k) { if (noted[k] || !kwIsNew(k)) SEEN[k] = (SEEN[k] || 0) + 1; }); lsSet('kwSeen', SEEN);
   }
   // ことばの ページ
   var KW_GROUPS = [{ id: 'atk', name: 'せめ' }, { id: 'st', name: 'じょうたい' }, { id: 'def', name: 'まもり' }, { id: 'mov', name: 'うごき' }, { id: 'luck', name: 'うん' }];

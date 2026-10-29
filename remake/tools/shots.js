@@ -69,7 +69,7 @@ fs.mkdirSync(OUT, { recursive: true });
         if (await page.$('#bAgain')) { await page.click('#bAgain'); await page.evaluate(function () { window.__re.G.run.hearts = 1; }); await page.click('#bFight'); await page.click('#bSkip'); await page.waitForSelector('#result.on', { timeout: 60000 }); }
         await snap('lose_over');
         var ov = await page.evaluate(function () { var rh = document.querySelector('#resw .rh'); return { note: !!document.getElementById('overNote'), rh: rh ? rh.textContent : '', again: !!document.getElementById('bAgain'), other: !!document.getElementById('bOther'), next: !!document.getElementById('bNext') }; });
-        var ovBad = !ov.note || ov.rh.indexOf('つぎの ぼうけんで') !== 0 || ov.again || ov.other || !ov.next;
+        var ovBad = !ov.note || ov.rh.indexOf('つぎの ぼうけんで') !== 0 || /もう一度|もう片方/.test(ov.rh) || ov.again || ov.other || !ov.next;
         if (ovBad) bad++;
         console.log((ovBad ? '✕ ' : '○ ') + tag + ' 最後の 負け：「ここまで」' + (ov.note ? 'あり' : 'なし') + '・ひとこと「' + ov.rh + '」・もう一度 ' + (ov.again || ov.other ? 'あり' : 'なし'));
       }

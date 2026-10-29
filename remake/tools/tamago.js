@@ -61,7 +61,7 @@ fs.mkdirSync(OUT, { recursive: true });
       check(cont && eg2.on === 'egg' && eg2.n === eg.n, 'とじて 開きなおす：「つづきから」で たまごの 画面に もどる');
       await page.click('#eggw [data-egg="kakenuke"]');
       var t = await page.evaluate(function () { return { on: document.querySelector('.screen.on').id, hall: document.getElementById('hall').textContent, note: document.getElementById('eggNote').textContent, egg: localStorage.getItem('remake.egg'), run: localStorage.getItem('remake.run'), cont: getComputedStyle(document.getElementById('bCont')).display }; });
-      check(t.on === 'title' && t.hall.indexOf('→ 🥚かけぬけ') >= 0 && t.note.indexOf('たまごが あるよ') >= 0 && t.note.indexOf('かけぬけ') >= 0 && /kakenuke/.test(t.egg || '') && t.run === 'null' && t.cont === 'none', 'えらんだ あと：タイトル・殿堂「' + t.hall.slice(0, 40) + '」・「' + t.note + '」・たまごを 保存・周回は おわり');
+      check(t.on === 'title' && t.hall.indexOf('→ 🥚かけぬけ') >= 0 && t.note.indexOf('つかうと つぎの 子が おぼえる') >= 0 && t.note.indexOf('かけぬけ') >= 0 && /kakenuke/.test(t.egg || '') && t.run === 'null' && t.cont === 'none', 'えらんだ あと：タイトル・殿堂「' + t.hall.slice(0, 40) + '」・「' + t.note + '」・たまごを 保存・周回は おわり');
       await snap('title_hall');
       // 3. 種類を 選ぶ：🥚 の 帯。つかわない ⇄ つかう
       await page.click('#bStart');

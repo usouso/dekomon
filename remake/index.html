@@ -444,7 +444,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('bCont').style.display = G.run ? '' : 'none';
     var h = lsGet('hall', []).filter(function (x) { return !(G.run && G.last && G.run.hallAt && x.at === G.run.hallAt); }); // さいごの 戦いを まだ 見て いない 周回は 見る まで 出さない（けっかを 先に 知らせない）
     $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう' + (x.from ? '　🥚' + x.from + 'の こ' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '　→ 🥚' + S.WAZA_BY_ID[x.egg].name : ''); }).join('<br>') : '';
-    var en = eggNow(); $('eggNote').innerHTML = en ? '🥚 たまごが あるよ：<span class="wz oya" data-waza="' + en.waza + '" data-oya="1">🥚' + S.WAZA_BY_ID[en.waza].name + '</span>　<span style="display:inline-block">つぎの 子が おぼえて うまれる</span>' : ''; // 見えなければ 無いのと 同じ（原則 2）
+    var en = eggNow(); $('eggNote').innerHTML = en ? '🥚 たまご：「' + S.WAZA_BY_ID[en.waza].name + '」　<span style="display:inline-block">つかうと つぎの 子が おぼえる</span>' : ''; // 見えなければ 無いのと 同じ（原則 2）。くわしくは 種類を 選ぶ 画面の 帯（タイトルは 説明の 帯が ない ので 札に しない）
     show('title');
   }
   var NAMES = ['ころ', 'もち', 'ぽん', 'ぴこ', 'むぎ', 'てつ', 'るる', 'ごん', 'さく', 'のの'];

@@ -13,6 +13,7 @@ var PORT = 8792;
     for (var seed of [11, 4, 23, -11, -4, -23]) { // マイナスは パーツを はずして 負けを 見る
       var lose = seed < 0; seed = Math.abs(seed);
       var ctx = await browser.newContext({ viewport: { width: 1366, height: 650 } }), page = await ctx.newPage(), errs = [];
+      page.setDefaultTimeout(5000);
       page.on('pageerror', function (e) { errs.push(String(e)); });
       var U = 'http://localhost:' + PORT + '/index.html?seed=' + seed + '&speed=1';
       await page.goto(U + '&reset=1');

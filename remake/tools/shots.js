@@ -34,8 +34,21 @@ fs.mkdirSync(OUT, { recursive: true });
       await page.click('[data-go="koron"]'); await snap('fork');
       await page.click('.road[data-road="0"] button'); await snap('prep');
       await page.hover('#slots [data-pick]').catch(function () {}); await snap('prep_hover');
+      // じゅんびで パーツを タップ（えらぶ）しても 帯の 説明が 最初の 文に もどらない
+      var pk = await page.$('#slots [data-pick]');
+      if (pk) { await page.click('#slots [data-pick]'); var tipTxt = await page.evaluate(function () { return document.getElementById('tip').textContent; }); var pkBad = tipTxt.indexOf('ここに せつめいが でるよ') >= 0; if (pkBad) bad++; console.log((pkBad ? '✕ ' : '○ ') + tag + ' パーツを タップした あとの 帯：' + tipTxt.slice(0, 24)); }
       await page.click('#prep .kbtn'); await snap('kotoba'); await page.click('#bKotobaX');
       await page.click('#bFight'); await page.waitForTimeout(600); await snap('battle');
+      // 下の 帯（#tip）が 自分の 体力に かぶらない（スマホの 戦いは タップした ときだけ 出す）
+      var tipOv = async function () { return page.evaluate(function () { var t = document.getElementById('tip'), h = document.getElementById('mHpN'); if (!t || !h || getComputedStyle(t).display === 'none') return { shown: false, ov: false, hpBottom: h ? Math.round(h.getBoundingClientRect().bottom) : -1, vh: innerHeight }; var a = t.getBoundingClientRect(), b = h.getBoundingClientRect(); return { shown: true, ov: a.top < b.bottom && b.top < a.bottom && a.left < b.right && b.left < a.right, hpBottom: Math.round(b.bottom), vh: innerHeight }; }); };
+      var t0 = await tipOv(); var tipBad = t0.ov || (sz[0] <= 700 && t0.shown); if (tipBad) bad++; // スマホは 帯の 高さで かぶり方が かわるので、出て いない ことも 見る
+      console.log((tipBad ? '✕ ' : '○ ') + tag + ' 戦いの 下の 帯：' + (t0.shown ? 'でて いる' : 'でて いない') + '・体力の 数に かぶる ' + (t0.ov ? 'はい' : 'いいえ') + '（体力の 下 ' + t0.hpBottom + ' / 画面 ' + t0.vh + '）');
+      if (sz[0] <= 700) {
+        await page.click('#bMe [data-kw]'); var t1 = await tipOv(); await page.screenshot({ path: path.join(OUT, 're1_battle_tip_' + tag + '.png') });
+        await page.click('#bMe', { position: { x: 4, y: 4 } }); var t2 = await tipOv();
+        var tapBad = !t1.shown || t1.ov || t2.shown; if (tapBad) bad++; // 出た 帯も 体力に かぶらない
+        console.log((tapBad ? '✕ ' : '○ ') + tag + ' ことばを タップ → 帯 ' + (t1.shown ? 'でた' : 'でない') + (t1.ov ? '（体力に かぶる）' : '（体力に かぶらない）') + '・ほかを タップ → ' + (t2.shown ? 'のこる' : 'とじた'));
+      }
       await page.waitForSelector('#result.on', { timeout: 60000 }); await snap('result');
       // 負けを 見る：ちから 0 に して 戦う
       await page.evaluate(function () { var G = window.__re.G; G.run.stats.atk = 0; G.run.stats.hp = 3; });

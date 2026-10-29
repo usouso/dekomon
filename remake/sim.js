@@ -39,7 +39,7 @@
     // その2：ひらめき（技を 覚える）。on＝false で その1 の「勝つたび レベルアップ」に もどる
     //   なれ：戦うたび（勝ち・負け）つけた パーツの キーワードごとに +1（てごわい +2）。nareMax で 満タン。
     //   勝ったら 1回 ためす：満タンの キーワードが あれば かならず、なければ chance ＋ うん×perLuck（てごわい ＋hard）。
-    hira: { on: true, nareMax: 3, nareHard: 2, chance: 0.15, perLuck: 0.02, hard: 0.15, bossHp: 0.8 } // bossHp：on の ときの ぬしの たいりょく（off は boss.hp）。勝つたびの レベルアップが なくなる ぶん 下げる（ボット）
+    hira: { on: true, nareMax: 3, nareHard: 2, chance: 0.15, perLuck: 0.02, hard: 0.15, bossHp: 0.8 }, // bossHp：on の ときの ぬしの たいりょく（off は boss.hp）。勝つたびの レベルアップが なくなる ぶん 下げる（ボット）
   };
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------

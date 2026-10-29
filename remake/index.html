@@ -79,6 +79,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 /* 下の 説明の 帯（合わせる／タップで 出る） */
 #tip { position:fixed; left:0; right:0; bottom:0; min-height:3.4rem; background:#0d1018ee; border-top:2px solid #3a4256; padding:.45rem 1rem; font-size:1rem; font-weight:700; z-index:20; }
 #tip b { color:#ffe066; }
+body[data-scr="title"] #tip { display:none; } /* タイトルには カードも パーツも ない（帯の 文が 合わない）。ことばの ページは 中に 説明が ある */
 /* 種類を 選ぶ */
 .spgrid { display:grid; grid-template-columns: repeat(auto-fit, 15.5rem); gap:.8rem; justify-content:center; }
 .spgrid .card { cursor:pointer; }
@@ -167,7 +168,7 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 }
 </style>
 </head>
-<body>
+<body data-scr="title">
 <div id="title" class="screen on center">
   <h1>でこもん</h1>
   <div class="sub" style="color:var(--dim);font-weight:800">つくりなおしの 版（ためしに あそぶ ところ）</div>

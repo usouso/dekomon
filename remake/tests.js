@@ -305,5 +305,37 @@ var be = S.newRun(25, 'gotsun'); be.owned = S.PART_IDS.slice(); be.wins = C.free
 var bb = S.bestEquip(be, 0, 3).equip;
 ok('free' in bb && (bb.free === null || (bb.free !== bb.atk && bb.free !== bb.def && bb.free !== bb.mov)), 'ヒント：4つ目も えらぶ（同じ パーツは 2つに しない）');
 be.wins = C.free.at - 1; ok(!('free' in S.bestEquip(be, 0, 2).equip), 'ヒント：ひらく まえは 3つだけ');
+
+// たまご（その2 の 3つ目）：覚えた 技 1つを のこす → 次の 子は その 技を 覚えた 状態で 始まる
+var eg = S.newRun(31, 'koron'); eg.learned = ['teppeki', 'kakenuke']; eg.name = 'ころこ';
+ok(S.eggChoices(eg).length === 0, 'たまご：周回の とちゅうは のこせない');
+eg.over = true;
+ok(S.eggChoices(eg).join() === 'teppeki,kakenuke', 'たまご：おわったら 覚えた 技から えらべる');
+ok(S.makeEgg(eg, 'kokozo') === null && S.makeEgg(eg, 'chikara') === null, 'たまご：うまれつきの 技・覚えて いない 技は のこせない');
+var egg = S.makeEgg(eg, 'kakenuke');
+ok(egg && egg.waza === 'kakenuke' && egg.parent === 'ころこ' && egg.sp === 'koron', 'たまご：技・親の なまえ・種類を もつ');
+var plain = S.newRun(77, 'gotsun'), child = S.newRun(77, 'gotsun', egg);
+ok(child.learned.join() === 'kakenuke' && child.inherit && child.inherit.parent === 'ころこ' && child.inherit.waza === 'kakenuke', 'たまご：ほかの 種類の 子（ごつん）も その 技を 覚えて 始まる・親を のこす');
+ok(JSON.stringify(child.stats) === JSON.stringify(plain.stats) && child.owned.join() === plain.owned.join() && JSON.stringify(child.fork) === JSON.stringify(plain.fork), 'たまご：うまれた ときの ステータス・もちもの・道は たまご なしと 同じ（親の つよさは 継がない）');
+// なじんだ：継いだ 技を 使える パーツで はじめて 勝ち（ひらめかなかった）→ 1回 レベルアップ（技の stat かならず +1）。2回目は ない
+function winWith(run, equip) { run.stats.hp = 999; run.stats.atk = 99; run.fork = S.makeFork(run); var before = JSON.stringify(run.stats); var ri = run.fork.roads[0].hard ? 1 : 0; var o = S.fight(run, ri, equip); /* ふつうの 道（てごわいは なれ +2 で ひらめく） */ return { o: o, before: JSON.parse(before) }; }
+var nj = S.newRun(81, 'gotsun', egg); nj.owned = ['eye', 'longtail', 'spring', 'claw']; // なれが 満タンに ならない よう 毎回 ちがう キーワード
+var C0 = C.hira.chance, P0 = C.hira.perLuck, H0 = C.hira.hard; C.hira.chance = 0; C.hira.perLuck = 0; C.hira.hard = 0; // ひらめかない ように
+var w1 = winWith(nj, { atk: 'eye', def: null, mov: null });
+ok(w1.o.win && !w1.o.oya && !w1.o.level && !nj.inherit.fit, 'なじんだ：継いだ 技を 使えない パーツで 勝っても ない');
+var w2 = winWith(nj, { atk: null, def: 'longtail', mov: 'spring' });
+ok(w2.o.win && w2.o.oya === 'kakenuke' && w2.o.level && w2.o.level.spd === 1 && nj.stats.spd === w2.before.spd + 1 && nj.inherit.fit, 'なじんだ：はやいの パーツで 勝つと 1回 レベルアップ（はやさ +1）');
+var w3 = winWith(nj, { atk: 'horn', def: 'shell', mov: 'spring' });
+ok(w3.o.win && !w3.o.oya, 'なじんだ：2回目は ない');
+C.egg.oyaLevel = false; var nk = S.newRun(82, 'pyun', egg); var w4 = winWith(nk, { atk: null, def: null, mov: 'spring' }); C.egg.oyaLevel = true;
+ok(w4.o.win && !w4.o.oya && !nk.inherit.fit, 'CFG.egg.oyaLevel＝false：なじんだ は ない（技だけ 継ぐ）');
+var np = S.newRun(83, 'pyun'); var w5 = winWith(np, { atk: null, def: null, mov: 'spring' }); ok(!w5.o.oya, 'たまご なしの 子には なじんだ は ない');
+C.hira.chance = C0; C.hira.perLuck = P0; C.hira.hard = H0;
+ok(S.wazaFor(child, { atk: null, def: null, mov: 'spring' }).indexOf('kakenuke') >= 0 && S.wazaFor(child, { atk: null, def: 'shell', mov: null }).indexOf('kakenuke') < 0, 'たまご：継いだ 技も その キーワード（れんげき・はやい）の パーツを つけた ときだけ 使える');
+var cf = S.newRun(78, 'pyun', egg); cf.owned = ['claw', 'spring', 'shell']; cf.equip = { atk: 'claw', def: 'shell', mov: 'spring' }; cf.fork = S.makeFork(cf);
+S.addNare(cf, false); ok(!cf.nare.ren && !cf.nare.fast, 'たまご：継いだ 技の キーワードは なれが たまらない（もう 覚えて いる）');
+C.egg.on = false; var off = S.newRun(77, 'gotsun', egg); var offCh = S.eggChoices(eg); C.egg.on = true;
+ok(off.learned.length === 0 && !off.inherit && offCh.length === 0, 'CFG.egg.on＝false：たまごを 使わない');
+ok(S.newRun(79, 'doshin', { waza: 'nai' }).learned.length === 0 && S.newRun(79, 'doshin', { waza: 'ikari' }).learned.length === 0, 'たまご：知らない 技・うまれつきの 技の たまごは むし（こわれた 保存でも 動く）');
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

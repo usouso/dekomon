@@ -1,5 +1,6 @@
 // でこもん 作り直しの版 — ボット（周回を たくさん 回して 目標と 比べる）
-// 使い方：node bot.js [周回の数=40] [種類=all]
+// 使い方：node bot.js [周回の数=40] [種類=all] [たまご=none|chain|<技の id>]
+//   たまご chain：同じ 種類で 前の 周回の 覚えた 技（いちばん あとに 覚えた もの）を 次の 周回へ 継ぐ。<技の id>：いつも その 技を 継いで 始まる
 //   合わせボット：道ごとに もちものの 組を ためして 勝ちやすい 方へ（ヒントと 同じ 計算）
 //   でたらめボット：道も パーツも でたらめ（子どもが 何も 考えずに 遊んだ とき）
 //   はじめボット（start）：はじめの 3つの まま・いつも 左の 道＝何も 考えない 物差し（原則 5：合わせの 75% 以下）
@@ -7,11 +8,14 @@
 var S = require('./sim.js');
 var N = parseInt(process.argv[2] || '40', 10);
 var ONLY = process.argv[3] || 'all';
+var EGG = process.argv[4] || 'none';
 var t0 = Date.now();
 if (process.env.DEKO_CFG) { var o = JSON.parse(process.env.DEKO_CFG); Object.keys(o).forEach(function (k) { S.CFG[k] = o[k]; }); }
 
+var lastEgg = {};
 function playRun(seed, species, policy) {
-  var run = S.newRun(seed, species), rng = S.rngFrom(S.mix(seed, 31337)), log = { losses: 0, reasons: {}, minHearts: 3, hira: 0 };
+  var egg = EGG === 'chain' ? lastEgg[policy + species] : (EGG !== 'none' ? { waza: EGG, parent: 'bot', sp: species } : null);
+  var run = S.newRun(seed, species, egg), rng = S.rngFrom(S.mix(seed, 31337)), log = { losses: 0, reasons: {}, minHearts: 3, hira: 0 };
   var guard = 0;
   while (!run.over && guard++ < 60) {
     var roads = run.fork.roads, ri = 0, eq = run.equip; // start：はじめの 3つの まま・いつも 左の 道（何も 考えない＝正解の道の 物差し）
@@ -30,6 +34,7 @@ function playRun(seed, species, policy) {
     if (out.hira) log.hira++;
     if (!out.win) { log.losses++; log.reasons[out.reason.id] = (log.reasons[out.reason.id] || 0) + 1; }
   }
+  var ch = S.eggChoices(run); lastEgg[policy + species] = ch.length ? S.makeEgg(run, ch[ch.length - 1]) : null; // いちばん あとに 覚えた 技（継いだ 技が いつも 回らない ように）
   return { hira: log.hira, learned: run.learned.length, wins: run.wins, clear: run.clear, hearts: run.hearts, losses: log.losses, reasons: log.reasons, history: run.history };
 }
 
@@ -51,7 +56,7 @@ var rows = [], byEnemy = {}, byStage = {};
     rows.push('| ' + pol + ' | ' + sp + ' | ' + (100 * clear / N).toFixed(0) + '% | ' + (wins / N).toFixed(1) + ' | ' + (losses / N).toFixed(2) + ' | ' + (battles / N).toFixed(1) + ' | ' + (hira / N).toFixed(1) + ' | ' + JSON.stringify(reasons) + ' |');
   });
 });
-console.log('## ボット（' + N + ' 周回ずつ）\n');
+console.log('## ボット（' + N + ' 周回ずつ・たまご ' + EGG + '）\n');
 console.log('| ボット | 種類 | クリア | 平均の 勝ち数 | 負け（ハート） | 戦った 数 | ひらめき | 負けの 理由 |');
 console.log('|---|---|---|---|---|---|---|---|');
 rows.forEach(function (r) { console.log(r); });

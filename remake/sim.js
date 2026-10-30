@@ -82,7 +82,7 @@
   // bonus：ひとことが 数字の ときの 中身。special：ひとことが 動きの ときの 名前（battle の 中で 見る）
   var PARTS = [
     { id: 'horn', short: 'ツノ',     name: 'ツノ',         role: 'atk', kw: ['charge', 'heavy'],  line: 'ためた 1げきは まもりを むしする', special: 'hornPierce' },
-    { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +1', bonus: { atk: 1 } },
+    { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +2', bonus: { atk: 2 } }, // 10-31 強さ合わせ その7：+1 → +2
     { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'あてる たびに どくの ダメージ +2', special: 'fangGrow' },
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
@@ -145,7 +145,7 @@
     { id: 'snake',    name: 'ヒルヘビ',       hp: 14, atk: 3, def: 0, spd: 5, kw: ['fast'],   parts: ['fang'],             color: '#7a5fa8', shape: 'blob' },
     { id: 'deer',     name: 'ツノジカ',       hp: 15, atk: 3, def: 0, spd: 5, kw: [],         parts: ['horn', 'wing'],     color: '#c99a5b', shape: 'tall' },
     { id: 'hedgehog', name: 'ハリネズ',       hp: 15, atk: 3, def: 0, spd: 3, kw: ['regen'],  parts: ['spike', 'fur'],     color: '#9c7a5a', shape: 'round' },
-    { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 4, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' },
+    { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' }, // 10-31 その7：atk 4 → 3（ひかるめ +2 の ぶんを もどす。こうげきは 段階1〜4 で 前と 同じ、段階5〜10 で 1〜2 ひくい＝もとの こうげき だけ 段階で のびる ため）
     { id: 'frog',     name: 'ドロガエル',     hp: 15, atk: 3, def: 0, spd: 3, kw: ['hard'],   parts: ['spike', 'longtail'], color: '#7b6a4e', shape: 'blob' },
     { id: 'wolf',     name: 'ツタオオカミ',   hp: 14, atk: 3, def: 0, spd: 5, kw: [],         parts: ['claw', 'spring'],   color: '#5fa86a', shape: 'blob' },
     { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 0, spd: 4, kw: ['ranged'], parts: ['leech', 'scale'],   color: '#6f9ceb', shape: 'dome' },

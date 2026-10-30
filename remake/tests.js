@@ -20,6 +20,11 @@ noLuck(function () {
   ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
   st = S.statsOf(P({}, ['tail']));
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
+  st = S.statsOf(S.enemySrc(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false));
+  var stOld = S.statsOf({ base: S.enemyBase(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false), kw: ['yokeru'], parts: [], enemy: true });
+  ok(S.ENEMY_BY_ID.bird.atk === 3 && st.atk === stOld.atk + 2 + 2, 'ヤリドリ：ながいあし +2・ひかるめ +2（もとの こうげき 3。10-31 その7 で 4 → 3）');
+  // 段階1の ヤリドリの こうげきは 前（もと 4・ひかるめ +1）と 同じ 7（はじめての 1戦目を きつく しない）
+  ok(st.atk === 7, 'ヤリドリ：段階1の こうげきは 前と 同じ 7（' + st.atk + '）');
   st = S.statsOf(E({}, ['tail']));
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1, 'ふといしっぽ：相手が もっても 同じ（こうげき +2・はやさ −2 ＋1）');
   st = S.statsOf(P({}, ['longleg']));
@@ -54,9 +59,9 @@ noLuck(function () {
   ok(h1.dmg === (4 + C.heavyAtk) - 3 && h3.dmg === (4 + C.heavyAtk) * C.chargeMult && h3.pierce, 'ためる：3手めは ×2・ツノ：ためた 1げきは まもりを むしする');
   // ねらいうち：じょうたいの あいてへ +2（キバで どく → 2手めから）
   r = S.battle(P({ atk: 5 }, ['eye', 'fang'].slice(0, 1)), E({ atk: 0, hp: 200 }), 1);
-  ok(handHits(r, 'p', 2)[0].dmg === 6, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +1）');
+  ok(handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +' + S.PART_BY_ID.eye.bonus.atk + '）');
   r = S.battle(P({ atk: 5 }, ['eye', 'fang']), E({ atk: 0, hp: 200 }), 1);
-  ok(handHits(r, 'p', 1)[0].dmg === 6 && handHits(r, 'p', 2)[0].dmg === 6 + C.neraiPlus, 'ねらいうち：どくの あいてへの 1げき +2');
+  ok(handHits(r, 'p', 1)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk && handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk + C.neraiPlus, 'ねらいうち：どくの あいてへの 1げき +2');
   // どく：手の おわりに 2・3手。まもりで へらない。キバ：あてる たびに どくが +2（はじめの 1げきから）
   r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, def: 9, hp: 200 }), 1);
   var po = r.events.filter(function (e) { return e.t === 'poison' && e.who === 'e'; });
@@ -293,10 +298,10 @@ ok(ce.free === 'eye' && S.equipList(ce).length === 4, '自由枠：せめを 2�
 ok(S.cleanEquip(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'horn' }).free === null, '自由枠：ほかの 枠と 同じ パーツは 入らない');
 ok(S.cleanEquip(fr, { atk: 'shell', def: 'scale', mov: 'wing', free: 'fang' }).atk === null && S.cleanEquip(fr, { atk: 'horn', free: 'fang' }).free === null, '役割の 枠は その 役割だけ・もって いない パーツは 入らない');
 fr.wins = C.free.at - 1; ok(!('free' in S.cleanEquip(fr, { atk: 'horn', free: 'eye' })), '自由枠：ひらく まえは 4つ目を すてる');
-// 4つ目の パーツの つよさが 戦いに 入る（ひかるめ こうげき +1）
+// 4つ目の パーツの つよさが 戦いに 入る（ひかるめ こうげき +2。10-31 強さ合わせ その7）
 fr.wins = C.free.at;
 var st3 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing' })), st4 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' }));
-ok(st4.atk === st3.atk + 1, '自由枠の パーツの ボーナスも 入る（ひかるめ こうげき +1）');
+ok(st4.atk === st3.atk + S.PART_BY_ID.eye.bonus.atk && S.PART_BY_ID.eye.bonus.atk === 2, '自由枠の パーツの ボーナスも 入る（ひかるめ こうげき +2）');
 // 覚えた 技で 使えるのは 枠の 数まで（覚えた 順）
 var wc = S.newRun(22, 'koron'); wc.owned = ['horn', 'eye', 'shell', 'wing']; wc.learned = ['chikara', 'teppeki', 'kakenuke', 'mikawashi', 'todome'];
 var born = S.SPECIES_BY_ID.koron.waza.length;

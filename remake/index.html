@@ -169,7 +169,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .howto { display:grid; grid-template-columns:repeat(2, auto); justify-content:center; gap:.25rem 1.4rem; margin:0 auto .7rem; }
 .howto span { font-weight:800; font-size:1rem; text-align:left; } /* わくを つけない（ボタンに 見えない ように） */
 @media (max-width: 520px) { .howto { grid-template-columns:auto; gap:.15rem; } }
-.hall { max-width: 40rem; margin:.6rem auto; text-align:left; font-size:.9rem; color:var(--dim); }
+.hall { max-width: 30rem; margin:.5rem auto; text-align:left; font-size:1rem; line-height:1.4; color:var(--ink); background:var(--panel); border-radius:12px; padding:.35rem .9rem; }
+.hall:empty { display:none; }
+.hall b { color:var(--dim); display:block; }
+.hall .hseg { white-space:nowrap; display:inline-block; }
+.hall .hrow + .hrow { border-top:1px solid var(--panel2); }
 @media (max-width: 700px) {
   .spgrid { grid-template-columns: repeat(2, 1fr); }
   .card { width: 100%; }
@@ -443,7 +447,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('howto').innerHTML = ['🧩 パーツを つける', '👀 たたかいを みまもる', '⛰ ' + C.runBattles + 'かい かつと クリア', '<b style="color:var(--heart)">♥</b> ' + C.hearts + 'かい まけると おわり'].map(function (t) { return '<span>' + t + '</span>'; }).join('');
     $('bCont').style.display = G.run ? '' : 'none';
     var h = lsGet('hall', []).filter(function (x) { return !(G.run && G.last && G.run.hallAt && x.at === G.run.hallAt); }); // さいごの 戦いを まだ 見て いない 周回は 見る まで 出さない（けっかを 先に 知らせない）
-    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b><br>' + h.slice(-6).reverse().map(function (x) { return (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう' + (x.from ? '　🥚' + x.from + 'の こ' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '　→ 🥚' + S.WAZA_BY_ID[x.egg].name : ''); }).join('<br>') : '';
+    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b>' + h.slice(-6).reverse().map(function (x) { return '<div class="hrow"><span class="hseg">' + (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう</span>' + (x.from ? '<span class="hseg">　🥚' + x.from + 'の こ</span>' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '<span class="hseg">　→ 🥚' + S.WAZA_BY_ID[x.egg].name + '</span>' : '') + '</div>'; }).join('') : ''; // 1人 1行（スマホで 折り返す ときは 🥚 の ところで まるごと 次の 行へ）
     var en = eggNow(); $('eggNote').innerHTML = en ? '🥚 たまご：「' + S.WAZA_BY_ID[en.waza].name + '」　<span style="display:inline-block">つかうと つぎの 子が おぼえる</span>' : ''; // 見えなければ 無いのと 同じ（原則 2）。くわしくは 種類を 選ぶ 画面の 帯（タイトルは 説明の 帯が ない ので 札に しない）
     show('title');
   }
@@ -505,7 +509,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if (!S.freeOpen(run)) return '<div class="slot free locked"><div class="rn">じゆう</div><div class="owned"><div class="ptile empty">🔒 ' + S.CFG.free.at + 'しょうで ひらく</div></div></div>';
     return '<div class="slot free' + (G.freeNew ? ' fx-new' : '') + '"><div class="rn">じゆう</div><div class="owned">' +
       (eq.free ? ptile(eq.free, ' data-pick="' + eq.free + '" data-slot="free"', 'eq fx-free') : '<div class="ptile empty">あき</div>') + '</div><span class="fh">' + (eq.free ? 'じゆうに ついて いる' : 'どの やくわりでも もう 1つ つけられる') + '</span>' +
-      (G.hint && !G.hint.free && eq.free ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
+      (G.hint && !G.hint.free && eq.free ? '<span class="hseg">💡 はずすと よさそう</span>' : '') + '</div>';
   }
   function drawPrep() {
     var run = G.run; topBar('p');
@@ -519,7 +523,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('slots').innerHTML = '<h2>もちもの<span class="nw">（' + (fOpen ? 'やくわり 3つ＋じゆう 1つ' : 'やくわりごとに 1つ') + '）</span></h2>' + S.ROLES.map(function (r) {
       var own = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; });
       return '<div class="slot ' + r.id + '"><div class="rn">' + r.name + '</div><div class="owned">' +
-        (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : eq.free === p ? 'eq fx-free' : '') + (G.hint && (G.hint[r.id] === p || G.hint.free === p) ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hx">💡 はずすと よさそう</span>' : '') + '</div>';
+        (own.length ? own.map(function (p) { return ptile(p, ' data-pick="' + p + '"', (eq[r.id] === p ? 'eq' : eq.free === p ? 'eq fx-free' : '') + (G.hint && (G.hint[r.id] === p || G.hint.free === p) ? ' fx-hint' : '')); }).join('') : '<div class="ptile empty">なし</div>') + '</div>' + (G.hint && !G.hint[r.id] && eq[r.id] ? '<span class="hseg">💡 はずすと よさそう</span>' : '') + '</div>';
     }).join('') + freeRow(run, eq) + '<div class="sub" style="color:var(--dim);font-size:.85rem">パーツを おすと つける／はずす。' + (fOpen ? 'やくわりが うまって いたら じゆうに 入るよ。' : '合わせると つよさが どう かわるか 見えるよ。') + '</div>';
     Array.prototype.forEach.call($('slots').querySelectorAll('[data-pick]'), function (el) {
       var id = el.getAttribute('data-pick');

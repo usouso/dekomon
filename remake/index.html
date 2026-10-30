@@ -734,7 +734,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
           delay = 420; break;
         case 'dodge': popText(e.by === 'hirari' ? 'ひらり！' : 'よけた！', 'dodge'); addLog(e.who === 'p' ? 'p' : 'e', nm + 'は ' + (e.by === 'hirari' ? 'ひらりと よけた！' : e.by === 'yokeru' ? 'よけた！（よける）' : 'うんよく よけた！'), e.by === 'luck' ? null : e.by); if (e.by !== 'luck') glowKw(who, e.by); delay = 520; break;
         case 'kw':
-          var kn = e.kw === 'fangGrow' ? 'どくが ふえた（' + e.n + '）' : e.kw === 'springExtra' ? 'ばねあしで もう1かい！' : e.kw === 'charge' ? 'ためた！ この手は ×' + C.chargeMult : e.kw === 'stagger' ? 'よろけて ちからが でない' : e.kw === 'immune' ? 'へっちゃら！' : e.kw;
+          var kn = e.kw === 'fangGrow' ? 'キバで どくが ' + e.n + ' ダメージに' : e.kw === 'springExtra' ? 'ばねあしで もう1かい！' : e.kw === 'charge' ? 'ためた！ この手は ×' + C.chargeMult : e.kw === 'stagger' ? 'よろけて ちからが でない' : e.kw === 'immune' ? 'へっちゃら！' : e.kw;
           addLog(cls, nm + '：' + kn, e.kw === 'springExtra' ? null : e.kw === 'fangGrow' ? 'poison' : e.kw);
           if (e.kw === 'springExtra') glowPart(who, 'spring'); else if (e.kw === 'fangGrow') glowPart(who, 'fang'); else glowKw(who, e.kw);
           delay = 300; break;

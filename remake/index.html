@@ -277,27 +277,38 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   function lsSet(k, v) { if (!saveOwner) return false; try { localStorage.setItem(KEY + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   var $ = function (id) { return document.getElementById(id); };
   // 卵・子・殿堂は、更新内容を先に記録する。途中で止まっても同じ内容を再適用できる。
+  // とまった 理由：'stale'＝予定が 古い 形・いまの 保存と 合わない（まっても なおらない）／'write'＝書けなかった（あとで なおる かも）
+  var eggFailWhy = 'write';
   function recoverEggState() {
+    eggFailWhy = 'write';
     try {
-      var pending = JSON.parse(localStorage.getItem(KEY + 'eggTxn') || 'null');
+      var raw = localStorage.getItem(KEY + 'eggTxn'), tracked = ['run', 'last', 'egg', 'hall'], cur = {}; // 読めない（ブロック など）＝write
+      tracked.forEach(function (k) { cur[k] = localStorage.getItem(KEY + k); });
+      eggFailWhy = 'stale';
+      var pending = JSON.parse(raw || 'null');
       if (!pending) return true;
       // 元状態を持たない旧候補の予定や、別世代の状態を推測で適用しない。
       if (pending.version !== 1 || !pending.before || !pending.values) return false;
-      var tracked = ['run', 'last', 'egg', 'hall'], keys = Object.keys(pending.values);
+      var keys = Object.keys(pending.values);
       if (!keys.length || keys.some(function (k) { return tracked.indexOf(k) < 0; })) return false;
       for (var i = 0; i < tracked.length; i++) {
-        var k = tracked[i], before = pending.before[k], current = localStorage.getItem(KEY + k);
+        var k = tracked[i], before = pending.before[k], current = cur[k];
         if (before !== null && typeof before !== 'string') return false;
         if (current !== before && !(Object.prototype.hasOwnProperty.call(pending.values, k) && current === JSON.stringify(pending.values[k]))) return false;
       }
+      eggFailWhy = 'write';
       for (var j = 0; j < keys.length; j++) if (!lsSet(keys[j], pending.values[keys[j]])) return false;
       return lsSet('eggTxn', null); // 全部保存できるまで記録を消さない
-    } catch (e) { return false; }
+    } catch (e) { return false; } // JSON が こわれて いる＝stale の まま
   }
-  function storageFailure() {
+  function storageFailure(why) {
     if (G) G.saveBlocked = true;
     AUTO = false;
-    document.body.innerHTML = '<main class="center"><h1>ほぞん できなかったよ</h1><p>ぼうけんを まもるため、いったん とめて いるよ。<br>しばらく してから、もう いちど ためしてね。</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
+    // 理由ごとの 文（dot の QA：古い 形の 予定にも「しばらく してから」と 出て いた）。とめる ことは どちらも 同じ
+    var msg = why === 'stale' ? 'ほぞんの とちゅうの メモが、いまの ほぞんと あわないよ。<br>まっても なおらないので、あそばずに おとなに みせてね。<br>（おとなの かたへ：つくった 人に しらせて ください。りゆう：たまごの よてい）'
+      : 'ぼうけんを まもるため、いったん とめて いるよ。<br>しばらく してから、もう いちど ためしてね。';
+    var stale = why === 'stale';
+    document.body.innerHTML = '<main class="center"><h1>' + (stale ? 'ほぞんを まもるため とまって いるよ' : 'ほぞん できなかったよ') + '</h1><p data-why="' + (stale ? 'stale' : 'write') + '">' + msg + '</p><button class="big" id="bSaveRetry">' + (stale ? 'もう いちど よみこむ' : 'もう いちど ためす') + '</button></main>';
     $('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
   }
   function writeEggState(values) {
@@ -306,12 +317,13 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
       if (!saveOwner || (old !== null && old !== 'null')) { storageFailure(); return false; }
       var before = {};
       ['run', 'last', 'egg', 'hall'].forEach(function (k) { before[k] = localStorage.getItem(KEY + k); });
-      if (!lsSet('eggTxn', { version: 1, before: before, values: values }) || !recoverEggState()) { storageFailure(); return false; }
+      if (!lsSet('eggTxn', { version: 1, before: before, values: values })) { storageFailure('write'); return false; }
+      if (!recoverEggState()) { storageFailure(eggFailWhy); return false; }
     } catch (e) { storageFailure(); return false; }
     return true;
   }
   var recoveringEgg = lsGet('eggTxn', null);
-  if (!recoverEggState()) { storageFailure(); return; }
+  if (!recoverEggState()) { storageFailure(eggFailWhy); return; }
   // ?reset=1：ゲームの 鍵だけ 消す（たまごの 予定を もどした あと だけ）。ためしあそびの きろく（remake.playtest.*）は 消さない
   var GAME_KEYS = ['run', 'last', 'hall', 'kwSeen', 'egg', 'eggTxn'];
   if (!recoveringEgg && Q.get('reset') === '1') { try { GAME_KEYS.forEach(function (k) { localStorage.removeItem(KEY + k); }); } catch (e) {} }

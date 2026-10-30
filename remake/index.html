@@ -352,7 +352,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   G.last = lsGet('last', null);
   if (!(G.run && G.last && G.last.key === runKey(G.run))) { G.last = null; lsSet('last', null); } // ちがう 戦いの ものは すてる
   // おわった 周回：殿堂には 1回だけ のせる（hallDone）。さいごの 戦いを 見て いない ときだけ 「つづきから」で 見せる
-  if (REC) { REC.recover(G.run, G.last); recordStatus(); } // 保存ずみで まだ 見て いない 戦いを きろくに（もう ある ときは なにも しない）
+  if (REC) { try { REC.recover(G.run, G.last); } catch (e) { console.error(e); } recordStatus(); } // 保存ずみで まだ 見て いない 戦いを きろくに（もう ある ときは なにも しない）
   if (G.run && G.run.over) { if (!G.run.hallDone && !recordHall(G.run)) return; if (!G.last && !eggPending(G.run)) { if (!writeEggState({ run: null, last: null })) return; G.run = null; } } // たまごを まだ えらんで いない 周回は「つづきから」で えらべる
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）

@@ -7,6 +7,7 @@
   else root.DekoRemakeRecord=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
+  // BASE か BUILD を かえる ときは KEY も v4 に 上げる（古い 鍵が 読めないと 書けなく なる ため）
   var SCHEMA=3, BASE='8e99c33a56fbad36158079dbf5c51c44285f76a6', BUILD='remake-recording-3-egg';
   var MAX_RUNS=50, MAX_CHARS=1000000, MAX_BATTLES=12;
   var KEY='remake.playtest.records.v3', TEST_KEY='remake.playtest.test-records.v3';
@@ -53,7 +54,7 @@
         if(!validStore(next))throw new Error('invalid record');
         validateExport({schemaVersion:SCHEMA,baseSha:BASE,build:BUILD,source:source,runs:next.runs});
         store=next;
-      }catch(e){store=empty();unavailable=true;warning='前の記録を読めません。今回はメモリ内に記録します';}
+      }catch(e){store=empty();unavailable=true;warning='まえの きろくが よめないよ（こんかいは しまわない）';}
     }
     load();currentId=store.active;
     function find(id){return store.runs.find(function(r){return r.id===id;});}
@@ -61,10 +62,10 @@
       while(store.runs.length>MAX_RUNS){store.runs.shift();store.droppedRuns++;}
       var raw=JSON.stringify(store);
       while(raw.length>MAX_CHARS&&store.runs.length>1){store.runs.shift();store.droppedRuns++;raw=JSON.stringify(store);}
-      if(raw.length>MAX_CHARS){warning='記録が大きすぎます。書き出して保存してください';return false;}
+      if(raw.length>MAX_CHARS){warning='きろくが おおきすぎるよ（かきだしてね）';return false;}
       if(unavailable)return false; // 壊れた既存記録は上書きせず、今回分はメモリ内で保持。
       try{storage.setItem(key,raw);warning='';return true;}
-      catch(e){warning='端末に記録できません。画面を閉じる前に書き出してください';return false;}
+      catch(e){warning='きろくを しまえないよ（とじる まえに かきだしてね）';return false;}
     }
     function make(run,resumed){
       var r={id:'r'+store.nextId++,source:source,species:run.species,seed:run.seed,
@@ -80,7 +81,7 @@
         // ゲーム保存には触らず、既にある記録の関連付けだけを外す。
         if(!enabled){store.active=null;currentId=null;if(store.runs.length)persist();return null;}
         var r=make(snapshot(run),false);persist();return r.id;
-      }catch(e){warning='記録できませんでした。ゲームは続けられます';return null;}
+      }catch(e){warning='きろくできなかったよ（ゲームは あそべる）';return null;}
     }
     function ensure(before){
       var r=find(currentId);
@@ -93,7 +94,7 @@
         before=snapshot(before);after=snapshot(after);
         var r=ensure(before), sequence=before.history.length+1;
         if(r.battles.some(function(b){return b.sequence===sequence;}))return false;
-        if(r.battles.length>=MAX_BATTLES){warning='この周回の記録は上限に達しました';return false;}
+        if(r.battles.length>=MAX_BATTLES){warning='この しゅうかいの きろくは いっぱい';return false;}
         var road=before.fork.roads[roadIndex];
         var battleSeed=S.mix(S.mix(before.seed,2000+before.wins),before.tries*31+(road.hard?7:3)+(road.idx==='boss'?99:road.idx));
         var b={id:r.id+':'+sequence,sequence:sequence,stage:before.fork.stage,retry:before.tries,
@@ -106,7 +107,7 @@
         r.battles.push(b);
         if(after.over)r.end={kind:after.clear?'clear':'defeat',wins:after.wins,hearts:after.hearts};
         persist();return true;
-      }catch(e){warning='記録できませんでした。ゲームは続けられます';return false;}
+      }catch(e){warning='きろくできなかったよ（ゲームは あそべる）';return false;}
     }
     function recover(run,last){
       if(!enabled||!run||!last||!last.before||!last.out)return false;
@@ -126,7 +127,7 @@
       explanation:{about:'でこもん作り直し版の端末内試遊記録。外部へ自動送信しません。',
         sequence:'実際に戦った通番。同じstageの再戦も別試合。retryは0から。',
         replay:'before / roadIndex / equipを実simのfightに渡しresult / afterと比較します。',
-        limits:'最大50周回。記録の大きさの上限をこえたら古い周回を削除（ゲームの保存は消しません）。resumedは途中から記録、過去の操作は復元しません。',
+        limits:'最大50周回（文字数の上限 100万字が先にくれば、それより少ない）。記録の大きさの上限をこえたら古い周回を削除（ゲームの保存は消しません）。resumedは途中から記録、過去の操作は復元しません。',
         before:'戦前の能力・装備・所持品・覚えた技・なれ・たまご(inherit)・履歴・提示ルート。afterは報酬/成長反映後。個人名は含めません。'},
       dictionary:dictionary(),droppedRuns:store.droppedRuns,runs:clone(store.runs),warning:warning};}
     function status(){return {enabled:enabled,source:source,warning:warning,runs:store.runs.length,battles:store.runs.reduce(function(n,r){return n+r.battles.length;},0),key:key};}

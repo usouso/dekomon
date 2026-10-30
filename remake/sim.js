@@ -95,7 +95,7 @@
     { id: 'fur', short: 'ふさふさ',      name: 'ふさふさのけ', role: 'def', kw: ['immune'],           line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spring', short: 'ばね',   name: 'ばねあし',     role: 'mov', kw: ['fast'],             line: '3手ごとに もう1かい こうげき', special: 'springExtra' },
     { id: 'longleg', short: 'ながあし',  name: 'ながいあし',   role: 'mov', kw: ['ranged'],           line: 'こうげき +2', bonus: { atk: 2 } },
-    { id: 'tail', short: 'しっぽ',     name: 'ふといしっぽ', role: 'mov', kw: ['stagger', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
+    { id: 'tail', short: 'しっぽ',     name: 'ふといしっぽ', role: 'mov', kw: ['stagger', 'heavy'], line: 'うん +1', bonus: { luck: 1 } }, // 10-31 強さ合わせ その6：こうげき +1 → うん +1
     { id: 'wing', short: 'はね',     name: 'はね',         role: 'mov', kw: ['fast', 'hirari'],   line: 'うん +1', bonus: { luck: 1 } }
   ];
   var PART_BY_ID = {}; PARTS.forEach(function (p, i) { p.index = i; PART_BY_ID[p.id] = p; });

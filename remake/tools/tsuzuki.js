@@ -19,7 +19,7 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       page.on('pageerror', function (e) { errs.push(String(e)); });
       var U = 'http://localhost:' + PORT + '/index.html?seed=' + seed + '&speed=1';
       function hallN() { return page.evaluate(function () { return JSON.parse(localStorage.getItem('remake.hall') || '[]').length; }); }
-      await page.goto(U + '&reset=1');
+      await page.goto(U + '&reset=1'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
       await page.click('#bStart');
       await page.click('#spgrid [data-go]');
       // 用意（クリック では ない）：負けは パーツを はずして 体力 1・はやさ 0、ぬしは 9しょうに して 道を ぬしに、強く する
@@ -39,7 +39,7 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       ok(st.last, tag + '：見て いる 戦いが 保存されて いる');
       var h0 = await hallN();
       ok(h0 === (wantOver ? 1 : 0), tag + '：殿堂（戦った とき）' + h0);
-      await page.goto(U); // 開きなおす（reset なし）
+      await page.goto(U); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */ // 開きなおす（reset なし）
       var t = await page.evaluate(function () { return { scr: document.body.getAttribute('data-scr'), cont: getComputedStyle(document.getElementById('bCont')).display !== 'none', hallTxt: document.getElementById('hall').textContent }; });
       ok(t.scr === 'title' && t.cont && t.hallTxt.indexOf('しょう') < 0, tag + '：タイトルに「つづきから」・けっかは まだ 出さない（殿堂の 文「' + t.hallTxt + '」）');
       ok(await hallN() === h0, tag + '：開きなおしても 殿堂は ふえない');
@@ -60,7 +60,7 @@ var CASES = [['win', 11], ['win', 4], ['win', 23], ['lose', 11], ['lose', 4], ['
       var l = await page.evaluate(function () { return { last: !!window.__re.G.last, ls: localStorage.getItem('remake.last') }; });
       ok(!l.last && (l.ls === null || l.ls === 'null'), tag + '：つぎへ 進んだら 見なおしは 消える');
       ok(await hallN() === h0, tag + '：「おわり」でも 殿堂は ふえない（' + (await hallN()) + '）');
-      await page.goto(U);
+      await page.goto(U); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
       if (wantOver) {
         var t2 = await page.evaluate(function () { return { cont: getComputedStyle(document.getElementById('bCont')).display !== 'none', hallTxt: document.getElementById('hall').textContent }; });
         ok(!t2.cont && t2.hallTxt.indexOf('しょう') >= 0 && await hallN() === 1, tag + '：もう一度 開くと「つづきから」は なく 殿堂に 1つ（' + t2.hallTxt + '）');

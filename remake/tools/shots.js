@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
     for (var sz of SIZES) {
       var ctx = await browser.newContext({ viewport: { width: sz[0], height: sz[1] } }), page = await ctx.newPage(), errs = [];
       page.on('pageerror', function (e) { errs.push(String(e)); });
-      await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11&speed=20');
+      await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11&speed=20'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
       var tag = sz[0] + 'x' + sz[1];
       async function snap(name) {
         await page.waitForTimeout(150);

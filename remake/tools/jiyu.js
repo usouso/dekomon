@@ -16,7 +16,7 @@ fs.mkdirSync(OUT, { recursive: true });
     for (var sz of SIZES) {
       var ctx = await browser.newContext({ viewport: { width: sz[0], height: sz[1] } }), page = await ctx.newPage(), errs = [];
       page.on('pageerror', function (e) { errs.push(String(e)); });
-      await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11&speed=20&mute=1');
+      await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11&speed=20&mute=1'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
       var tag = sz[0] + 'x' + sz[1], pc = sz[0] > 700;
       var check = function (ok, msg) { if (!ok) bad++; console.log((ok ? '○ ' : '✕ ') + tag + ' ' + msg); };
       async function snap(name) {

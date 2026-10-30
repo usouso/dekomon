@@ -21,10 +21,10 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
       for (var form of ['empty', 'full']) {
         var ctx = await browser.newContext({ viewport: { width: sz[0], height: sz[1] } }), page = await ctx.newPage(), errs = [];
         page.on('pageerror', function (e) { errs.push(String(e)); });
-        await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11');
+        await page.goto('http://localhost:' + PORT + '/index.html?reset=1&seed=11'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
         if (form === 'full') {
           await page.evaluate(function (h) { localStorage.setItem('remake.hall', JSON.stringify(h)); localStorage.setItem('remake.egg', JSON.stringify({ waza: 'kakenuke', parent: 'ぺっごか', sp: 'koron', wins: 10 })); }, hall);
-          await page.goto('http://localhost:' + PORT + '/index.html?seed=11');
+          await page.goto('http://localhost:' + PORT + '/index.html?seed=11'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
         }
         await page.waitForTimeout(250);
         var m = await page.evaluate(function () {

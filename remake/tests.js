@@ -15,7 +15,7 @@ function handHits(res, who, n) { var out = [], on = false; res.events.forEach(fu
 noLuck(function () {
   // 強さの 計算
   var st = S.statsOf(P({}, ['shell']));
-  ok(st.def === C.hardDef && st.hp === 53 && st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd, 'かたいコウラ：かたい（まもり +2）・おもい（こうげき +2 はやさ −2）・たいりょく +3');
+  ok(st.def === C.hardDef && st.hp === 51 && st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd, 'かたいコウラ：かたい（まもり +2）・おもい（こうげき +2 はやさ −2）・たいりょく +1（10-31 強さ合わせ その4）');
   st = S.statsOf(P({}, ['wing']));
   ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
   st = S.statsOf(P({}, ['longleg']));

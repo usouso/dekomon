@@ -88,7 +88,7 @@
     { id: 'weight', short: 'おもし',   name: 'おもし',       role: 'atk', kw: ['heavy'],            line: '1げきごとに +1', special: 'weightPlus' },
     { id: 'leech', short: 'すいつく', name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spike', short: 'トゲ',    name: 'トゲ',         role: 'def', kw: ['counter'],          line: 'まもり +1', bonus: { def: 1 } },
-    { id: 'shell', short: 'コウラ',    name: 'かたいコウラ', role: 'def', kw: ['hard', 'heavy'],    line: 'たいりょく +3', bonus: { hp: 3 } },
+    { id: 'shell', short: 'コウラ',    name: 'かたいコウラ', role: 'def', kw: ['hard', 'heavy'],    line: 'たいりょく +1', bonus: { hp: 1 } }, // 10-31 強さ合わせ その4：+3 → +1
     { id: 'scale', short: 'うろこ',    name: 'いしのうろこ', role: 'def', kw: ['hard'],             line: 'まもり +1', bonus: { def: 1 } },
     { id: 'longtail', short: 'ながお', name: 'ながいしっぽ', role: 'def', kw: ['regen'],            line: 'たいりょく +2', bonus: { hp: 2 } },
     { id: 'fur', short: 'ふさふさ',      name: 'ふさふさのけ', role: 'def', kw: ['immune'],           line: 'たいりょく +3', bonus: { hp: 3 } },

@@ -280,16 +280,19 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   // とまった 理由：'stale'＝予定が 古い 形・いまの 保存と 合わない（まっても なおらない）／'write'＝書けなかった（あとで なおる かも）
   var eggFailWhy = 'write';
   function recoverEggState() {
-    eggFailWhy = 'stale';
+    eggFailWhy = 'write';
     try {
-      var pending = JSON.parse(localStorage.getItem(KEY + 'eggTxn') || 'null');
+      var raw = localStorage.getItem(KEY + 'eggTxn'), tracked = ['run', 'last', 'egg', 'hall'], cur = {}; // 読めない（ブロック など）＝write
+      tracked.forEach(function (k) { cur[k] = localStorage.getItem(KEY + k); });
+      eggFailWhy = 'stale';
+      var pending = JSON.parse(raw || 'null');
       if (!pending) return true;
       // 元状態を持たない旧候補の予定や、別世代の状態を推測で適用しない。
       if (pending.version !== 1 || !pending.before || !pending.values) return false;
-      var tracked = ['run', 'last', 'egg', 'hall'], keys = Object.keys(pending.values);
+      var keys = Object.keys(pending.values);
       if (!keys.length || keys.some(function (k) { return tracked.indexOf(k) < 0; })) return false;
       for (var i = 0; i < tracked.length; i++) {
-        var k = tracked[i], before = pending.before[k], current = localStorage.getItem(KEY + k);
+        var k = tracked[i], before = pending.before[k], current = cur[k];
         if (before !== null && typeof before !== 'string') return false;
         if (current !== before && !(Object.prototype.hasOwnProperty.call(pending.values, k) && current === JSON.stringify(pending.values[k]))) return false;
       }
@@ -302,9 +305,10 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if (G) G.saveBlocked = true;
     AUTO = false;
     // 理由ごとの 文（dot の QA：古い 形の 予定にも「しばらく してから」と 出て いた）。とめる ことは どちらも 同じ
-    var msg = why === 'stale' ? 'ほぞんの とちゅうの メモが、いまの ほぞんと あわないよ。<br>まっても なおらないので、あそばずに おとなに みせてね。<br>（りゆう：たまごの よてい）'
+    var msg = why === 'stale' ? 'ほぞんの とちゅうの メモが、いまの ほぞんと あわないよ。<br>まっても なおらないので、あそばずに おとなに みせてね。<br>（おとなの かたへ：つくった 人に しらせて ください。りゆう：たまごの よてい）'
       : 'ぼうけんを まもるため、いったん とめて いるよ。<br>しばらく してから、もう いちど ためしてね。';
-    document.body.innerHTML = '<main class="center"><h1>ほぞん できなかったよ</h1><p data-why="' + (why === 'stale' ? 'stale' : 'write') + '">' + msg + '</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
+    var stale = why === 'stale';
+    document.body.innerHTML = '<main class="center"><h1>' + (stale ? 'ほぞんを まもるため とまって いるよ' : 'ほぞん できなかったよ') + '</h1><p data-why="' + (stale ? 'stale' : 'write') + '">' + msg + '</p><button class="big" id="bSaveRetry">' + (stale ? 'もう いちど よみこむ' : 'もう いちど ためす') + '</button></main>';
     $('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
   }
   function writeEggState(values) {

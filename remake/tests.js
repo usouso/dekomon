@@ -337,5 +337,14 @@ S.addNare(cf, false); ok(!cf.nare.ren && !cf.nare.fast, 'たまご：継いだ �
 C.egg.on = false; var off = S.newRun(77, 'gotsun', egg); var offCh = S.eggChoices(eg); C.egg.on = true;
 ok(off.learned.length === 0 && !off.inherit && offCh.length === 0, 'CFG.egg.on＝false：たまごを 使わない');
 ok(S.newRun(79, 'doshin', { waza: 'nai' }).learned.length === 0 && S.newRun(79, 'doshin', { waza: 'ikari' }).learned.length === 0, 'たまご：知らない 技・うまれつきの 技の たまごは むし（こわれた 保存でも 動く）');
+// 種類の テーマ（強さ合わせで 数字を 動かしても くずさない）：カードの 数字（生まれつきの ことば 込み）で、テーマの ステータスは その 種類が いちばん 高い
+(function () {
+  var theme = { koron: 'luck', gotsun: 'def', pyun: 'spd', doshin: 'atk' };
+  var card = {}; S.SPECIES.forEach(function (sp) { card[sp.id] = S.statsOf({ base: sp.base, kw: [sp.kw], parts: [], enemy: false }); });
+  Object.keys(theme).forEach(function (id) {
+    var k = theme[id], top = S.SPECIES.every(function (o) { return o.id === id || card[o.id][k] < card[id][k]; });
+    ok(top, '種類の テーマ：' + S.SPECIES_BY_ID[id].name + '（' + S.SPECIES_BY_ID[id].theme + '）の ' + k + ' が いちばん 高い');
+  });
+})();
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

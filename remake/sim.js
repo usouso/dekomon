@@ -128,13 +128,13 @@
   // grow：レベルアップで その ステータスが 上がる 確率（FE の 成長率）。いまは ひらめきが まだ ないので 勝つたびに 1回。
   var SPECIES = [
     { id: 'koron',  name: 'ころん', theme: 'うんの子',   kw: 'sharp', color: '#e8a33c', shape: 'round',
-      base: { hp: 23, atk: 5, def: 0, spd: 6, luck: 5 }, grow: { hp: 0.65, atk: 0.45, def: 0.25, spd: 0.4, luck: 0.7 }, waza: ['kokozo', 'lucky'] },
+      base: { hp: 21, atk: 4, def: 0, spd: 5, luck: 5 }, grow: { hp: 0.65, atk: 0.45, def: 0.25, spd: 0.4, luck: 0.7 }, waza: ['kokozo', 'lucky'] },
     { id: 'gotsun', name: 'ごつん', theme: 'まもりの子', kw: 'hard',  color: '#7d8a96', shape: 'block',
-      base: { hp: 20, atk: 4, def: 0, spd: 3, luck: 2 }, grow: { hp: 0.6, atk: 0.4, def: 0.65, spd: 0.25, luck: 0.3 }, waza: ['hitoiki', 'gaman'] },
+      base: { hp: 21, atk: 5, def: 0, spd: 3, luck: 2 }, grow: { hp: 0.6, atk: 0.4, def: 0.65, spd: 0.25, luck: 0.3 }, waza: ['hitoiki', 'gaman'] },
     { id: 'pyun',   name: 'ぴゅん', theme: 'はやさの子', kw: 'fast',  color: '#4fb3a9', shape: 'slim',
-      base: { hp: 19, atk: 5, def: 0, spd: 6, luck: 3 }, grow: { hp: 0.5, atk: 0.45, def: 0.25, spd: 0.7, luck: 0.4 }, waza: ['hayauchi', 'renda'] },
+      base: { hp: 22, atk: 5, def: 0, spd: 6, luck: 3 }, grow: { hp: 0.5, atk: 0.45, def: 0.25, spd: 0.7, luck: 0.4 }, waza: ['hayauchi', 'renda'] },
     { id: 'doshin', name: 'どしん', theme: 'ちからの子', kw: 'heavy', color: '#c0504d', shape: 'big',
-      base: { hp: 22, atk: 4, def: 0, spd: 4, luck: 2 }, grow: { hp: 0.6, atk: 0.7, def: 0.3, spd: 0.25, luck: 0.3 }, waza: ['oonaguri', 'ikari'] }
+      base: { hp: 22, atk: 4, def: 0, spd: 4, luck: 3 }, grow: { hp: 0.6, atk: 0.7, def: 0.3, spd: 0.25, luck: 0.3 }, waza: ['oonaguri', 'ikari'] }
   ];
   var SPECIES_BY_ID = {}; SPECIES.forEach(function (s) { SPECIES_BY_ID[s.id] = s; });
 

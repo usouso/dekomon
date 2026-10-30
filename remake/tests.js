@@ -22,7 +22,9 @@ noLuck(function () {
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
   st = S.statsOf(S.enemySrc(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false));
   var stOld = S.statsOf({ base: S.enemyBase(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false), kw: ['yokeru'], parts: [], enemy: true });
-  ok(S.ENEMY_BY_ID.bird.atk === 3 && st.atk === stOld.atk + 2 + 2, 'ヤリドリ：ながいあし +2・ひかるめ +2（もとの こうげき 3。10-31 その7 で 4 → 3＝前と 同じ 強さ）');
+  ok(S.ENEMY_BY_ID.bird.atk === 3 && st.atk === stOld.atk + 2 + 2, 'ヤリドリ：ながいあし +2・ひかるめ +2（もとの こうげき 3。10-31 その7 で 4 → 3）');
+  // 段階1の ヤリドリの こうげきは 前（もと 4・ひかるめ +1）と 同じ 7（はじめての 1戦目を きつく しない）
+  ok(st.atk === 7, 'ヤリドリ：段階1の こうげきは 前と 同じ 7（' + st.atk + '）');
   st = S.statsOf(E({}, ['tail']));
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1, 'ふといしっぽ：相手が もっても 同じ（こうげき +2・はやさ −2 ＋1）');
   st = S.statsOf(P({}, ['longleg']));

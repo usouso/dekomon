@@ -249,13 +249,13 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 <script>
 (function () {
   function ownershipError(message) {
-    document.body.innerHTML = '<main class="center"><h1>ぼうけんを守るため止めています</h1><p>' + message + '</p><button class="big" id="bSaveRetry">もう一度ためす</button></main>';
+    document.body.innerHTML = '<main class="center"><h1>ぼうけんを まもるため とまって いるよ</h1><p>' + message + '</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
     document.getElementById('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
   }
-  if (!navigator.locks) { ownershipError('このブラウザでは安全に保存できません。対応するブラウザで開いてください。'); return; }
+  if (!navigator.locks) { ownershipError('この ブラウザでは あんぜんに ほぞん できないよ。ちがう ブラウザで ひらいてね。'); return; }
   // 同じ保存領域の操作は1画面だけ。localStorageの読取→書込だけでは同時開始を排他できない。
   navigator.locks.request('dekomon-remake-save', { ifAvailable: true }, function (lock) {
-    if (!lock) { ownershipError('別の画面で開いています。その画面を閉じてから、もう一度ためしてください。'); return; }
+    if (!lock) { ownershipError('べつの がめんで ひらいて いるよ。そちらを とじてから、もう いちど おしてね。'); return; }
     var saveOwner = true, releaseSave;
     var lifetime = new Promise(function (resolve) { releaseSave = resolve; });
     window.addEventListener('pagehide', function () { saveOwner = false; releaseSave(); }, { once: true });
@@ -290,7 +290,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   function storageFailure() {
     if (G) G.saveBlocked = true;
     AUTO = false;
-    document.body.innerHTML = '<main class="center"><h1>保存できませんでした</h1><p>ぼうけんを守るため、いったん止めています。<br>保存できるようになったら、もう一度ためしてください。</p><button class="big" id="bSaveRetry">もう一度ためす</button></main>';
+    document.body.innerHTML = '<main class="center"><h1>ほぞん できなかったよ</h1><p>ぼうけんを まもるため、いったん とめて いるよ。<br>しばらく してから、もう いちど ためしてね。</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
     $('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
   }
   function writeEggState(values) {
@@ -807,7 +807,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   if (AUTO) { if (eggPending(G.run)) drawEgg(); else { $('bStart').click(); startRun(S.SPECIES[0].id); autoNext(); } } // たまごが まだなら 先に えらぶ（drawEgg が 次の 周回へ すすめる）
 })();
     return lifetime;
-  }).catch(function () { ownershipError('安全な保存を始められませんでした。もう一度ためしてください。'); });
+  }).catch(function (e) { console.error(e); ownershipError('ほぞんを はじめられなかったよ。もう いちど おしてね。'); }); // じゅんびの とちゅうの エラーも 見える ように（tools の「エラー 0」で 見のがさない）
 })();
 </script>
 </body>

@@ -46,7 +46,7 @@ fs.mkdirSync(OUT, { recursive: true });
       var pk = await page.$('#slots [data-pick]');
       if (pk) { await page.click('#slots [data-pick]'); var tipTxt = await page.evaluate(function () { return document.getElementById('tip').textContent; }); var pkBad = tipTxt.indexOf('ここに せつめいが でるよ') >= 0; if (pkBad) bad++; console.log((pkBad ? '✕ ' : '○ ') + tag + ' パーツを タップした あとの 帯：' + tipTxt.slice(0, 24)); }
       await page.click('#prep .kbtn'); await snap('kotoba'); await page.click('#bKotobaX');
-      await page.click('#bFight'); await page.waitForTimeout(600); await snap('battle');
+      await page.click('#bFight'); await page.waitForFunction(function () { var h = document.getElementById('mHpN'); return document.body.getAttribute('data-scr') === 'battle' && h && h.getBoundingClientRect().bottom > 0; }, null, { timeout: 10000 }); await snap('battle'); // 600ms 待つと speed=20 では 戦いが おわって 結果の 画面を 見る ことが ある（10-30 17時）→ 戦いの 画面が 出たら すぐ 見る
       // 下の 帯（#tip）が 自分の 体力に かぶらない（スマホの 戦いは タップした ときだけ 出す）
       var tipOv = async function () { return page.evaluate(function () { var t = document.getElementById('tip'), h = document.getElementById('mHpN'); if (!t || !h || getComputedStyle(t).display === 'none') return { shown: false, ov: false, hpBottom: h ? Math.round(h.getBoundingClientRect().bottom) : -1, vh: innerHeight }; var a = t.getBoundingClientRect(), b = h.getBoundingClientRect(); return { shown: true, ov: a.top < b.bottom && b.top < a.bottom && a.left < b.right && b.left < a.right, hpBottom: Math.round(b.bottom), vh: innerHeight }; }); };
       var t0 = await tipOv(); var tipBad = t0.ov || (sz[0] <= 700 && t0.shown); if (tipBad) bad++; // スマホは 帯の 高さで かぶり方が かわるので、出て いない ことも 見る

@@ -773,18 +773,18 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
       var hall = lsGet('hall', []); hall.forEach(function (x) { if (x.at === run.hallAt) x.egg = id; }); values.hall = hall;
     }
     if (!writeEggState(values)) return;
-    finishRun();
+    finishRun(run);
   }
   function endRun() {
     var run = G.run;
     if (G.saveBlocked || !run) return;
     if (!run.hallDone && !recordHall(run)) return;
     if (eggPending(run)) { drawEgg(); return; }
-    if (AUTO) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts);
     if (!writeEggState({ run: null, last: null })) return;
-    finishRun();
+    finishRun(run);
   }
-  function finishRun() {
+  function finishRun(run) {
+    if (AUTO && run) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts); // たまごを えらんだ 周回も 1回 書く（保存が できた あと）
     G.run = null; G.last = null;
     drawTitle();
     if (AUTO) setTimeout(function () { if (G.saveBlocked) return; $('bStart').click(); setTimeout(function () { if (G.saveBlocked) return; var sps = S.SPECIES; drawSpecies(); startRun(sps[(lsGet('hall', []).length) % sps.length].id); autoNext(); }, 50); }, 200);

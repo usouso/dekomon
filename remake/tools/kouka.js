@@ -9,7 +9,7 @@
 var path = require('path');
 var S = require(path.join(__dirname, '..', 'sim.js'));
 if (process.env.DEKO_CFG) { var o = JSON.parse(process.env.DEKO_CFG); Object.keys(o).forEach(function (k) { S.CFG[k] = o[k]; }); } // 比べる とき：DEKO_CFG='{"renMult":0.7}'
-if (process.env.DEKO_PARTS) { var pp = JSON.parse(process.env.DEKO_PARTS); Object.keys(pp).forEach(function (id) { Object.keys(pp[id]).forEach(function (k) { if (pp[id][k] === null) delete S.PART_BY_ID[id][k]; else S.PART_BY_ID[id][k] = pp[id][k]; }); }); } // ためす とき：DEKO_PARTS='{"tail":{"kw":["stagger"]}}'（null で 消す）
+if (process.env.DEKO_PARTS) { var pp = JSON.parse(process.env.DEKO_PARTS); Object.keys(pp).forEach(function (id) { if (!S.PART_BY_ID[id]) throw new Error('DEKO_PARTS：' + id + ' は ない パーツ'); Object.keys(pp[id]).forEach(function (k) { if (pp[id][k] === null) delete S.PART_BY_ID[id][k]; else S.PART_BY_ID[id][k] = pp[id][k]; }); }); } // ためす とき：DEKO_PARTS='{"tail":{"kw":["stagger"]}}'（null で 消す）
 var N = parseInt(process.argv[2] || '150', 10), NG = parseInt(process.argv[3] || '40', 10);
 var t0 = Date.now();
 
@@ -77,7 +77,7 @@ S.SPECIES.forEach(function (sp) {
 
 function pct(a, b) { return b ? Math.round(100 * a / b) : '—'; }
 console.log('## パーツ（でたらめの 戦い ' + nb + '回・合わせ ' + NG + '周回×4種類）');
-console.log('（技 ぬきの 差＝同じ 場面・同じ seed で 覚えた 技を 使わない ときの 差。技で ひらく＝その パーツの キーワードで 覚えた 技が 使えた 戦いの 割合）');
+console.log('（技 ぬきの 差＝同じ 場面・同じ seed で 覚えた 技を 使わない ときの 差。技で ひらく＝その パーツを つけた 戦いで、その パーツの キーワードの 覚えた 技が 使えた 割合。ほかの 枠の パーツで ひらいた ぶんも 入る）');
 console.log('| パーツ | 役割 | キーワード | つけた 勝率 | 同じ 役割で ほか | 差 | 技 ぬきの 差 | 技で ひらく | 合わせで 選んだ（もって いる とき） |');
 console.log('|---|---|---|---|---|---|---|---|---|');
 S.PARTS.slice().map(function (p) { var x = part[p.id]; return { p: p, x: x, diff: x.on && x.off ? 100 * x.onW / x.on - 100 * x.offW / x.off : 0 }; })

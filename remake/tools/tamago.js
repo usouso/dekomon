@@ -18,7 +18,7 @@ fs.mkdirSync(OUT, { recursive: true });
       var ctx = await browser.newContext({ viewport: { width: sz[0], height: sz[1] } }), page = await ctx.newPage(), errs = [];
       page.on('pageerror', function (e) { errs.push(String(e)); });
       var URL = 'http://localhost:' + PORT + '/index.html?seed=12&speed=20&mute=1';
-      await page.goto(URL + '&reset=1'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
+      await page.goto(URL + '&reset=1'); await page.waitForFunction(function () { return !!(window.__re || document.getElementById('bSaveRetry')); }); if (!(await page.evaluate(function () { return !!window.__re; }))) throw new Error('画面が とまった：' + (await page.evaluate(function () { return document.body.innerText; })).replace(/\s+/g, ' ')); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ。とまった 画面なら 文を 出して ✕ */
       var tag = sz[0] + 'x' + sz[1], pc = sz[0] > 700;
       var check = function (ok, msg) { if (!ok) bad++; console.log((ok ? '○ ' : '✕ ') + tag + ' ' + msg); };
       async function snap(name) {
@@ -50,11 +50,11 @@ fs.mkdirSync(OUT, { recursive: true });
       check(eg.on === 'egg' && eg.n === eg.want, 'クリアの あと：' + eg.h + '（えらべる 技 ' + eg.n + '＝覚えた 技 ' + eg.want + '。さいごの 勝ちで ひらめく ことも ある）');
       await snap('egg_pick');
       // 2. とじて 開きなおす →「はじめる」でも 先に たまごの 画面（だまって 消さない）→ もう一度 とじて「つづきから」
-      await page.goto(URL); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
+      await page.goto(URL); await page.waitForFunction(function () { return !!(window.__re || document.getElementById('bSaveRetry')); }); if (!(await page.evaluate(function () { return !!window.__re; }))) throw new Error('画面が とまった：' + (await page.evaluate(function () { return document.body.innerText; })).replace(/\s+/g, ' ')); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ。とまった 画面なら 文を 出して ✕ */
       await page.click('#bStart');
       var st = await page.evaluate(function () { return { on: document.querySelector('.screen.on').id, egg: localStorage.getItem('remake.egg') }; });
       check(st.on === 'egg' && (st.egg === null || st.egg === 'null'), 'とじて 開きなおして「はじめる」：先に たまごの 画面（たまごは まだ 消えない）');
-      await page.goto(URL); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
+      await page.goto(URL); await page.waitForFunction(function () { return !!(window.__re || document.getElementById('bSaveRetry')); }); if (!(await page.evaluate(function () { return !!window.__re; }))) throw new Error('画面が とまった：' + (await page.evaluate(function () { return document.body.innerText; })).replace(/\s+/g, ' ')); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ。とまった 画面なら 文を 出して ✕ */
       var cont = await page.evaluate(function () { return getComputedStyle(document.getElementById('bCont')).display !== 'none'; });
       await page.click('#bCont');
       var eg2 = await page.evaluate(function () { return { on: document.querySelector('.screen.on').id, n: document.querySelectorAll('#eggw [data-egg]').length }; });

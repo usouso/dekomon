@@ -10,7 +10,7 @@ var RUNS = parseInt(process.argv[2] || '3', 10), PORT = 8792;
     var page = await (await browser.newContext({ viewport: { width: 1366, height: 650 } })).newPage();
     page.on('pageerror', function (e) { errs.push(String(e)); });
     page.on('console', function (m) { var t = m.text(); if (t.indexOf('[でこもん auto]') === 0) { ends.push(t); console.log(t); } });
-    await page.goto('http://localhost:' + PORT + '/index.html?reset=1&auto=1&speed=50&seed=3'); await page.waitForFunction(function () { return !!window.__re; }); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ */
+    await page.goto('http://localhost:' + PORT + '/index.html?reset=1&auto=1&speed=50&seed=3'); await page.waitForFunction(function () { return !!(window.__re || document.getElementById('bSaveRetry')); }); if (!(await page.evaluate(function () { return !!window.__re; }))) throw new Error('画面が とまった：' + (await page.evaluate(function () { return document.body.innerText; })).replace(/\s+/g, ' ')); /* 保存の 鍵（Web Locks）を とって 画面が できるまで 待つ。とまった 画面なら 文を 出して ✕ */
     var t0 = Date.now();
     while (ends.length < RUNS && Date.now() - t0 < 240000 && !errs.length) await page.waitForTimeout(500);
   } finally { await browser.close(); sv.kill(); }

@@ -29,7 +29,7 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
           var de = document.documentElement, h = document.getElementById('hall'), out = { pageScroll: de.scrollHeight - innerHeight, wide: de.scrollWidth - innerWidth, clip: [] };
           document.querySelectorAll('.screen.on *').forEach(function (el) { var r = el.getBoundingClientRect(); if (r.width && (r.right > innerWidth + 1 || r.left < -1)) out.clip.push(el.className || el.tagName); });
           out.shown = getComputedStyle(h).display !== 'none' && h.getBoundingClientRect().height > 0;
-          out.lines = h.querySelectorAll('.hrow').length; out.split = Array.prototype.filter.call(h.querySelectorAll('.hx'), function (e) { return e.getClientRects().length > 1; }).length; out.font = parseFloat(getComputedStyle(h).fontSize);
+          out.lines = h.querySelectorAll('.hrow').length; out.split = Array.prototype.filter.call(h.querySelectorAll('.hseg'), function (e) { return e.getClientRects().length > 1; }).length; out.font = parseFloat(getComputedStyle(h).fontSize);
           out.color = getComputedStyle(h).color; var b = h.querySelector('b'); out.head = b ? getComputedStyle(b).color : out.color;
           out.overflow = h.scrollWidth - h.clientWidth;
           return out;

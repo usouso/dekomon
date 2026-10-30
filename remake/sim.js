@@ -21,6 +21,7 @@
     chargeEvery: 3, chargeMult: 2, // ためる：じぶんの 3手ごとに その手の こうげきが ×2
     heavyAtk: 2, heavySpd: -2,     // おもい
     neraiPlus: 2,          // ねらいうち：じょうたいの あいてへの 1げき +2
+    fangPlus: 2,                   // どくのキバ：あてる たびに どくが +この数（10-31 強さ合わせ その5：「どくの あいてに あてると +1」→「あてる たびに +2」。キバが ほかの せめより 勝率 −6〜−10 だった）
     poisonDmg: 2, poisonHands: 3,  // どく：じぶんの手の おわりに 2 ダメージ（3手）
     staggerMult: 0.5,      // よろけ：つぎの こうげきが ×0.5
     brittlePlus: 2, brittleHands: 3, // もろい：うける 1げき +2（3手）
@@ -82,7 +83,7 @@
   var PARTS = [
     { id: 'horn', short: 'ツノ',     name: 'ツノ',         role: 'atk', kw: ['charge', 'heavy'],  line: 'ためた 1げきは まもりを むしする', special: 'hornPierce' },
     { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +1', bonus: { atk: 1 } },
-    { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'どくの あいてに あてると どくが +1', special: 'fangGrow' },
+    { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'あてる たびに どくが +2', special: 'fangGrow' },
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
     { id: 'weight', short: 'おもし',   name: 'おもし',       role: 'atk', kw: ['heavy'],            line: '1げきごとに +1', special: 'weightPlus' },
@@ -280,7 +281,7 @@
         if (d.hp > 0) {
           // じょうたいを かける
           if (!d.kw.immune) {
-            if (a.kw.poison) { if (d.poison > 0 && a.sp.fangGrow) { d.poisonPow++; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'poison', n: d.poison, long: a.waza.indexOf('shitsukoi') >= 0 }); }
+            if (a.kw.poison) { if (a.sp.fangGrow) { d.poisonPow += CFG.fangPlus; log({ t: 'kw', who: a.side, kw: 'fangGrow', n: CFG.poisonDmg + d.poisonPow }); } d.poison = CFG.poisonHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'poison', n: d.poison, long: a.waza.indexOf('shitsukoi') >= 0 }); }
             if (a.kw.stagger) { d.stagger = true; log({ t: 'status', who: d.side, st: 'stagger' }); }
             if (a.kw.brittle) { d.brittle = CFG.brittleHands + (a.waza.indexOf('shitsukoi') >= 0 ? 1 : 0); log({ t: 'status', who: d.side, st: 'brittle', n: d.brittle, long: a.waza.indexOf('shitsukoi') >= 0 }); }
           } else if (a.kw.poison || a.kw.stagger || a.kw.brittle) log({ t: 'kw', who: d.side, kw: 'immune' });

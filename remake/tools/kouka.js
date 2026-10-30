@@ -11,6 +11,7 @@ var S = require(path.join(__dirname, '..', 'sim.js'));
 if (process.env.DEKO_CFG) { var o = JSON.parse(process.env.DEKO_CFG); Object.keys(o).forEach(function (k) { S.CFG[k] = o[k]; }); } // 比べる とき：DEKO_CFG='{"renMult":0.7}'
 if (process.env.DEKO_PARTS) { var pp = JSON.parse(process.env.DEKO_PARTS); Object.keys(pp).forEach(function (id) { if (!S.PART_BY_ID[id]) throw new Error('DEKO_PARTS：' + id + ' は ない パーツ'); Object.keys(pp[id]).forEach(function (k) { if (pp[id][k] === null) delete S.PART_BY_ID[id][k]; else S.PART_BY_ID[id][k] = pp[id][k]; }); }); } // ためす とき：DEKO_PARTS='{"tail":{"kw":["stagger"]}}'（null で 消す）
 var N = parseInt(process.argv[2] || '150', 10), NG = parseInt(process.argv[3] || '40', 10);
+var SEED0 = parseInt(process.env.DEKO_SEED || '100000', 10); // べつの seed で ためす とき：DEKO_SEED=200000
 var t0 = Date.now();
 
 var part = {}; S.PARTS.forEach(function (p) { part[p.id] = { on: 0, onW: 0, off: 0, offW: 0, on2: 0, onW2: 0, off2: 0, offW2: 0, enab: 0, owned: 0, picked: 0 }; });
@@ -52,7 +53,7 @@ function probe(run, ri, rng) {
 // 1) でたらめ（4種類）
 S.SPECIES.forEach(function (sp) {
   for (var i = 0; i < N; i++) {
-    var run = S.newRun(100000 + i * 13, sp.id, null), rng = S.rngFrom(S.mix(100000 + i, 4711)), guard = 0;
+    var run = S.newRun(SEED0 + i * 13, sp.id, null), rng = S.rngFrom(S.mix(SEED0 + i, 4711)), guard = 0;
     while (!run.over && guard++ < 60) {
       var ri = Math.floor(rng() * run.fork.roads.length);
       probe(run, ri, rng);

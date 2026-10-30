@@ -56,8 +56,8 @@ noLuck(function () {
   // どく：手の おわりに 2・3手。まもりで へらない。キバ：あてる たびに どくが +2（はじめの 1げきから）
   r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, def: 9, hp: 200 }), 1);
   var po = r.events.filter(function (e) { return e.t === 'poison' && e.who === 'e'; });
-  ok(C.fangPlus === 2 && po[0].dmg === C.poisonDmg + 2 && po[1].dmg === C.poisonDmg + 4 && po[2].dmg === C.poisonDmg + 6, 'どく：まもりで へらない・キバ：あてる たびに どくが +2');
-  ok(S.PART_BY_ID.fang.line === 'あてる たびに どくが +' + C.fangPlus, 'キバの 2行目は 中身（+' + C.fangPlus + '）と 同じ');
+  ok(C.fangPlus === 2 && po[0].dmg === C.poisonDmg + 2 && po[1].dmg === C.poisonDmg + 4 && po[2].dmg === C.poisonDmg + 6, 'どく：まもりで へらない・キバ：あてる たびに どくの ダメージ +2');
+  ok(S.PART_BY_ID.fang.line === 'あてる たびに どくの ダメージ +' + C.fangPlus, 'キバの 2行目は 中身（+' + C.fangPlus + '）と 同じ');
   // キバ なしの どく（キーワード だけ）は ふえない：何回 あてても 2
   r = S.battle(P({ atk: 1 }, [], ['poison']), E({ atk: 0, def: 9, hp: 200 }), 1);
   po = r.events.filter(function (e) { return e.t === 'poison' && e.who === 'e'; });

@@ -350,5 +350,45 @@ ok(S.newRun(79, 'doshin', { waza: 'nai' }).learned.length === 0 && S.newRun(79, 
     ok(top, '種類の テーマ：' + S.SPECIES_BY_ID[id].name + '（' + S.SPECIES_BY_ID[id].theme + '）の ' + k + ' が いちばん 高い');
   });
 })();
+// ためしあそびの きろく（kiroku.js。dot の recording2 を 最新に 合わせた もの）：ルール・乱数を 変えない・実際の sim で 再現できる・古い 記録を 読まない
+(function () {
+  var R = require('./kiroku.js');
+  function mem(fail) { var d = {}; return { d: d, getItem: function (k) { return Object.prototype.hasOwnProperty.call(d, k) ? d[k] : null; }, setItem: function (k, v) { if (fail) { var e = new Error('quota'); e.name = 'QuotaExceededError'; throw e; } d[k] = String(v); }, removeItem: function (k) { delete d[k]; } }; }
+  function play(seed, sp, egg, rec) { // 画面と 同じ 順：before を 写す → fight → きろく
+    var run = S.newRun(seed, sp, egg), n = 0; if (rec) rec.begin(run);
+    while (!run.over && n++ < 20) {
+      var eq = {}; S.ROLES.forEach(function (r) { eq[r.id] = run.owned.filter(function (p) { return S.PART_BY_ID[p].role === r.id; }).pop() || null; });
+      if (S.freeOpen(run)) eq.free = run.owned.filter(function (p) { return p !== eq.atk && p !== eq.def && p !== eq.mov; })[0] || null;
+      var before = JSON.parse(JSON.stringify(run)), road = (seed + run.history.length) % run.fork.roads.length;
+      var out = S.fight(run, road, eq); if (rec) rec.record(before, road, eq, out, run);
+    }
+    return run;
+  }
+  var egg = { waza: S.LEARN[0].id, parent: 'ころこ', sp: 'koron' };
+  var st = mem(), rec = R.create(st, S, {}), plain = [];
+  [[101, 'koron', null], [202, 'gotsun', egg], [303, 'pyun', null], [404, 'doshin', egg]].forEach(function (a) { plain.push(JSON.stringify(play(a[0], a[1], a[2], null))); });
+  var withRec = [[101, 'koron', null], [202, 'gotsun', egg], [303, 'pyun', null], [404, 'doshin', egg]].map(function (a) { return JSON.stringify(play(a[0], a[1], a[2], rec)); });
+  ok(JSON.stringify(plain) === JSON.stringify(withRec), 'きろく：つけても つけなくても 周回の 結果は 同じ（ルール・乱数に さわらない）');
+  var data = JSON.parse(JSON.stringify(rec.exportData())), total = data.runs.reduce(function (n, r) { return n + r.battles.length; }, 0);
+  ok(data.schemaVersion === 3 && data.runs.length === 4 && total > 8 && st.getItem(R.KEY) && R.KEY === 'remake.playtest.records.v3', 'きろく：4周回を schema 3 の 鍵 v3 に のこす（' + total + 'せん）');
+  var n = -1; try { n = R.replay(data, S); } catch (e) { console.log(e.message); }
+  ok(n === total, 'きろく：実際の sim で 全部の 戦いが 再現できる（たまご・ひらめき・じゆう こみ）');
+  ok(data.runs[1].egg && data.runs[1].egg.waza === egg.waza && data.runs[1].battles[0].before.inherit.waza === egg.waza, 'きろく：たまごの 子は 継いだ 技（inherit）を 記録');
+  var bad = JSON.parse(JSON.stringify(data)); bad.runs[1].battles[0].before.inherit.fit = !bad.runs[1].battles[0].before.inherit.fit;
+  var badOk = false; try { R.replay(bad, S); } catch (e) { badOk = true; }
+  ok(badOk, 'きろく：たまごの 状態を 書きかえた 記録は 再現 不一致で こばむ');
+  var old = JSON.parse(JSON.stringify(data)); old.schemaVersion = 2; old.baseSha = 'fe407060167c177aa77b88a8f88283c52d2809af'; old.build = 'remake-recording-2-pr48';
+  var oldOk = false; try { R.validateExport(old); } catch (e) { oldOk = true; }
+  ok(oldOk, 'きろく：PR48 の 古い 記録（schema 2）は 読まない');
+  var cfg = JSON.parse(JSON.stringify(data)); cfg.engineConfig.hearts = 99; var cfgOk = false; try { R.replay(cfg, S); } catch (e) { cfgOk = true; }
+  ok(cfgOk, 'きろく：ルールの 数字（CFG）が ちがう 記録は こばむ');
+  var st2 = mem(); st2.setItem('remake.playtest.records.v2.pr48', '{"old":1}'); var r2 = R.create(st2, S, {}); play(505, 'koron', null, r2);
+  ok(st2.getItem('remake.playtest.records.v2.pr48') === '{"old":1}' && !r2.status().warning, 'きろく：古い v2 の 鍵は 消さない・さわらない');
+  var st3 = mem(true), r3 = R.create(st3, S, {}), threw = false; try { play(606, 'koron', null, r3); } catch (e) { threw = true; }
+  ok(!threw && r3.status().warning && typeof r3.releaseForGameSave === 'undefined', 'きろく：書けなくても 例外を 出さない（ゲームは つづく）・容量不足で 記録を けす しくみは ない');
+  var st4 = mem(), r4 = R.create(st4, S, { auto: true }); play(707, 'koron', null, r4);
+  var st5 = mem(), r5 = R.create(st5, S, { enabled: false }); play(708, 'koron', null, r5);
+  ok(Object.keys(st4.d).length === 0 && Object.keys(st5.d).length === 0, 'きろく：自動モード（?auto=1）と きろく OFF では 何も 書かない');
+})();
 console.log((fail ? '✕ ' : '○ ') + pass + '/' + (pass + fail) + ' 一致');
 process.exit(fail ? 1 : 0);

@@ -32,6 +32,7 @@ noLuck(function () {
   var f = firstHand(r, 'p');
   ok(f.length === 2 && f[0].dmg === 7 && f[0].dmg === Math.round(10 * C.renMult), 'れんげき：2げき、1げきは こうげきの 7わり（ツメ：はやくない ときは 2げき）');
   ok(S.KW_BY_ID.ren.text() === 'こうげきが 2げきに なる（1げきは こうげきの 7わり）', 'れんげきの 文の「7わり」は CFG.renMult と 同じ（文字どおり）');
+  ok(Math.abs(C.renMult * 10 - Math.round(C.renMult * 10)) < 1e-9, 'CFG.renMult は 0.1 きざみ（文の「○わり」と 動きが ずれない）');
   r = S.battle(P({ atk: 4, spd: 1 }, ['claw']), E({ atk: 0, spd: 9 }), 1); f = firstHand(r, 'p');
   ok(f.length === 2 && f[0].dmg + f[1].dmg === 6, 'れんげき：こうげき 4 なら 3＋3（1げきより 多い。0.6 の ときは 2＋2 で ふえなかった）');
   r = S.battle(P({ atk: 10, spd: 9 }, ['claw']), E({ atk: 0, spd: 1 }), 1);

@@ -25,7 +25,6 @@ function rndEquip(rng) { // 役割ごとに その 役割の パーツか なし
 function probe(run, ri, rng) {
   var road = run.fork.roads[ri], s = run.fork.stage, d = S.enemyDef(road.idx);
   var eq = rndEquip(rng);
-  var learned = run.learned.slice(); // 覚えた 技は その まま（パーツで 使えるかが 変わる）
   var w = S.wazaFor(run, eq);
   var res = S.battle(S.playerSrc(run, eq), S.enemySrc(road.idx, s, road.hard), S.mix(run.seed, 60000 + nb), { waza: w, eName: d.name });
   nb++;
@@ -41,7 +40,6 @@ function probe(run, ri, rng) {
     if (e.t === 'kw') kwFire[e.kw] = (kwFire[e.kw] || 0) + 1;
     if ((e.t === 'hit' || e.t === 'counter') && e.wz) e.wz.forEach(function (id) { if (id === 'kakenuke' || id === 'todome') waza[id].fires++; }); // 1げきに のる だけで 'waza' の 行が ない 技（ちからこめ・ふいうちは 'waza' の 行で 数える）
   });
-  return learned;
 }
 
 // 1) でたらめ（4種類）
@@ -79,6 +77,7 @@ S.PARTS.slice().map(function (p) { var x = part[p.id]; return { p: p, x: x, diff
   .forEach(function (o) { var x = o.x, p = o.p;
     console.log('| ' + p.name + ' | ' + p.role + ' | ' + p.kw.join('・') + ' | ' + pct(x.onW, x.on) + '% | ' + pct(x.offW, x.off) + '% | ' + (o.diff >= 0 ? '+' : '') + o.diff.toFixed(1) + ' | ' + pct(x.picked, x.owned) + '%（' + x.owned + '） |'); });
 console.log('\n## 技（でたらめの 戦いで、その 技を 使える 戦いだけ）');
+console.log('（発動の 単位：かけぬけ・とどめ は 1げきごと〔はんげきも〕、ほかは 1手に 1回。ぶれ：1パーツ 数百戦 なので ±3 くらい は ゆれる）');
 console.log('| 技 | 使える 戦い | 1戦 あたりの 発動 | 使える ときの 勝率 |');
 console.log('|---|---|---|---|');
 var NOLOG = ['gaman', 'ikari', 'shitsukoi']; // ログに 出ない 技（発動は 数えられない）

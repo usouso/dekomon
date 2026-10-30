@@ -17,7 +17,7 @@
   var CFG = {
     runBattles: 10, hearts: 3, maxRounds: 12,
     // キーワード
-    renMult: 0.6,          // れんげき：1げきは こうげきの 6わり
+    renMult: 0.7,          // れんげき：1げきは こうげきの 7わり（10-30 強さ合わせ その2：0.6 → 0.7。するどいツメが ほかの せめより 勝率 −11 だった）
     chargeEvery: 3, chargeMult: 2, // ためる：じぶんの 3手ごとに その手の こうげきが ×2
     heavyAtk: 2, heavySpd: -2,     // おもい
     neraiPlus: 2,          // ねらいうち：じょうたいの あいてへの 1げき +2
@@ -53,7 +53,7 @@
 
   // ---------- キーワード（役割の 色：せめ＝赤・まもり＝青・うごき＝緑・うん＝黄・じょうたい＝紫） ----------
   var KW = [
-    { id: 'ren',     name: 'れんげき',   role: 'atk',  text: function () { return 'こうげきが 2げきに なる（1げきは こうげきの 6わり）'; } },
+    { id: 'ren',     name: 'れんげき',   role: 'atk',  text: function () { return 'こうげきが 2げきに なる（1げきは こうげきの ' + Math.round(CFG.renMult * 10) + 'わり）'; } },
     { id: 'charge',  name: 'ためる',     role: 'atk',  text: function () { return 'じぶんの ' + CFG.chargeEvery + '手ごとに、その手の こうげきが ×' + CFG.chargeMult; } },
     { id: 'heavy',   name: 'おもい',     role: 'atk',  text: function () { return 'こうげき +' + CFG.heavyAtk + '、はやさ ' + CFG.heavySpd; } },
     { id: 'nerai',   name: 'ねらいうち', role: 'atk',  text: function () { return 'じょうたいの あいてへの 1げき +' + CFG.neraiPlus; } },

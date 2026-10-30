@@ -19,7 +19,9 @@ noLuck(function () {
   st = S.statsOf(P({}, ['wing']));
   ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
   st = S.statsOf(P({}, ['tail']));
-  ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd && st.luck === 1 && st.crit === C.critBase + C.critPerLuck * 1, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・うん +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
+  ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
+  st = S.statsOf(E({}, ['tail']));
+  ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1, 'ふといしっぽ：相手が もっても 同じ（こうげき +2・はやさ −2 ＋1）');
   st = S.statsOf(P({}, ['longleg']));
   ok(st.atk === 5 + 2 && st.spd === 5 && st.hp === 50, 'ながいあし：こうげき +2（はやさは かわらない。10-30 強さ合わせ その3）');
   // 数字の ひとこと（bonus）は 札の 2行目と 同じ（文字どおり）

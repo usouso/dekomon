@@ -1,13 +1,15 @@
 // 試遊記録。ルール・ゲーム保存・乱数には触れず、端末内だけに保存する。
+// 2026-10-30：dot の recording2（基準 PR48）を 最新（ひらめき・じゆう・たまご・savefix2）に 合わせた。
+//   schema 3・鍵 v3（PR48 の v2 記録は 読まない・消さない）・たまご（inherit）を 記録と 再現に・容量不足の 記録削除（releaseForGameSave）は 入れない。
 (function(root,factory){
   var api=factory();
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else root.DekoRemakeRecord=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  var SCHEMA=2, BASE='fe407060167c177aa77b88a8f88283c52d2809af', BUILD='remake-recording-2-pr48';
+  var SCHEMA=3, BASE='8e99c33a56fbad36158079dbf5c51c44285f76a6', BUILD='remake-recording-3-egg';
   var MAX_RUNS=50, MAX_CHARS=1000000, MAX_BATTLES=12;
-  var KEY='remake.playtest.records.v2.pr48', TEST_KEY='remake.playtest.test-records.v2.pr48';
+  var KEY='remake.playtest.records.v3', TEST_KEY='remake.playtest.test-records.v3';
   function jsonSafe(x){
     var count=0,ancestors=new Set();
     function visit(v,depth){
@@ -33,7 +35,7 @@
   function empty(){return {schemaVersion:SCHEMA,baseSha:BASE,build:BUILD,nextId:1,active:null,runs:[],droppedRuns:0};}
   function snapshot(run){
     var out={};
-    ['v','seed','species','stats','hearts','wins','owned','equip','tries','lossStreak','levels','nare','learned','history','over','clear','fork'].forEach(function(k){if(run[k]!==undefined)out[k]=clone(run[k]);});
+    ['v','seed','species','stats','hearts','wins','owned','equip','tries','lossStreak','levels','nare','learned','inherit','history','over','clear','fork'].forEach(function(k){if(run[k]!==undefined)out[k]=clone(run[k]);});
     return out;
   }
   function saneRun(r){return r&&typeof r==='object'&&typeof r.id==='string'&&Array.isArray(r.battles)&&r.battles.length<=MAX_BATTLES;}
@@ -66,7 +68,7 @@
     }
     function make(run,resumed){
       var r={id:'r'+store.nextId++,source:source,species:run.species,seed:run.seed,
-        resumed:!!resumed,fromSequence:run.history.length+1,battles:[],end:null};
+        resumed:!!resumed,fromSequence:run.history.length+1,egg:run.inherit?{waza:run.inherit.waza,parent:run.inherit.parent,sp:run.inherit.sp}:null,battles:[],end:null};
       store.runs.push(r);store.active=r.id;currentId=r.id;return r;
     }
     function begin(run){
@@ -124,22 +126,11 @@
       explanation:{about:'でこもん作り直し版の端末内試遊記録。外部へ自動送信しません。',
         sequence:'実際に戦った通番。同じstageの再戦も別試合。retryは0から。',
         replay:'before / roadIndex / equipを実simのfightに渡しresult / afterと比較します。',
-        limits:'最大50周回。容量に応じて古い周回を削除。resumedは途中から記録、過去の操作は復元しません。',
-        before:'戦前の能力・装備・所持品・履歴・提示ルート。afterは報酬/成長反映後。個人名は含めません。'},
+        limits:'最大50周回。記録の大きさの上限をこえたら古い周回を削除（ゲームの保存は消しません）。resumedは途中から記録、過去の操作は復元しません。',
+        before:'戦前の能力・装備・所持品・覚えた技・なれ・たまご(inherit)・履歴・提示ルート。afterは報酬/成長反映後。個人名は含めません。'},
       dictionary:dictionary(),droppedRuns:store.droppedRuns,runs:clone(store.runs),warning:warning};}
     function status(){return {enabled:enabled,source:source,warning:warning,runs:store.runs.length,battles:store.runs.reduce(function(n,r){return n+r.battles.length;},0),key:key};}
-    function releaseForGameSave(){
-      if(options.auto)return false;
-      // 記録が既存ゲーム保存の空きを奪ったら、記録だけメモリへ退避する。
-      // 読めなかった既存記録やrun/hall/lastには触れない。
-      if(unavailable)return false;
-      try {
-        storage.removeItem(key);unavailable=true;
-        warning='ゲームの保存を優先しました。記録は閉じる前に書き出してください';
-        return true;
-      } catch(e) {return false;}
-    }
-    return {begin:begin,record:record,recover:recover,exportData:exportData,status:status,releaseForGameSave:releaseForGameSave};
+    return {begin:begin,record:record,recover:recover,exportData:exportData,status:status};
   }
   function validateExport(data){
     jsonSafe(data);
@@ -157,6 +148,7 @@
           if(!Number.isInteger(s.seed)||s.seed<0||s.seed>4294967295||!Number.isInteger(s.wins)||s.wins<0||s.wins>10||!Number.isInteger(s.tries)||s.tries<0||s.tries>3||!Array.isArray(s.history)||s.history.length>12||!Array.isArray(s.owned)||s.owned.length>32||!Array.isArray(s.levels)||s.levels.length>10||!s.stats||!s.equip||!s.fork||!Array.isArray(s.fork.roads)||s.fork.roads.length<1||s.fork.roads.length>2)throw new Error('Invalid state');
           if(s.learned!==undefined&&(!Array.isArray(s.learned)||s.learned.length>32))throw new Error('Invalid learned state');
           if(s.nare!==undefined&&(!s.nare||typeof s.nare!=='object'||Array.isArray(s.nare)))throw new Error('Invalid nare state');
+          if(s.inherit!==undefined&&(!s.inherit||typeof s.inherit!=='object'||Array.isArray(s.inherit)||typeof s.inherit.waza!=='string'||typeof s.inherit.fit!=='boolean'))throw new Error('Invalid inherit state');
         });
       });
     });return data;

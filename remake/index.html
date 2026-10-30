@@ -195,6 +195,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   body.tipup[data-scr="battle"] .pop { top:2.2rem; } /* 上の 帯が 出て いる あいだは「かいしん！」を 少し 下へ */
   .kw.knew { white-space:normal; border-radius:.7rem; } .kw .kwn { display:block; margin-left:0; }
 }
+/* ためしあそびの きろく（dot の recording2）：タイトルの ボタン 1つだけ。文は かきだした とき・こまった とき だけ 出す（ふだんは 場所を とらない）。戦いの 画面には 出さない */
+.recordbar { display:none; justify-content:center; margin-top:.4rem; font-size:.85rem; }
+.recordbar.on { display:flex; }
+#recordStatus { color:var(--dim); max-width:40rem; }
+#recordStatus.warn { color:var(--luck); font-weight:800; }
 </style>
 </head>
 <body data-scr="title">
@@ -203,9 +208,10 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   <div class="sub" style="color:var(--dim);font-weight:800">つくりなおしの ばん（ためしに あそぶ ところ）</div>
   <div id="titlePic" style="height:9rem;margin:.6rem 0;display:flex;justify-content:center"></div>
   <div class="howto" id="howto"></div>
-  <div class="actions"><button class="big" id="bStart">▶ はじめる</button><button class="big" id="bCont" style="display:none">つづきから</button><button class="btn" data-kotoba="1">📖 ことば</button></div>
+  <div class="actions"><button class="big" id="bStart">▶ はじめる</button><button class="big" id="bCont" style="display:none">つづきから</button><button class="btn" data-kotoba="1">📖 ことば</button><button class="btn" id="bExportRecord" title="ためしあそびの きろく：この きかいの 中だけ（そとへは おくらない）">📝 きろく</button></div>
   <div class="eggnote" id="eggNote"></div>
   <div class="hall" id="hall"></div>
+  <div class="recordbar" aria-label="ためしあそびの きろく"><span id="recordStatus" role="status"></span></div>
 </div>
 <div id="species" class="screen">
   <h2 class="center">どの 子と いっしょに のぼる？</h2>
@@ -246,6 +252,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 </div></div>
 <div id="tip">カードの <b>ことば</b>（キーワード）や パーツに 合わせる・タップすると、ここに せつめいが でるよ。</div>
 <script src="sim.js"></script>
+<script src="kiroku.js"></script>
 <script>
 (function () {
   function ownershipError(message) {
@@ -305,7 +312,37 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   }
   var recoveringEgg = lsGet('eggTxn', null);
   if (!recoverEggState()) { storageFailure(); return; }
-  if (!recoveringEgg && Q.get('reset') === '1') { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(KEY) === 0) localStorage.removeItem(k); }); } catch (e) {} }
+  // ?reset=1：ゲームの 鍵だけ 消す（たまごの 予定を もどした あと だけ）。ためしあそびの きろく（remake.playtest.*）は 消さない
+  var GAME_KEYS = ['run', 'last', 'hall', 'kwSeen', 'egg', 'eggTxn'];
+  if (!recoveringEgg && Q.get('reset') === '1') { try { GAME_KEYS.forEach(function (k) { localStorage.removeItem(KEY + k); }); } catch (e) {} }
+  // ためしあそびの きろく（kiroku.js）。ゲームの 保存・乱数・ルールとは べつ。使えなくても ゲームは つづく。
+  //   書けるのは この 画面が 保存の 鍵を もって いる あいだ だけ（pagehide の あとは 書かない）。きろくの 失敗で ゲームの 保存の 停止を かくさない
+  var REC = null;
+  try {
+    var recStore = { getItem: function (k) { return localStorage.getItem(k); }, setItem: function (k, v) { if (!saveOwner) throw new Error('not owner'); localStorage.setItem(k, v); }, removeItem: function (k) { if (!saveOwner) throw new Error('not owner'); localStorage.removeItem(k); } };
+    REC = window.DekoRemakeRecord.create(recStore, S, { auto: AUTO, enabled: Q.get('kiroku') !== '0', test: Q.get('qa') === '1' });
+  } catch (e) { REC = null; }
+  // 文を 出すのは かきだした とき（message）と こまった とき（つかえない・書けない）だけ。ふだんは ボタンの title に
+  function recordStatus(message) {
+    var el = $('recordStatus'), b = $('bExportRecord'); if (!el) return;
+    var st = REC && REC.status(), warn = !st ? 'きろくは つかえないよ（ゲームは あそべる）' : st.warning;
+    var info = !st ? '' : (st.enabled ? (st.source === 'test' ? 'けんさようの きろく（ほんにんの とは べつ）' : 'この きかいの 中だけに きろく（そとへは おくらない）') + '・' + st.battles + 'せん' : 'きろくは おやすみ ちゅう');
+    if (b) b.title = 'ためしあそびの きろく：' + (info || warn);
+    el.textContent = message || warn || '';
+    el.classList.toggle('warn', !!warn && !message);
+    el.parentNode.classList.toggle('on', !!(message || warn));
+  }
+  $('bExportRecord').onclick = function () {
+    if (!REC) { recordStatus('きろくは つかえないよ（ゲームは あそべる）'); return; }
+    try {
+      var blob = new Blob([JSON.stringify(REC.exportData())], { type: 'application/json;charset=utf-8' });
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = window.DekoRemakeRecord.fileName(); document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      var bt = $('bExportRecord'); bt.textContent = '📝 かきだしたよ'; setTimeout(function () { if (bt) bt.textContent = '📝 きろく'; }, 3000); // 文の 行は ふやさない（タイトルの 高さを かえない）
+      recordStatus();
+    } catch (e) { recordStatus('かきだせなかったよ（きろくは けして いない）'); }
+  };
   function setTipOn(on) { $('tip').classList.toggle('tipon', on); document.body.classList.toggle('tipup', on); }
   var TIP0 = $('tip').innerHTML; // 画面が かわったら 帯は 最初の 文に もどす（前の 画面の 説明を 残さない）
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
@@ -315,10 +352,11 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   G.last = lsGet('last', null);
   if (!(G.run && G.last && G.last.key === runKey(G.run))) { G.last = null; lsSet('last', null); } // ちがう 戦いの ものは すてる
   // おわった 周回：殿堂には 1回だけ のせる（hallDone）。さいごの 戦いを 見て いない ときだけ 「つづきから」で 見せる
+  if (REC) { REC.recover(G.run, G.last); recordStatus(); } // 保存ずみで まだ 見て いない 戦いを きろくに（もう ある ときは なにも しない）
   if (G.run && G.run.over) { if (!G.run.hallDone && !recordHall(G.run)) return; if (!G.last && !eggPending(G.run)) { if (!writeEggState({ run: null, last: null })) return; G.run = null; } } // たまごを まだ えらんで いない 周回は「つづきから」で えらべる
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）
-  function save() { lsSet('run', G.run); }
+  function save() { return lsSet('run', G.run); }
   function eggPending(run) { return !!(run && run.over && !run.eggDone && S.eggChoices(run).length); }
 
   // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
@@ -531,7 +569,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     var values = { run: child, last: null };
     if (egg) values.egg = null;
     if (!writeEggState(values)) return;
-    G.run = child; G.last = null; drawFork();
+    G.run = child; G.last = null;
+    if (REC) { REC.begin(G.run); recordStatus(); }
+    drawFork();
   }
 
   // ---------- わかれみち ----------
@@ -612,8 +652,10 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     var equip = Object.assign({}, run.equip), before = JSON.parse(JSON.stringify(run));
     var out = S.fight(run, G.road, equip);
     var last = { key: runKey(run), out: out, before: before, equip: equip, road: G.road };
+    var saved = true;
     if (run.over) { if (!recordHall(run, last)) return; G.last = last; } // 終局の結果と殿堂を一緒に保存
-    else { save(); setLast(last); }
+    else { saved = save(); setLast(last); }
+    if (REC && saved) { REC.record(before, G.road, equip, out, run); recordStatus(); } // ゲームの 保存が できた 戦いだけ きろく
     showBattle(out, before, equip, G.road, true);
   }
   function showBattle(out, before, equip, roadIdx, first) {

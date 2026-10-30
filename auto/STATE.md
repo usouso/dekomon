@@ -115,9 +115,10 @@
 - 7時の回：PR #32（remake 負けの 理由を 確かめてから 出す・tools/riyuu.js・「うんが わるかった」）、PR #33（remake 戦いの「⚡ つぎ ×2」「⚡ ×2！」）。どちらも #31 の 上。
 
 ## レビュー待ち（PR・完全な SHA・担当・頼んだ 時刻）
-- PR #60（base #58）878d46c7e99e7e632fe463aa2bfbab049584cb28（remake/tools/shots.js だけ）。担当：制作 Claude／レビュー Codex。頼んだ 時刻 17:46 JST（PR を 開いた とき）→ 17:52 は running。確認役 必ず直す 0（直した方がいい 2 → 1 直した・1 IDEAS）。tests 183/183。shots 4回 合格・変異で ✕ を 確認。実操作：対象外（道具）。**つぎの 回の 始めに Codex の 結果を 見る**（来て いなければ @codex review）。
+（なし。#60 は 878d46c で 指摘 なし 17:47 → 統合待ちへ）
 
 ## 統合待ち（レビュー済みで 18時を 待つ 候補）
+- **同じく（10-30 17時の回）**：PR #60（base #58）878d46c7e99e7e632fe463aa2bfbab049584cb28（remake/tools/shots.js だけ）。担当：制作 Claude／レビュー Codex。頼んだ 時刻 17:46 JST（PR を 開いた とき）→ 指摘 なし（17:47）。確認役 必ず直す 0（直した方がいい 2 → 1 直した・1 IDEAS）。tests 183/183。shots 4回 合格・変異で ✕ を 確認。実操作：対象外（道具）。直した 回数 0。#58 の あと。
 - **強さ合わせ その3（10-30 17時の回）**：PR #59（base #58）f1a7d2de14e941576ebfce4215c52fef956bb840（remake/sim.js 1行・tests.js・REPORT.md）。担当：制作 Claude／レビュー Codex。頼んだ 時刻 17:41 JST（PR を 開いた とき）→ 指摘 なし（17:41）。確認役 必ず直す 0（直した方がいい 1＝きろくの 版の 印 → IDEAS・REPORT）。tests 195/195。bot.js 100 周回 前後・kouka.js。check.js（#36 を 合わせた 手元の 枝 8acc0d1、--runs 6 --speed 3）3つの 大きさ：重なり・中の スクロール・横・はみ出し・小さい 文字・ずれ・エラー 0、PC の ページの スクロール 0（スマホ battle 122・fork 500・prep 492・species 60＝前から 対象外）。実操作の 検証：未実施。直した 回数 0。#58 の あと。18時の 作業の 対象外（判断待ち 7・10）。
 - **同じく（10-30 15時の回）**：PR #58（base #57）aedcc5d30c9d57395d91bc57c029048cf7d07986（remake/index.html の storageFailure・recoverEggState・tools/tomaru.js・REPORT）。担当：制作 Claude／レビュー Codex。頼んだ 時刻 15:36 JST（PR を 開いた とき）→ 指摘 なし（15:38 ごろ）。直した 回数 0。#57 の あと。確認役 必ず直す 0（直した方がいい 4 → 3 直した）。tests 183/183。tomaru・tamago・kiroku-check 合格。実操作の 検証：未実施。
 - **dot の recording2（10-30 15時の回）**：PR #57（base #56）676e5a2d35b930a504ee341e6743339d6efb99d8（remake/kiroku.js・index.html の hook・tools/read-records.cjs・tools/kiroku-check.js・tests 10件・REPORT）。担当：制作 Claude（元の 中身は dot 管理の PC 制作担当）／レビュー Codex。頼んだ 時刻 15:32 JST（PR を 開いた とき）→ 指摘 なし（15:32〜15:36）。確認役 必ず直す 0（直した方がいい 5 → 2 直した・のこり 3 は 判断待ち 12・IDEAS）。tests 183/183。kiroku-check 13/13・shots・tamago・tsuzuki・dendo・jiyu・kotoba・auto（1回 ゆれ → 合格）合格。check.js（#36 を 合わせた 手元の 枝、dbc1ed4）3つの 大きさ×6周回：重なり・中の スクロール・横・はみ出し・小さい 文字・ずれ・エラー 0、PC の ページの スクロール 0（スマホ title 25 など＝対象外）。実操作の 検証：未実施（実の ダウンロード・本人 試遊・dot の 接合 QA は まだ）。直した 回数 0。#56 の あと。18時の 作業の 対象外（判断待ち 7・10）。
@@ -304,11 +305,11 @@
 - PR #58（2026-10-30 15時 remake とまる 文）：指摘 なし（aedcc5d、15:38 ごろ）。直した 回数 0。
 - 2026-10-30 17時の回の 始め：PR #16・#50〜#58 に 新しい Codex の 指摘 なし。
 - PR #59（2026-10-30 17時 remake ながいあし）：指摘 なし（f1a7d2d、17:41）。直した 回数 0。
-- PR #60（2026-10-30 17時 remake shots.js）：878d46c で running（17:52）。結果は 次の 回。
+- PR #60（2026-10-30 17時 remake shots.js）：指摘 なし（878d46c、17:47）。直した 回数 0。
 - 2026-10-30 5時の回の 始め：PR #38〜#46・#16 に 新しい Codex の 指摘 なし。dot の 独立検査（issue #27）で #46 の「たいりょく +2（説明 +1）」→ dot の 差分を 当てた（c6503f1）→ @codex review（05:18）→ 指摘 なし（05:20）。直した 回数 2。
 
 ## 次
-- 【**つぎは これ**】14. （10-30 17時の回）PR #60 の Codex の 結果を 見る。dot の 返事（recording2 の 接合 QA）が あれば いちばん 先。なければ 強さ合わせ その4：kouka.js に「キーワードの 数・覚えた 技」で 分けた 列を 足して、ふといしっぽ・ツノ・かたいコウラ（+9〜13）の わけを 見る（IDEAS「強さ合わせ その3」の のこり）。
+- 【**つぎは これ**】14. （10-30 17時の回）dot の 返事（recording2 の 接合 QA）が あれば いちばん 先。なければ 強さ合わせ その4：kouka.js に「キーワードの 数・覚えた 技」で 分けた 列を 足して、ふといしっぽ・ツノ・かたいコウラ（+9〜13）の わけを 見る（IDEAS「強さ合わせ その3」の のこり）。
 - 【済み・PR #59（17時の回）の 前】13. （10-30 15時の回）dot の 返事（recording2 の 接合 QA）を 待つ。その あとは 下の 11（強さ合わせ その3）か IDEAS「きろく」の のこり。
 - 【済み・PR #57（15時の回）】12. （10-30 13時の回）dot の [recording2 共有 1/2](https://github.com/usouso/dekomon/issues/27#issuecomment-6514164586)（試遊の 記録＝kiroku.js・build-release.cjs・read-records.cjs と index.html の 記録の hook。基準 PR48）を #55（または #56）の 上に 別枝で 適合し、元 head・統合後 SHA・ぶつかりの 解き方・回帰を issue に 返す。必ず：PR48 の index で 最新 index を 置きかえない／reset は 旧 4鍵の まま 確定しない（egg・eggTxn と 記録の 鍵を ふくめて 決める。記録の 鍵は reset で 消さない）／記録の BASE・BUILD・schema・replay を 最新の sim（ひらめき・じゆう・たまご）に 合わせ、旧記録の 誤読を 拒む／記録の 例外の 握りつぶしで savefix2 の 保存失敗の 停止を 消さない／容量不足の 記録削除（releaseForGameSave）は 入れない（未採用）。配布は 外部 kiroku.js 方式（埋込みは 選ばない）。大きい 仕事＝その回の 1つ目に。
 - 【**つぎは これ**・作り直しの 版（remake/）の つづき。目標：10-29 20時に 1周 遊べる＝その1 で 遊べる 形には なった】

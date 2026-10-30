@@ -12,7 +12,8 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
   await new Promise(function (r) { setTimeout(r, 800); });
   var browser = null, bad = 0;
   var hall = [];
-  for (var i = 0; i < 7; i++) hall.push({ name: ['ぺっごか', 'ぽんこ', 'ぴここ', 'ごろすけ', 'みみたん', 'どどんぱ', 'ぷにぷに'][i], sp: ['ころん', 'ごつん', 'ぴゅん', 'どしん'][i % 4], wins: 10 - i, clear: i % 3 === 0, parts: [], waza: [], from: i % 2 ? 'ぺっごか' : null, egg: i % 2 ? null : 'kakenuke', at: 1000 + i });
+  for (var i = 0; i < 7; i++) hall.push({ name: ['ぺっごか', 'ぽんこ', 'ぴここ', 'ごろすけ', 'みみたん', 'どどんぱ', 'ぷにぷに'][i], sp: ['ころん', 'ごつん', 'ぴゅん', 'どしん'][i % 4], wins: 10 - i, clear: i % 3 === 0, parts: [], waza: [], from: i % 2 ? 'ぺっごか' : null, egg: (i % 2 && i !== 5) ? null : 'kakenuke', at: 1000 + i });
+  Object.assign(hall[5], { name: 'ころこ', clear: true, wins: 10, egg: 'oonaguri' }); // 5ばん＝👑・10しょう・親・いちばん 長い 技の 名前（5字）＝本番で いちばん 長い 行
   try {
     browser = await chromium.launch(); // 起動に しっぱい しても finally で サーバーを とめる
     for (var sz of SIZES) {
@@ -33,6 +34,7 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
           out.lines = h.querySelectorAll('.hrow').length; out.split = Array.prototype.filter.call(h.querySelectorAll('.hseg'), function (e) { return e.getClientRects().length > 1; }).length; out.font = parseFloat(getComputedStyle(h).fontSize);
           out.color = getComputedStyle(h).color; var b = h.querySelector('b'); out.head = b ? getComputedStyle(b).color : out.color;
           out.overflow = h.scrollWidth - h.clientWidth;
+          out.nokoshi = h.textContent.indexOf('を のこした') >= 0; // 親の 🥚 と のこした 技の 🥚 を ことばで 分ける
           return out;
         });
         var pc = sz[0] > 700, fail;
@@ -40,8 +42,8 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
           fail = m.shown || errs.length;
           console.log((fail ? '✕ ' : '○ ') + tag + ' 殿堂 0：箱を 出さない（' + (m.shown ? 'でて いる' : 'でて いない') + '）');
         } else {
-          fail = !m.shown || m.lines !== 6 || m.split > 0 || m.font < 14 || lum(m.color) < lum(m.head) || m.wide > 0 || m.overflow > 0 || m.clip.length || (pc && m.pageScroll > 0) || errs.length;
-          console.log((fail ? '✕ ' : '○ ') + tag + ' 殿堂 6つ：文字 ' + m.font + 'px・とちゅうで 折れた ' + m.split + '・名前の 色 ' + m.color + '（見出し ' + m.head + '）・ページの スクロール ' + m.pageScroll + ' 横 ' + m.wide + ' 箱の 横 ' + m.overflow + (m.clip.length ? ' はみ出し ' + m.clip.slice(0, 5).join(',') : '') + (errs.length ? ' エラー ' + errs.join(' / ') : ''));
+          fail = !m.shown || m.lines !== 6 || !m.nokoshi || m.split > 0 || m.font < 14 || lum(m.color) < lum(m.head) || m.wide > 0 || m.overflow > 0 || m.clip.length || (pc && m.pageScroll > 0) || errs.length;
+          console.log((fail ? '✕ ' : '○ ') + tag + ' 殿堂 6つ：文字 ' + m.font + 'px・「を のこした」' + (m.nokoshi ? 'あり' : 'なし') + '・とちゅうで 折れた ' + m.split + '・名前の 色 ' + m.color + '（見出し ' + m.head + '）・ページの スクロール ' + m.pageScroll + ' 横 ' + m.wide + ' 箱の 横 ' + m.overflow + (m.clip.length ? ' はみ出し ' + m.clip.slice(0, 5).join(',') : '') + (errs.length ? ' エラー ' + errs.join(' / ') : ''));
           await page.screenshot({ path: path.join(OUT, 're4_title_dendo_' + tag + '.png') });
         }
         if (fail) bad++;

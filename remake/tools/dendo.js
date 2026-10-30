@@ -12,7 +12,8 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
   await new Promise(function (r) { setTimeout(r, 800); });
   var browser = null, bad = 0;
   var hall = [];
-  for (var i = 0; i < 7; i++) hall.push({ name: ['ぺっごか', 'ぽんこ', 'ぴここ', 'ごろすけ', 'みみたん', 'どどんぱ', 'ぷにぷに'][i], sp: ['ころん', 'ごつん', 'ぴゅん', 'どしん'][i % 4], wins: 10 - i, clear: i % 3 === 0, parts: [], waza: [], from: i % 2 ? 'ぺっごか' : null, egg: (i % 2 && i !== 5) ? null : 'kakenuke', at: 1000 + i }); // 5ばん＝親も のこした 技も ある いちばん 長い 行
+  for (var i = 0; i < 7; i++) hall.push({ name: ['ぺっごか', 'ぽんこ', 'ぴここ', 'ごろすけ', 'みみたん', 'どどんぱ', 'ぷにぷに'][i], sp: ['ころん', 'ごつん', 'ぴゅん', 'どしん'][i % 4], wins: 10 - i, clear: i % 3 === 0, parts: [], waza: [], from: i % 2 ? 'ぺっごか' : null, egg: (i % 2 && i !== 5) ? null : 'kakenuke', at: 1000 + i });
+  Object.assign(hall[5], { name: 'ころこ', clear: true, wins: 10, egg: 'oonaguri' }); // 5ばん＝👑・10しょう・親・いちばん 長い 技の 名前（5字）＝本番で いちばん 長い 行
   try {
     browser = await chromium.launch(); // 起動に しっぱい しても finally で サーバーを とめる
     for (var sz of SIZES) {

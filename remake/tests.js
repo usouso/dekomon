@@ -18,6 +18,13 @@ noLuck(function () {
   ok(st.def === C.hardDef && st.hp === 53 && st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd, 'かたいコウラ：かたい（まもり +2）・おもい（こうげき +2 はやさ −2）・たいりょく +3');
   st = S.statsOf(P({}, ['wing']));
   ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
+  st = S.statsOf(P({}, ['longleg']));
+  ok(st.atk === 5 + 2 && st.spd === 5 && st.hp === 50, 'ながいあし：こうげき +2（はやさは かわらない。10-30 強さ合わせ その3）');
+  // 数字の ひとこと（bonus）は 札の 2行目と 同じ（文字どおり）
+  var STN = { hp: 'たいりょく', atk: 'こうげき', def: 'まもり', spd: 'はやさ', luck: 'うん' };
+  S.PARTS.forEach(function (p) { if (!p.bonus) return;
+    var want = Object.keys(p.bonus).map(function (k) { return STN[k] + ' +' + p.bonus[k]; }).join('・');
+    ok(p.line === want, p.name + '：2行目「' + p.line + '」は 中身（' + want + '）と 同じ'); });
   st = S.statsOf(E({ luck: 5 }, [], ['yokeru']));
   ok(st.luck === 0 && st.crit === 0 && st.dodge === C.dodgeYokeru, '相手は うんを 持たない・よける 25%');
   ok(S.statsOf(P({ luck: 3 })).crit === 0, '（テスト用に 会心 0）');

@@ -10,10 +10,11 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
 (async function () {
   var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: 'ignore' });
   await new Promise(function (r) { setTimeout(r, 800); });
-  var browser = await chromium.launch(), bad = 0;
+  var browser = null, bad = 0;
   var hall = [];
   for (var i = 0; i < 7; i++) hall.push({ name: ['ぺっごか', 'ぽんこ', 'ぴここ', 'ごろすけ', 'みみたん', 'どどんぱ', 'ぷにぷに'][i], sp: ['ころん', 'ごつん', 'ぴゅん', 'どしん'][i % 4], wins: 10 - i, clear: i % 3 === 0, parts: [], waza: [], from: i % 2 ? 'ぺっごか' : null, egg: i % 2 ? null : 'kakenuke', at: 1000 + i });
   try {
+    browser = await chromium.launch(); // 起動に しっぱい しても finally で サーバーを とめる
     for (var sz of SIZES) {
       var tag = sz[0] + 'x' + sz[1];
       for (var form of ['empty', 'full']) {
@@ -47,7 +48,7 @@ function lum(c) { var m = c.match(/\d+/g).map(Number); return 0.2126 * m[0] + 0.
         await ctx.close();
       }
     }
-  } finally { await browser.close(); sv.kill(); }
+  } finally { if (browser) await browser.close(); sv.kill(); }
   console.log(bad ? '✕ ' + bad + ' こ' : '合格');
   process.exit(bad ? 1 : 0);
 })().catch(function (e) { console.error(e); process.exit(1); });

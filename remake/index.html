@@ -169,7 +169,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .howto { display:grid; grid-template-columns:repeat(2, auto); justify-content:center; gap:.25rem 1.4rem; margin:0 auto .7rem; }
 .howto span { font-weight:800; font-size:1rem; text-align:left; } /* わくを つけない（ボタンに 見えない ように） */
 @media (max-width: 520px) { .howto { grid-template-columns:auto; gap:.15rem; } }
-.hall { max-width: 30rem; margin:.5rem auto; text-align:left; font-size:1rem; line-height:1.4; color:var(--ink); background:var(--panel); border-radius:12px; padding:.35rem .9rem; }
+.hall { max-width: 40rem; margin:.5rem auto; text-align:left; font-size:1rem; line-height:1.4; color:var(--ink); background:var(--panel); border-radius:12px; padding:.35rem .9rem; }
 .hall:empty { display:none; }
 .hall b { color:var(--dim); display:block; }
 .hall .hseg { white-space:nowrap; display:inline-block; }
@@ -447,7 +447,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     $('howto').innerHTML = ['🧩 パーツを つける', '👀 たたかいを みまもる', '⛰ ' + C.runBattles + 'かい かつと クリア', '<b style="color:var(--heart)">♥</b> ' + C.hearts + 'かい まけると おわり'].map(function (t) { return '<span>' + t + '</span>'; }).join('');
     $('bCont').style.display = G.run ? '' : 'none';
     var h = lsGet('hall', []).filter(function (x) { return !(G.run && G.last && G.run.hallAt && x.at === G.run.hallAt); }); // さいごの 戦いを まだ 見て いない 周回は 見る まで 出さない（けっかを 先に 知らせない）
-    $('hall').innerHTML = h.length ? '<b>でんどう（この 版）</b>' + h.slice(-6).reverse().map(function (x) { return '<div class="hrow"><span class="hseg">' + (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう</span>' + (x.from ? '<span class="hseg">　🥚' + x.from + 'の こ</span>' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '<span class="hseg">　→ 🥚' + S.WAZA_BY_ID[x.egg].name + '</span>' : '') + '</div>'; }).join('') : ''; // 1人 1行（スマホで 折り返す ときは 🥚 の ところで まるごと 次の 行へ）
+    $('hall').innerHTML = h.length ? '<b>でんどう（この ばん）</b>' + h.slice(-6).reverse().map(function (x) { return '<div class="hrow"><span class="hseg">' + (x.clear ? '👑 ' : '') + x.name + '（' + x.sp + '）' + x.wins + 'しょう</span>' + (x.from ? '<span class="hseg">　🥚' + x.from + 'の こ</span>' : '') + (x.egg && S.WAZA_BY_ID[x.egg] ? '<span class="hseg">　→ 🥚' + S.WAZA_BY_ID[x.egg].name + 'を のこした</span>' : '') + '</div>'; }).join('') : ''; // 1人 1行（スマホで 折り返す ときは 🥚 の ところで まるごと 次の 行へ）
     var en = eggNow(); $('eggNote').innerHTML = en ? '🥚 たまご：「' + S.WAZA_BY_ID[en.waza].name + '」　<span style="display:inline-block">つかうと つぎの 子が おぼえる</span>' : ''; // 見えなければ 無いのと 同じ（原則 2）。くわしくは 種類を 選ぶ 画面の 帯（タイトルは 説明の 帯が ない ので 札に しない）
     show('title');
   }

@@ -248,15 +248,64 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 <script src="sim.js"></script>
 <script>
 (function () {
+  function ownershipError(message) {
+    document.body.innerHTML = '<main class="center"><h1>ぼうけんを まもるため とまって いるよ</h1><p>' + message + '</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
+    document.getElementById('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
+  }
+  if (!navigator.locks) { ownershipError('この ブラウザでは あんぜんに ほぞん できないよ。ちがう ブラウザで ひらいてね。'); return; }
+  // 同じ保存領域の操作は1画面だけ。localStorageの読取→書込だけでは同時開始を排他できない。
+  navigator.locks.request('dekomon-remake-save', { ifAvailable: true }, function (lock) {
+    if (!lock) { ownershipError('べつの がめんで ひらいて いるよ。そちらを とじてから、もう いちど おしてね。'); return; }
+    var saveOwner = true, releaseSave;
+    var lifetime = new Promise(function (resolve) { releaseSave = resolve; });
+    window.addEventListener('pagehide', function () { saveOwner = false; releaseSave(); }, { once: true });
+    window.addEventListener('pageshow', function (event) { if (event.persisted) location.reload(); });
+(function () {
   'use strict';
   var S = window.DekoRe, C = S.CFG;
   var Q = new URLSearchParams(location.search);
   var AUTO = Q.get('auto') === '1', SPEED = parseFloat(Q.get('speed') || '1') || 1;
   var KEY = 'remake.';
   function lsGet(k, d) { try { var v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
-  function lsSet(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} }
-  if (Q.get('reset') === '1') { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(KEY) === 0) localStorage.removeItem(k); }); } catch (e) {} }
+  function lsSet(k, v) { if (!saveOwner) return false; try { localStorage.setItem(KEY + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   var $ = function (id) { return document.getElementById(id); };
+  // 卵・子・殿堂は、更新内容を先に記録する。途中で止まっても同じ内容を再適用できる。
+  function recoverEggState() {
+    try {
+      var pending = JSON.parse(localStorage.getItem(KEY + 'eggTxn') || 'null');
+      if (!pending) return true;
+      // 元状態を持たない旧候補の予定や、別世代の状態を推測で適用しない。
+      if (pending.version !== 1 || !pending.before || !pending.values) return false;
+      var tracked = ['run', 'last', 'egg', 'hall'], keys = Object.keys(pending.values);
+      if (!keys.length || keys.some(function (k) { return tracked.indexOf(k) < 0; })) return false;
+      for (var i = 0; i < tracked.length; i++) {
+        var k = tracked[i], before = pending.before[k], current = localStorage.getItem(KEY + k);
+        if (before !== null && typeof before !== 'string') return false;
+        if (current !== before && !(Object.prototype.hasOwnProperty.call(pending.values, k) && current === JSON.stringify(pending.values[k]))) return false;
+      }
+      for (var j = 0; j < keys.length; j++) if (!lsSet(keys[j], pending.values[keys[j]])) return false;
+      return lsSet('eggTxn', null); // 全部保存できるまで記録を消さない
+    } catch (e) { return false; }
+  }
+  function storageFailure() {
+    if (G) G.saveBlocked = true;
+    AUTO = false;
+    document.body.innerHTML = '<main class="center"><h1>ほぞん できなかったよ</h1><p>ぼうけんを まもるため、いったん とめて いるよ。<br>しばらく してから、もう いちど ためしてね。</p><button class="big" id="bSaveRetry">もう いちど ためす</button></main>';
+    $('bSaveRetry').onclick = function () { var q = new URLSearchParams(location.search); q.delete('reset'); location.search = q.toString(); };
+  }
+  function writeEggState(values) {
+    try {
+      var old = localStorage.getItem(KEY + 'eggTxn');
+      if (!saveOwner || (old !== null && old !== 'null')) { storageFailure(); return false; }
+      var before = {};
+      ['run', 'last', 'egg', 'hall'].forEach(function (k) { before[k] = localStorage.getItem(KEY + k); });
+      if (!lsSet('eggTxn', { version: 1, before: before, values: values }) || !recoverEggState()) { storageFailure(); return false; }
+    } catch (e) { storageFailure(); return false; }
+    return true;
+  }
+  var recoveringEgg = lsGet('eggTxn', null);
+  if (!recoverEggState()) { storageFailure(); return; }
+  if (!recoveringEgg && Q.get('reset') === '1') { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(KEY) === 0) localStorage.removeItem(k); }); } catch (e) {} }
   function setTipOn(on) { $('tip').classList.toggle('tipon', on); document.body.classList.toggle('tipup', on); }
   var TIP0 = $('tip').innerHTML; // 画面が かわったら 帯は 最初の 文に もどす（前の 画面の 説明を 残さない）
   var G = { run: lsGet('run', null), road: 0, hint: null, playing: null };
@@ -266,19 +315,23 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   G.last = lsGet('last', null);
   if (!(G.run && G.last && G.last.key === runKey(G.run))) { G.last = null; lsSet('last', null); } // ちがう 戦いの ものは すてる
   // おわった 周回：殿堂には 1回だけ のせる（hallDone）。さいごの 戦いを 見て いない ときだけ 「つづきから」で 見せる
-  if (G.run && G.run.over) { if (!G.run.hallDone) { recordHall(G.run); G.run.hallDone = true; save(); } if (!G.last && !eggPending(G.run)) { G.run = null; lsSet('run', null); } } // たまごを まだ えらんで いない 周回は「つづきから」で えらべる
+  if (G.run && G.run.over) { if (!G.run.hallDone && !recordHall(G.run)) return; if (!G.last && !eggPending(G.run)) { if (!writeEggState({ run: null, last: null })) return; G.run = null; } } // たまごを まだ えらんで いない 周回は「つづきから」で えらべる
 
   function show(id) { Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.toggle('on', s.id === id); }); if (document.body.getAttribute('data-scr') !== id) { $('tip').innerHTML = TIP0; } document.body.setAttribute('data-scr', id); setTipOn(false); window.scrollTo(0, 0); } // 帯を もどすのは 別の 画面に うつった ときだけ（じゅんびで パーツを えらぶ ときは のこす）
   function save() { lsSet('run', G.run); }
   function eggPending(run) { return !!(run && run.over && !run.eggDone && S.eggChoices(run).length); }
 
   // 殿堂に のせる（おわった 周回。「おわり」を 押さずに 閉じても 次に 開いた ときに のせる）
-  function recordHall(run) {
+  function recordHall(run, last) {
     var hall = lsGet('hall', []);
     var at = Date.now();
     hall.push({ name: run.name, sp: S.SPECIES_BY_ID[run.species].name, wins: run.wins, clear: run.clear, parts: run.owned.slice(), waza: (run.learned || []).slice(), from: run.inherit ? run.inherit.parent : null, at: at });
-    lsSet('hall', hall.slice(-50));
-    run.hallAt = at;
+    var saved = Object.assign({}, run, { hallAt: at, hallDone: true });
+    var values = { hall: hall.slice(-50), run: saved };
+    if (last) values.last = last;
+    if (!writeEggState(values)) return false;
+    run.hallAt = at; run.hallDone = true;
+    return true;
   }
   // ---------- 絵 ----------
   function bodyShape(shape, color) {
@@ -460,6 +513,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if ($('bEggUse')) $('bEggUse').onclick = function () { G.useEgg = !G.useEgg; drawSpecies(); }; // カードの 🥚 の 技も かえる
   }
   function drawSpecies() {
+    G.starting = false;
     drawEggBar();
     $('spgrid').innerHTML = S.SPECIES.map(function (sp) {
       return '<div data-sp="' + sp.id + '">' + card({ kind: 'me', name: sp.name, sub: '<span class="theme">' + sp.theme + '</span>　のびやすい：' + S.STATS.slice().sort(function (a, b) { return sp.grow[b.id] - sp.grow[a.id]; })[0].name, shape: sp.shape, color: sp.color, src: { base: sp.base, kw: [sp.kw], parts: [] }, born: sp.kw, waza: sp.waza.concat(G.useEgg && eggNow() ? [eggNow().waza] : []), oya: G.useEgg && eggNow() ? eggNow().waza : null }) + '<div class="actions" style="margin-top:.3rem"><button class="btn" data-go="' + sp.id + '">この 子に する ▶</button></div></div>';
@@ -468,12 +522,16 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     show('species');
   }
   function startRun(sp) {
+    if (G.saveBlocked || G.starting || eggPending(G.run)) return;
+    G.starting = true;
     var seed = Q.get('seed') ? parseInt(Q.get('seed'), 10) : Math.floor(Math.random() * 1e9);
     var egg = G.useEgg ? eggNow() : null;
-    G.run = S.newRun(seed, sp, egg); setLast(null);
-    if (egg) lsSet('egg', null); // つかった たまごは なくなる
-    G.run.name = NAMES[seed % NAMES.length] + S.SPECIES_BY_ID[sp].name.slice(0, 1);
-    save(); drawFork();
+    var child = S.newRun(seed, sp, egg);
+    child.name = NAMES[seed % NAMES.length] + S.SPECIES_BY_ID[sp].name.slice(0, 1);
+    var values = { run: child, last: null };
+    if (egg) values.egg = null;
+    if (!writeEggState(values)) return;
+    G.run = child; G.last = null; drawFork();
   }
 
   // ---------- わかれみち ----------
@@ -548,13 +606,14 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   // ---------- 戦い ----------
   var KW_PART_EVENT = { charge: 'charge', fangGrow: 'poison', springExtra: 'fast', immune: 'immune' };
   function startBattle() {
+    if (G.saveBlocked) return;
     G.lastCmp = null;
     var run = G.run, road = run.fork.roads[G.road], stage = run.fork.stage, d = S.enemyDef(road.idx);
     var equip = Object.assign({}, run.equip), before = JSON.parse(JSON.stringify(run));
     var out = S.fight(run, G.road, equip);
-    if (run.over) { recordHall(run); run.hallDone = true; } // 殿堂には 戦った ときに のせる（とちゅうで とじても のる・2回 のらない）
-    save();
-    setLast({ key: runKey(run), out: out, before: before, equip: equip, road: G.road });
+    var last = { key: runKey(run), out: out, before: before, equip: equip, road: G.road };
+    if (run.over) { if (!recordHall(run, last)) return; G.last = last; } // 終局の結果と殿堂を一緒に保存
+    else { save(); setLast(last); }
     showBattle(out, before, equip, G.road, true);
   }
   function showBattle(out, before, equip, roadIdx, first) {
@@ -700,30 +759,40 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     show('egg');
     Array.prototype.forEach.call($('eggw').querySelectorAll('[data-egg]'), function (el) { el.onclick = function () { pickEgg(el.getAttribute('data-egg')); }; });
     $('bNoEgg').onclick = function () { pickEgg(null); };
-    if (AUTO) setTimeout(function () { var b = $('eggw').querySelector('[data-egg]'); if (b) b.click(); }, 150 / SPEED);
+    if (AUTO) setTimeout(function () { if (G.saveBlocked) return; var b = $('eggw').querySelector('[data-egg]'); if (b) b.click(); }, 150 / SPEED);
   }
   function pickEgg(id) {
+    if (G.saveBlocked) return;
     var run = G.run; if (!eggPending(run)) return; // おわって いない 周回では 何も しない（自動モードの 二重の クリック など）
     var egg = id ? S.makeEgg(run, id) : null;
+    if (id && !egg) return;
+    if (!run.hallDone && !recordHall(run)) return;
+    var values = { run: null, last: null };
     if (egg) {
-      lsSet('egg', egg);
-      var hall = lsGet('hall', []); hall.forEach(function (x) { if (x.at === run.hallAt) x.egg = id; }); lsSet('hall', hall);
+      values.egg = egg;
+      var hall = lsGet('hall', []); hall.forEach(function (x) { if (x.at === run.hallAt) x.egg = id; }); values.hall = hall;
     }
-    run.eggDone = true; save();
-    endRun();
+    if (!writeEggState(values)) return;
+    finishRun(run);
   }
   function endRun() {
     var run = G.run;
-    if (!run.hallDone) { recordHall(run); run.hallDone = true; save(); }
+    if (G.saveBlocked || !run) return;
+    if (!run.hallDone && !recordHall(run)) return;
     if (eggPending(run)) { drawEgg(); return; }
-    if (AUTO) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts);
-    G.run = null; lsSet('run', null); setLast(null);
+    if (!writeEggState({ run: null, last: null })) return;
+    finishRun(run);
+  }
+  function finishRun(run) {
+    if (AUTO && run) console.log('[でこもん auto] 周回 おわり：' + run.species + ' ' + run.wins + 'しょう' + (run.clear ? ' クリア' : '') + ' ハート ' + run.hearts); // たまごを えらんだ 周回も 1回 書く（保存が できた あと）
+    G.run = null; G.last = null;
     drawTitle();
-    if (AUTO) setTimeout(function () { $('bStart').click(); setTimeout(function () { var sps = S.SPECIES; drawSpecies(); startRun(sps[(lsGet('hall', []).length) % sps.length].id); autoNext(); }, 50); }, 200);
+    if (AUTO) setTimeout(function () { if (G.saveBlocked) return; $('bStart').click(); setTimeout(function () { if (G.saveBlocked) return; var sps = S.SPECIES; drawSpecies(); startRun(sps[(lsGet('hall', []).length) % sps.length].id); autoNext(); }, 50); }, 200);
   }
   // 自動モード（?auto=1。必ず 無音＝この 版は まだ 音が ない）
   function autoNext() {
     setTimeout(function () {
+      if (G.saveBlocked) return;
       var on = document.querySelector('.screen.on').id;
       if (on === 'fork') { G.road = 0; drawPrep(); autoNext(); }
       else if (on === 'prep') { startBattle(); }
@@ -736,6 +805,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   window.__re = { G: G, S: S, KW_SHORT: KW_SHORT };
   drawTitle();
   if (AUTO) { if (eggPending(G.run)) drawEgg(); else { $('bStart').click(); startRun(S.SPECIES[0].id); autoNext(); } } // たまごが まだなら 先に えらぶ（drawEgg が 次の 周回へ すすめる）
+})();
+    return lifetime;
+  }).catch(function (e) { console.error(e); ownershipError('ほぞんを はじめられなかったよ。もう いちど おしてね。'); }); // じゅんびの とちゅうの エラーも 見える ように（tools の「エラー 0」で 見のがさない）
 })();
 </script>
 </body>

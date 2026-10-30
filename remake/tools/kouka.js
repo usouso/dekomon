@@ -9,10 +9,11 @@
 var path = require('path');
 var S = require(path.join(__dirname, '..', 'sim.js'));
 if (process.env.DEKO_CFG) { var o = JSON.parse(process.env.DEKO_CFG); Object.keys(o).forEach(function (k) { S.CFG[k] = o[k]; }); } // 比べる とき：DEKO_CFG='{"renMult":0.7}'
+if (process.env.DEKO_PARTS) { var pp = JSON.parse(process.env.DEKO_PARTS); Object.keys(pp).forEach(function (id) { Object.keys(pp[id]).forEach(function (k) { if (pp[id][k] === null) delete S.PART_BY_ID[id][k]; else S.PART_BY_ID[id][k] = pp[id][k]; }); }); } // ためす とき：DEKO_PARTS='{"tail":{"kw":["stagger"]}}'（null で 消す）
 var N = parseInt(process.argv[2] || '150', 10), NG = parseInt(process.argv[3] || '40', 10);
 var t0 = Date.now();
 
-var part = {}; S.PARTS.forEach(function (p) { part[p.id] = { on: 0, onW: 0, off: 0, offW: 0, owned: 0, picked: 0 }; });
+var part = {}; S.PARTS.forEach(function (p) { part[p.id] = { on: 0, onW: 0, off: 0, offW: 0, on2: 0, onW2: 0, off2: 0, offW2: 0, enab: 0, owned: 0, picked: 0 }; });
 var waza = {}; S.WAZA.forEach(function (w) { waza[w.id] = { battles: 0, fires: 0, wins: 0 }; });
 var kwFire = {};
 var nb = 0;
@@ -26,12 +27,18 @@ function probe(run, ri, rng) {
   var road = run.fork.roads[ri], s = run.fork.stage, d = S.enemyDef(road.idx);
   var eq = rndEquip(rng);
   var w = S.wazaFor(run, eq);
-  var res = S.battle(S.playerSrc(run, eq), S.enemySrc(road.idx, s, road.hard), S.mix(run.seed, 60000 + nb), { waza: w, eName: d.name });
+  var seed = S.mix(run.seed, 60000 + nb);
+  var res = S.battle(S.playerSrc(run, eq), S.enemySrc(road.idx, s, road.hard), seed, { waza: w, eName: d.name });
+  // 同じ 場面・同じ seed で「覚えた 技 ぬき」（うまれつき 2つ だけ）も 戦う：差が 技から 来るか、パーツの 数字・キーワードから 来るか を 分ける
+  var w0 = S.SPECIES_BY_ID[run.species].waza.slice();
+  var res0 = S.battle(S.playerSrc(run, eq), S.enemySrc(road.idx, s, road.hard), seed, { waza: w0, eName: d.name });
   nb++;
   S.ROLES.forEach(function (r) {
     S.PARTS.forEach(function (p) { if (p.role !== r.id) return;
-      if (eq[r.id] === p.id) { part[p.id].on++; if (res.win) part[p.id].onW++; }
-      else if (eq[r.id]) { part[p.id].off++; if (res.win) part[p.id].offW++; } });
+      var x = part[p.id];
+      if (eq[r.id] === p.id) { x.on++; if (res.win) x.onW++; x.on2++; if (res0.win) x.onW2++;
+        if (w.some(function (id) { var lw = S.WAZA_BY_ID[id]; return lw.learn && lw.kw.some(function (k) { return p.kw.indexOf(k) >= 0; }); })) x.enab++; }
+      else if (eq[r.id]) { x.off++; if (res.win) x.offW++; x.off2++; if (res0.win) x.offW2++; } });
   });
   w.forEach(function (id) { waza[id].battles++; if (res.win) waza[id].wins++; });
   res.events.forEach(function (e) {
@@ -70,12 +77,13 @@ S.SPECIES.forEach(function (sp) {
 
 function pct(a, b) { return b ? Math.round(100 * a / b) : '—'; }
 console.log('## パーツ（でたらめの 戦い ' + nb + '回・合わせ ' + NG + '周回×4種類）');
-console.log('| パーツ | 役割 | キーワード | つけた 勝率 | 同じ 役割で ほか | 差 | 合わせで 選んだ（もって いる とき） |');
-console.log('|---|---|---|---|---|---|---|');
+console.log('（技 ぬきの 差＝同じ 場面・同じ seed で 覚えた 技を 使わない ときの 差。技で ひらく＝その パーツの キーワードで 覚えた 技が 使えた 戦いの 割合）');
+console.log('| パーツ | 役割 | キーワード | つけた 勝率 | 同じ 役割で ほか | 差 | 技 ぬきの 差 | 技で ひらく | 合わせで 選んだ（もって いる とき） |');
+console.log('|---|---|---|---|---|---|---|---|---|');
 S.PARTS.slice().map(function (p) { var x = part[p.id]; return { p: p, x: x, diff: x.on && x.off ? 100 * x.onW / x.on - 100 * x.offW / x.off : 0 }; })
   .sort(function (a, b) { return a.diff - b.diff; })
-  .forEach(function (o) { var x = o.x, p = o.p;
-    console.log('| ' + p.name + ' | ' + p.role + ' | ' + p.kw.join('・') + ' | ' + pct(x.onW, x.on) + '% | ' + pct(x.offW, x.off) + '% | ' + (o.diff >= 0 ? '+' : '') + o.diff.toFixed(1) + ' | ' + pct(x.picked, x.owned) + '%（' + x.owned + '） |'); });
+  .forEach(function (o) { var x = o.x, p = o.p, d2 = x.on2 && x.off2 ? 100 * x.onW2 / x.on2 - 100 * x.offW2 / x.off2 : 0;
+    console.log('| ' + p.name + ' | ' + p.role + ' | ' + p.kw.join('・') + ' | ' + pct(x.onW, x.on) + '% | ' + pct(x.offW, x.off) + '% | ' + (o.diff >= 0 ? '+' : '') + o.diff.toFixed(1) + ' | ' + (d2 >= 0 ? '+' : '') + d2.toFixed(1) + ' | ' + pct(x.enab, x.on) + '% | ' + pct(x.picked, x.owned) + '%（' + x.owned + '） |'); });
 console.log('\n## 技（でたらめの 戦いで、その 技を 使える 戦いだけ）');
 console.log('（発動の 単位：かけぬけ・とどめ は 1げきごと〔はんげきも〕、ほかは 1手に 1回。ぶれ：1パーツ 数百戦 なので ±3 くらい は ゆれる）');
 console.log('| 技 | 使える 戦い | 1戦 あたりの 発動 | 使える ときの 勝率 |');

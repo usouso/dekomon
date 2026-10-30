@@ -82,7 +82,7 @@
   // bonus：ひとことが 数字の ときの 中身。special：ひとことが 動きの ときの 名前（battle の 中で 見る）
   var PARTS = [
     { id: 'horn', short: 'ツノ',     name: 'ツノ',         role: 'atk', kw: ['charge', 'heavy'],  line: 'ためた 1げきは まもりを むしする', special: 'hornPierce' },
-    { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +1', bonus: { atk: 1 } },
+    { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +2', bonus: { atk: 2 } }, // 10-31 強さ合わせ その7：+1 → +2
     { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'あてる たびに どくの ダメージ +2', special: 'fangGrow' },
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },

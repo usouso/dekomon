@@ -54,9 +54,9 @@ noLuck(function () {
   ok(h1.dmg === (4 + C.heavyAtk) - 3 && h3.dmg === (4 + C.heavyAtk) * C.chargeMult && h3.pierce, 'ためる：3手めは ×2・ツノ：ためた 1げきは まもりを むしする');
   // ねらいうち：じょうたいの あいてへ +2（キバで どく → 2手めから）
   r = S.battle(P({ atk: 5 }, ['eye', 'fang'].slice(0, 1)), E({ atk: 0, hp: 200 }), 1);
-  ok(handHits(r, 'p', 2)[0].dmg === 6, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +1）');
+  ok(handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +' + S.PART_BY_ID.eye.bonus.atk + '）');
   r = S.battle(P({ atk: 5 }, ['eye', 'fang']), E({ atk: 0, hp: 200 }), 1);
-  ok(handHits(r, 'p', 1)[0].dmg === 6 && handHits(r, 'p', 2)[0].dmg === 6 + C.neraiPlus, 'ねらいうち：どくの あいてへの 1げき +2');
+  ok(handHits(r, 'p', 1)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk && handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk + C.neraiPlus, 'ねらいうち：どくの あいてへの 1げき +2');
   // どく：手の おわりに 2・3手。まもりで へらない。キバ：あてる たびに どくが +2（はじめの 1げきから）
   r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, def: 9, hp: 200 }), 1);
   var po = r.events.filter(function (e) { return e.t === 'poison' && e.who === 'e'; });
@@ -293,10 +293,10 @@ ok(ce.free === 'eye' && S.equipList(ce).length === 4, '自由枠：せめを 2�
 ok(S.cleanEquip(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'horn' }).free === null, '自由枠：ほかの 枠と 同じ パーツは 入らない');
 ok(S.cleanEquip(fr, { atk: 'shell', def: 'scale', mov: 'wing', free: 'fang' }).atk === null && S.cleanEquip(fr, { atk: 'horn', free: 'fang' }).free === null, '役割の 枠は その 役割だけ・もって いない パーツは 入らない');
 fr.wins = C.free.at - 1; ok(!('free' in S.cleanEquip(fr, { atk: 'horn', free: 'eye' })), '自由枠：ひらく まえは 4つ目を すてる');
-// 4つ目の パーツの つよさが 戦いに 入る（ひかるめ こうげき +1）
+// 4つ目の パーツの つよさが 戦いに 入る（ひかるめ こうげき +2。10-31 強さ合わせ その7）
 fr.wins = C.free.at;
 var st3 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing' })), st4 = S.statsOf(S.playerSrc(fr, { atk: 'horn', def: 'shell', mov: 'wing', free: 'eye' }));
-ok(st4.atk === st3.atk + 1, '自由枠の パーツの ボーナスも 入る（ひかるめ こうげき +1）');
+ok(st4.atk === st3.atk + 2, '自由枠の パーツの ボーナスも 入る（ひかるめ こうげき +2）');
 // 覚えた 技で 使えるのは 枠の 数まで（覚えた 順）
 var wc = S.newRun(22, 'koron'); wc.owned = ['horn', 'eye', 'shell', 'wing']; wc.learned = ['chikara', 'teppeki', 'kakenuke', 'mikawashi', 'todome'];
 var born = S.SPECIES_BY_ID.koron.waza.length;

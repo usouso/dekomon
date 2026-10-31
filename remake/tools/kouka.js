@@ -17,7 +17,7 @@ var t0 = Date.now();
 var part = {}; S.PARTS.forEach(function (p) { part[p.id] = { on: 0, onW: 0, off: 0, offW: 0, on2: 0, onW2: 0, off2: 0, offW2: 0, enab: 0, owned: 0, picked: 0 }; });
 var waza = {}; S.WAZA.forEach(function (w) { waza[w.id] = { battles: 0, fires: 0, wins: 0 }; });
 var kwFire = {};
-var dokuMax = { e: { dmg: 0, eq: '', who: '' }, p: { dmg: 0, eq: '', who: '' } }; // どくの 1回の ダメージの いちばん 大きい もの（e＝相手が うけた・p＝自分が うけた）。キバは 上限なく ふえる ので 見守る（10-31 その9 の 確認役）
+var dokuMax = { e: { dmg: 0, eq: '', scene: '' }, p: { dmg: 0, eq: '', scene: '' } }; // 技 あり の 戦い（res）だけ 数える。どくの 1回の ダメージの いちばん 大きい もの（e＝相手が うけた・p＝自分が うけた）。キバは 上限なく ふえる ので 見守る（10-31 その9 の 確認役）
 var nb = 0;
 
 function rndEquip(rng) { // 役割ごとに その 役割の パーツか なし を でたらめに（なしは 1/5）
@@ -44,7 +44,7 @@ function probe(run, ri, rng) {
   });
   w.forEach(function (id) { waza[id].battles++; if (res.win) waza[id].wins++; });
   res.events.forEach(function (e) {
-    if (e.t === 'poison' && dokuMax[e.who] && e.dmg > dokuMax[e.who].dmg) dokuMax[e.who] = { dmg: e.dmg, eq: S.ROLES.map(function (r) { return eq[r.id] ? S.PART_BY_ID[eq[r.id]].name : 'なし'; }).join('・'), who: run.species + ' 対 ' + d.name + (road.hard ? '（てごわい）' : '') + ' 段階' + s };
+    if (e.t === 'poison' && dokuMax[e.who] && e.dmg > dokuMax[e.who].dmg) dokuMax[e.who] = { dmg: e.dmg, eq: S.ROLES.map(function (r) { return eq[r.id] ? S.PART_BY_ID[eq[r.id]].name : 'なし'; }).join('・'), scene: S.SPECIES_BY_ID[run.species].name + ' 対 ' + d.name + (road.hard ? '（てごわい）' : '') + ' 段階' + s };
     if (e.who !== 'p') return;
     if (e.t === 'waza' && waza[e.w]) waza[e.w].fires++;
     if (e.t === 'kw') kwFire[e.kw] = (kwFire[e.kw] || 0) + 1;
@@ -96,6 +96,6 @@ S.WAZA.forEach(function (w) { var x = waza[w.id]; console.log('| ' + w.name + (w
 console.log('\n## キーワードの 発動（自分・でたらめの 戦い 全部で）');
 console.log(Object.keys(kwFire).sort().map(function (k) { return k + ' ' + kwFire[k]; }).join('・'));
 console.log('\n## どくの 1回の ダメージの いちばん 大きい もの（でたらめの 戦い 全部で）');
-console.log('- 相手が うけた：' + dokuMax.e.dmg + (dokuMax.e.dmg ? '（' + dokuMax.e.who + '・自分の そうび ' + dokuMax.e.eq + '）' : ''));
-console.log('- 自分が うけた：' + dokuMax.p.dmg + (dokuMax.p.dmg ? '（' + dokuMax.p.who + '・自分の そうび ' + dokuMax.p.eq + '）' : ''));
+console.log('- 相手が うけた：' + dokuMax.e.dmg + (dokuMax.e.dmg ? '（' + dokuMax.e.scene + '・自分の そうび ' + dokuMax.e.eq + '）' : ''));
+console.log('- 自分が うけた：' + dokuMax.p.dmg + (dokuMax.p.dmg ? '（' + dokuMax.p.scene + '・自分の そうび ' + dokuMax.p.eq + '）' : ''));
 console.log('\n（' + ((Date.now() - t0) / 1000).toFixed(1) + '秒）');

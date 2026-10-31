@@ -166,6 +166,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .lvl .fx-up { color:#7ee787; opacity:0; animation: fxin .3s forwards; }
 @keyframes fxin { to { opacity:1; } }
 #titlePic svg { height:100%; }
+#title.screen { padding-bottom:1rem; } /* 10-31 17時：タイトルでは 下の 帯（#tip）を 出さない のに、帯の ための 下の 余白 4.2rem が のこって いた。でんどう 6人＋🥚たまごの 行で 1366×650 が 13px スクロール していた */
 #log2 { height: 6.5rem; }
 .howto { display:grid; grid-template-columns:repeat(2, auto); justify-content:center; gap:.25rem 1.4rem; margin:0 auto .7rem; }
 .howto span { font-weight:800; font-size:1rem; text-align:left; } /* わくを つけない（ボタンに 見えない ように） */

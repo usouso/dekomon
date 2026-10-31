@@ -88,7 +88,7 @@
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
     { id: 'weight', short: 'おもし',   name: 'おもし',       role: 'atk', kw: ['heavy'],            line: '1げきごとに +1', special: 'weightPlus' },
-    { id: 'leech', short: 'すいつく', name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +3', bonus: { hp: 3 } },
+    { id: 'leech', short: 'すいつく', name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +1', bonus: { hp: 1 } }, // 11-01 強さ合わせ その15：+3 → +1（つけた ときの 勝ちやすさが ほかの まもりより +3.0〜+4.6 で いちばん 上。ヒカリクラゲは もとの たいりょく 15 → 16 で どの 段階も 前と ±1〜2）
     { id: 'spike', short: 'トゲ',    name: 'トゲ',         role: 'def', kw: ['counter'],          line: 'まもり +1', bonus: { def: 1 } },
     { id: 'shell', short: 'コウラ',    name: 'かたいコウラ', role: 'def', kw: ['hard', 'heavy'],    line: 'たいりょく +1', bonus: { hp: 1 } }, // 10-31 強さ合わせ その4：+3 → +1
     { id: 'scale', short: 'うろこ',    name: 'いしのうろこ', role: 'def', kw: ['hard'],             line: '1げき うけるたび まもり +1（+3 まで）', special: 'scaleStack' }, // 11-01 強さ合わせ その14：まもり +1 → これ（つけた ときの 勝ちやすさが ほかの まもりより −2.9。ヒカリクラゲ・ぬしは もとの まもり 0 → 1 で 前の +1 を もどす）
@@ -149,7 +149,7 @@
     { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 2, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' }, // 10-31 その7：atk 4 → 3（ひかるめ +2 の ぶんを もどす。こうげきは 段階1〜4 で 前と 同じ、段階5〜10 で 1〜2 ひくい＝もとの こうげき だけ 段階で のびる ため）。10-31 その11：atk 3 → 2（ながいあし +3 の ぶんを もどす。段階1 は 7 の まま・段階2〜10 は 前より 1〜2 ひくい）
     { id: 'frog',     name: 'ドロガエル',     hp: 15, atk: 3, def: 0, spd: 3, kw: ['hard'],   parts: ['spike', 'longtail'], color: '#7b6a4e', shape: 'blob' },
     { id: 'wolf',     name: 'ツタオオカミ',   hp: 14, atk: 3, def: 0, spd: 5, kw: [],         parts: ['claw', 'spring'],   color: '#5fa86a', shape: 'blob' },
-    { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 1, spd: 4, kw: ['ranged', 'hard'], parts: ['leech'],   color: '#6f9ceb', shape: 'dome' }, // 11-01 その14：いしのうろこを 外して 生まれつき かたい・もとの まもり 0 → 1（前の うろこ まもり +1 を もとへ。強さは 前と 同じ。うろこの「うけるたび」は 相手が もつと 長い 戦いで かたく なりすぎる）
+    { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 16, atk: 3, def: 1, spd: 4, kw: ['ranged', 'hard'], parts: ['leech'],   color: '#6f9ceb', shape: 'dome' }, // 11-01 その14：いしのうろこを 外して 生まれつき かたい・もとの まもり 0 → 1（前の うろこ まもり +1 を もとへ。強さは 前と 同じ。うろこの「うけるたび」は 相手が もつと 長い 戦いで かたく なりすぎる）。11-01 その15：hp 15 → 16（すいつくくち たいりょく +3 → +1 の ぶんを もどす。段階1〜3 は 1 ひくく・8〜10 は 1 たかい〔てごわいの 段階9 は 2〕）
     { id: 'boar',     name: 'マグマイノシシ', hp: 15, atk: 3, def: 0, spd: 4, kw: [],         parts: ['weight', 'crush'],  color: '#b5413a', shape: 'wide' },
     { id: 'cat',      name: 'カゲネコ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru', 'heavy'], parts: ['tail', 'fang'], color: '#4a4f66', shape: 'round' } // 11-01 その13：生まれつき おもい（ふといしっぽから おもいを 外した ぶん。強さは 前と 同じ）
   ];

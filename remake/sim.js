@@ -299,8 +299,8 @@
             a.hitTaken++;
             dmgTo(a, c, 'counter', d.side);
             if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
-            scaleUp(a);
             log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp, wz: cwz });
+            scaleUp(a); // はんげきを うけた あとに かたく なる（ログも はんげきの あと）
           }
         }
       }

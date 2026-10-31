@@ -121,6 +121,13 @@ noLuck(function () {
   r = S.battle(P({ atk: 1, hp: 300, spd: 9 }, ['scale']), E({ atk: 10, hp: 300, spd: 1 }, ['spike']), 1);
   cs = r.events.filter(function (e) { return e.t === 'counter'; });
   ok(cs[0].dmg === 3 && hits(r, 'e')[0].dmg === 7 && cs[1].dmg === 1, 'いしのうろこ：はんげきも 1げき（うけると まもり +1。3 → 7 → 1）');
+  var ci0 = r.events.findIndex(function (e) { return e.t === 'counter'; }), si0 = r.events.findIndex(function (e) { return e.t === 'kw' && e.kw === 'scaleStack'; });
+  ok(ci0 >= 0 && si0 === ci0 + 1, 'いしのうろこ：はんげきを うけた あとに かたく なる（ログの 順）');
+  r = S.battle(P({ atk: 1, hp: 300, spd: 1 }, ['scale']), E({ atk: 10, hp: 300, spd: 9 }), 1, { waza: ['teppeki'] });
+  sh = hits(r, 'e').slice(0, 3).map(function (e) { return e.dmg; });
+  ok(sh.join() === '1,7,6', 'いしのうろこ＋てっぺき：さいしょは 1、そのあとも うろこが たまる（' + sh.join() + '）');
+  r = S.battle(P({ atk: 1, hp: 8, spd: 1 }, ['scale']), E({ atk: 10, hp: 300, spd: 9 }), 1);
+  ok(!r.win && r.events.filter(function (e) { return e.t === 'kw' && e.kw === 'scaleStack'; }).length === 0, 'いしのうろこ：たおれた 1げきでは かたく ならない');
   r = S.battle(P({ atk: 20, hp: 300, spd: 1 }, ['horn']), E({ atk: 10, hp: 900, spd: 9 }, ['scale']), 1);
   var hc = hits(r, 'p').filter(function (e) { return e.charged; })[0];
   ok(hc && hc.pierce && hc.dmg === Math.round(20 * C.chargeMult), 'ツノの ためた 1げきは うろこで ふえた まもりも むしする');

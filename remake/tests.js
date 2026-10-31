@@ -76,7 +76,7 @@ noLuck(function () {
   ok(handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +' + S.PART_BY_ID.eye.bonus.atk + '）');
   r = S.battle(P({ atk: 5 }, ['eye', 'fang']), E({ atk: 0, hp: 200 }), 1);
   ok(handHits(r, 'p', 1)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk && handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk + C.neraiPlus, 'ねらいうち：どくの あいてへの 1げき +2');
-  // どく：手の おわりに 2・3手。まもりで へらない。キバ：あてる たびに どくが +2（はじめの 1げきから）
+  // どく：手の おわりに 2・3手。まもりで へらない。キバ：あてる たびに どくが +3（はじめの 1げきから）
   r = S.battle(P({ atk: 1 }, ['fang']), E({ atk: 0, def: 9, hp: 200 }), 1);
   var po = r.events.filter(function (e) { return e.t === 'poison' && e.who === 'e'; });
   ok(C.fangPlus === 3 && po[0].dmg === C.poisonDmg + 3 && po[1].dmg === C.poisonDmg + 6 && po[2].dmg === C.poisonDmg + 9, 'どく：まもりで へらない・キバ：あてる たびに どくの ダメージ +3');

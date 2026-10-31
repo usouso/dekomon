@@ -94,7 +94,7 @@
     { id: 'longtail', short: 'ながお', name: 'ながいしっぽ', role: 'def', kw: ['regen'],            line: 'たいりょく +2', bonus: { hp: 2 } },
     { id: 'fur', short: 'ふさふさ',      name: 'ふさふさのけ', role: 'def', kw: ['immune'],           line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spring', short: 'ばね',   name: 'ばねあし',     role: 'mov', kw: ['fast'],             line: '3手ごとに もう1かい こうげき', special: 'springExtra' },
-    { id: 'longleg', short: 'ながあし',  name: 'ながいあし',   role: 'mov', kw: ['ranged'],           line: 'こうげき +2', bonus: { atk: 2 } },
+    { id: 'longleg', short: 'ながあし',  name: 'ながいあし',   role: 'mov', kw: ['ranged'],           line: 'こうげき +3', bonus: { atk: 3 } }, // 10-31 強さ合わせ その11：+2 → +3（つけた ときの 勝ちやすさが ほかの うごきより −2.5〜−3.2。ヤリドリは もとの こうげき 3 → 2 で 段階1は 前と 同じ）
     { id: 'tail', short: 'しっぽ',     name: 'ふといしっぽ', role: 'mov', kw: ['stagger', 'heavy'], line: 'はやさ +1', bonus: { spd: 1 } }, // 10-31 強さ合わせ その6：こうげき +1 → はやさ +1（おもいの はやさ −2 を すこし うめる。相手にも 同じに 効く）
     { id: 'wing', short: 'はね',     name: 'はね',         role: 'mov', kw: ['fast', 'hirari'],   line: 'うん +2', bonus: { luck: 2 } } // 10-31 強さ合わせ その10：うん +1 → +2（つけた ときの 勝ちやすさが ほかの うごきより −3〜−4。相手は うんを 持たない ので 相手は かわらない）
   ];
@@ -145,7 +145,7 @@
     { id: 'snake',    name: 'ヒルヘビ',       hp: 14, atk: 3, def: 0, spd: 5, kw: ['fast'],   parts: ['fang'],             color: '#7a5fa8', shape: 'blob' },
     { id: 'deer',     name: 'ツノジカ',       hp: 15, atk: 3, def: 0, spd: 5, kw: ['heavy'],  parts: ['horn', 'wing'],     color: '#c99a5b', shape: 'tall' },
     { id: 'hedgehog', name: 'ハリネズ',       hp: 15, atk: 3, def: 0, spd: 3, kw: ['regen'],  parts: ['spike', 'fur'],     color: '#9c7a5a', shape: 'round' },
-    { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' }, // 10-31 その7：atk 4 → 3（ひかるめ +2 の ぶんを もどす。こうげきは 段階1〜4 で 前と 同じ、段階5〜10 で 1〜2 ひくい＝もとの こうげき だけ 段階で のびる ため）
+    { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 2, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' }, // 10-31 その7：atk 4 → 3（ひかるめ +2 の ぶんを もどす。こうげきは 段階1〜4 で 前と 同じ、段階5〜10 で 1〜2 ひくい＝もとの こうげき だけ 段階で のびる ため）。10-31 その11：atk 3 → 2（ながいあし +3 の ぶんを もどす。段階1 は 7 の まま・段階2〜10 は 前より 1〜2 ひくい）
     { id: 'frog',     name: 'ドロガエル',     hp: 15, atk: 3, def: 0, spd: 3, kw: ['hard'],   parts: ['spike', 'longtail'], color: '#7b6a4e', shape: 'blob' },
     { id: 'wolf',     name: 'ツタオオカミ',   hp: 14, atk: 3, def: 0, spd: 5, kw: [],         parts: ['claw', 'spring'],   color: '#5fa86a', shape: 'blob' },
     { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 0, spd: 4, kw: ['ranged'], parts: ['leech', 'scale'],   color: '#6f9ceb', shape: 'dome' },

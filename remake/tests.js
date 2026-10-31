@@ -17,7 +17,9 @@ noLuck(function () {
   var st = S.statsOf(P({}, ['shell']));
   ok(st.def === C.hardDef && st.hp === 51 && st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd, 'かたいコウラ：かたい（まもり +2）・おもい（こうげき +2 はやさ −2）・たいりょく +1（10-31 強さ合わせ その4）');
   st = S.statsOf(P({}, ['wing']));
-  ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
+  ok(st.spd === 5 + C.fastSpd && st.luck === 2 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 2 && st.crit === C.critBase + C.critPerLuck * 2, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +2（10-31 強さ合わせ その10：+1 → +2）');
+  st = S.statsOf(E({}, ['wing']));
+  ok(st.luck === 0 && st.dodge === C.dodgeHirari && st.crit === 0, 'はね：相手が もっても うんは 0（相手は うんを 持たない＝ツノジカは 前と 同じ）');
   st = S.statsOf(P({}, ['tail']));
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
   st = S.statsOf(S.enemySrc(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false));
@@ -290,13 +292,13 @@ try {
       sp.name + '：ひらめきは HP +1、旧モードは HP +' + C.hpUp + '（ほかの 成長は 同じ）');
   });
 } finally { C.hira.on = growthOn; }
-// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +1）
+// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +2）
 var oc = C.hira.chance, op = C.hira.perLuck; C.hira.chance = 0; C.hira.perLuck = 1;
 var lk = S.newRun(14, 'koron'); lk.stats.luck = 0; lk.equip = { atk: null, def: null, mov: 'wing' };
 var lk2 = S.newRun(14, 'koron'); lk2.stats.luck = 0; lk2.equip = { atk: null, def: null, mov: 'longleg' };
 var g1 = S.hirameki(lk, { hard: false }), g2 = S.hirameki(lk2, { hard: false });
 C.hira.chance = oc; C.hira.perLuck = op;
-ok(g1 && !g2, 'ひらめき：はねの うん +1 も 確率に 入る（画面の うんと 同じ）');
+ok(g1 && !g2, 'ひらめき：はねの うん（+2）も 確率に 入る（画面の うんと 同じ）');
 // 前の 保存（その1）：nare・learned が なくても 戦える
 var old = S.newRun(13, 'pyun'); delete old.nare; delete old.learned;
 var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && typeof old.nare === 'object', '前の 保存（nare・learned なし）でも 戦える');

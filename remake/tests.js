@@ -21,14 +21,22 @@ noLuck(function () {
   st = S.statsOf(E({}, ['wing']));
   ok(st.luck === 0 && st.dodge === C.dodgeHirari && st.crit === 0, 'はね：相手が もっても うんは 0（相手は うんを 持たない＝ツノジカは 前と 同じ）');
   st = S.statsOf(P({}, ['tail']));
-  ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
+  ok(st.atk === 5 && st.spd === 5 + 1 && st.luck === 0 && st.kw.stagger && !st.kw.heavy, 'ふといしっぽ：よろけ・はやさ +1（おもいは ない。11-01 強さ合わせ その13）');
+  ok(S.PART_BY_ID.tail.kw.join() === 'stagger', 'ふといしっぽ：キーワードは よろけ だけ');
+  // カゲネコ：生まれつき おもい ＋ ふといしっぽ で 前（しっぽが おもい）と 同じ 強さ（段階 1・10、てごわいも）
+  [1, 10].forEach(function (s) { [false, true].forEach(function (hd) {
+    var ci = S.ENEMIES.findIndex(function (e) { return e.id === 'cat'; });
+    var now = S.statsOf(S.enemySrc(ci, s, hd));
+    var old = S.statsOf({ base: S.enemyBase(ci, s, hd), kw: ['yokeru'], parts: ['fang'], enemy: true }); old.atk += C.heavyAtk; old.spd = Math.max(0, old.spd + C.heavySpd + 1);
+    ok(now.atk === old.atk && now.spd === old.spd && now.hp === old.hp && now.def === old.def && now.dodge === old.dodge && now.kw.heavy && now.kw.stagger, 'カゲネコ：段階' + s + (hd ? '・てごわい' : '') + ' は 前と 同じ（こうげき ' + now.atk + '・はやさ ' + now.spd + '）');
+  }); });
   st = S.statsOf(S.enemySrc(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false));
   var stOld = S.statsOf({ base: S.enemyBase(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false), kw: ['yokeru'], parts: [], enemy: true });
   ok(S.ENEMY_BY_ID.bird.atk === 2 && st.atk === stOld.atk + 3 + 2, 'ヤリドリ：ながいあし +3・ひかるめ +2（もとの こうげき 2。10-31 その7 で 4 → 3・その11 で 3 → 2）');
   // 段階1の ヤリドリの こうげきは 前（もと 4・ひかるめ +1）と 同じ 7（はじめての 1戦目を きつく しない）
   ok(st.atk === 7, 'ヤリドリ：段階1の こうげきは 前と 同じ 7（' + st.atk + '）');
   st = S.statsOf(E({}, ['tail']));
-  ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1, 'ふといしっぽ：相手が もっても 同じ（こうげき +2・はやさ −2 ＋1）');
+  ok(st.atk === 5 && st.spd === 5 + 1, 'ふといしっぽ：相手が もっても 同じ（はやさ +1）');
   st = S.statsOf(P({}, ['longleg']));
   ok(st.atk === 5 + 3 && st.spd === 5 && st.hp === 50, 'ながいあし：こうげき +3（はやさは かわらない。10-30 その3 で +2・10-31 その11 で +3）');
   // 数字の ひとこと（bonus）は 札の 2行目と 同じ（文字どおり）

@@ -95,7 +95,7 @@
     { id: 'fur', short: 'ふさふさ',      name: 'ふさふさのけ', role: 'def', kw: ['immune'],           line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spring', short: 'ばね',   name: 'ばねあし',     role: 'mov', kw: ['fast'],             line: '3手ごとに もう1かい こうげき', special: 'springExtra' },
     { id: 'longleg', short: 'ながあし',  name: 'ながいあし',   role: 'mov', kw: ['ranged'],           line: 'こうげき +3', bonus: { atk: 3 } }, // 10-31 強さ合わせ その11：+2 → +3（つけた ときの 勝ちやすさが ほかの うごきより −2.5〜−3.2。ヤリドリは もとの こうげき 3 → 2 で 段階1は 前と 同じ）
-    { id: 'tail', short: 'しっぽ',     name: 'ふといしっぽ', role: 'mov', kw: ['stagger', 'heavy'], line: 'はやさ +1', bonus: { spd: 1 } }, // 10-31 強さ合わせ その6：こうげき +1 → はやさ +1（おもいの はやさ −2 を すこし うめる。相手にも 同じに 効く）
+    { id: 'tail', short: 'しっぽ',     name: 'ふといしっぽ', role: 'mov', kw: ['stagger'],          line: 'はやさ +1', bonus: { spd: 1 } }, // 10-31 強さ合わせ その6：こうげき +1 → はやさ +1。11-01 その13：キーワード「よろけ・おもい」→「よろけ」（つけた ときの 勝ちやすさが ほかの うごきより +3〜+5。カゲネコは 生まれつき おもい で 前と 同じ）
     { id: 'wing', short: 'はね',     name: 'はね',         role: 'mov', kw: ['fast', 'hirari'],   line: 'うん +2', bonus: { luck: 2 } } // 10-31 強さ合わせ その10：うん +1 → +2（つけた ときの 勝ちやすさが ほかの うごきより −3〜−4。相手は うんを 持たない ので 相手は かわらない）
   ];
   var PART_BY_ID = {}; PARTS.forEach(function (p, i) { p.index = i; PART_BY_ID[p.id] = p; });
@@ -150,7 +150,7 @@
     { id: 'wolf',     name: 'ツタオオカミ',   hp: 14, atk: 3, def: 0, spd: 5, kw: [],         parts: ['claw', 'spring'],   color: '#5fa86a', shape: 'blob' },
     { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 0, spd: 4, kw: ['ranged'], parts: ['leech', 'scale'],   color: '#6f9ceb', shape: 'dome' },
     { id: 'boar',     name: 'マグマイノシシ', hp: 15, atk: 3, def: 0, spd: 4, kw: [],         parts: ['weight', 'crush'],  color: '#b5413a', shape: 'wide' },
-    { id: 'cat',      name: 'カゲネコ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru'], parts: ['tail', 'fang'],     color: '#4a4f66', shape: 'round' }
+    { id: 'cat',      name: 'カゲネコ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru', 'heavy'], parts: ['tail', 'fang'], color: '#4a4f66', shape: 'round' } // 11-01 その13：生まれつき おもい（ふといしっぽから おもいを 外した ぶん。強さは 前と 同じ）
   ];
   ENEMIES.forEach(function (e, i) { e.index = i; });
   var BOSS = { id: 'boss', name: 'やまの ぬし', hp: 22, atk: 3, def: 0, spd: 3, kw: ['regen', 'immune', 'heavy'], parts: ['horn', 'scale'], color: '#6b3fa0', shape: 'wide', boss: true, index: 'boss' };

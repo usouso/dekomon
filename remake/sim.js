@@ -21,7 +21,7 @@
     chargeEvery: 3, chargeMult: 2, // ためる：じぶんの 3手ごとに その手の こうげきが ×2
     heavyAtk: 2, heavySpd: -2,     // おもい
     neraiPlus: 2,          // ねらいうち：じょうたいの あいてへの 1げき +2
-    fangPlus: 2,                   // どくのキバ：あてる たびに どくが +この数（10-31 強さ合わせ その5：「どくの あいてに あてると +1」→「あてる たびに どくの ダメージ +2」。キバが ほかの せめより 勝率 −6〜−10 だった）
+    fangPlus: 3,                   // どくのキバ：あてる たびに どくが +この数（10-31 強さ合わせ その5：「どくの あいてに あてると +1」→「あてる たびに どくの ダメージ +2」。キバが ほかの せめより 勝率 −6〜−10 だった。その9：+2 → +3〔400 周回×2 seed：−1.7・−6.6 → −0.1・−4.8〕）
     poisonDmg: 2, poisonHands: 3,  // どく：じぶんの手の おわりに 2 ダメージ（3手）
     staggerMult: 0.5,      // よろけ：つぎの こうげきが ×0.5
     brittlePlus: 2, brittleHands: 3, // もろい：うける 1げき +2（3手）
@@ -83,7 +83,7 @@
   var PARTS = [
     { id: 'horn', short: 'ツノ',     name: 'ツノ',         role: 'atk', kw: ['charge'],           line: 'ためた 1げきは まもりを むしする', special: 'hornPierce' }, // 10-31 強さ合わせ その8：キーワード「ためる・おもい」→「ためる」（つけた ときの 勝ちやすさが ほかの せめより +7〜+9 だった）
     { id: 'eye', short: 'ひかるめ',      name: 'ひかるめ',     role: 'atk', kw: ['nerai', 'sure'],    line: 'こうげき +2', bonus: { atk: 2 } }, // 10-31 強さ合わせ その7：+1 → +2
-    { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'あてる たびに どくの ダメージ +2', special: 'fangGrow' },
+    { id: 'fang', short: 'キバ',     name: 'どくのキバ',   role: 'atk', kw: ['poison'],           line: 'あてる たびに どくの ダメージ +3', special: 'fangGrow' },
     { id: 'claw', short: 'ツメ',     name: 'するどいツメ', role: 'atk', kw: ['ren'],              line: 'あいてより はやければ 3げき', special: 'claw3' },
     { id: 'crush', short: 'くだく',    name: 'くだくツメ',   role: 'atk', kw: ['brittle', 'heavy'], line: 'こうげき +1', bonus: { atk: 1 } },
     { id: 'weight', short: 'おもし',   name: 'おもし',       role: 'atk', kw: ['heavy'],            line: '1げきごとに +1', special: 'weightPlus' },

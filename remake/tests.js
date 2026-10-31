@@ -17,7 +17,9 @@ noLuck(function () {
   var st = S.statsOf(P({}, ['shell']));
   ok(st.def === C.hardDef && st.hp === 51 && st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd, 'かたいコウラ：かたい（まもり +2）・おもい（こうげき +2 はやさ −2）・たいりょく +1（10-31 強さ合わせ その4）');
   st = S.statsOf(P({}, ['wing']));
-  ok(st.spd === 5 + C.fastSpd && st.luck === 1 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 1, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +1');
+  ok(st.spd === 5 + C.fastSpd && st.luck === 2 && st.dodge === C.dodgeHirari + C.dodgePerLuck * 2 && st.crit === C.critBase + C.critPerLuck * 2, 'はね：はやい（はやさ +3）・ひらり（かいひ +15%）・うん +2（10-31 強さ合わせ その10：+1 → +2）');
+  st = S.statsOf(E({}, ['wing']));
+  ok(st.luck === 0 && st.dodge === C.dodgeHirari && st.crit === 0, 'はね：相手が もっても うんは 0（相手は うんを 持たない＝ツノジカは 前と 同じ）');
   st = S.statsOf(P({}, ['tail']));
   ok(st.atk === 5 + C.heavyAtk && st.spd === 5 + C.heavySpd + 1 && st.luck === 0, 'ふといしっぽ：おもい（こうげき +2 はやさ −2）・はやさ +1（こうげきは +1 しない。10-31 強さ合わせ その6）');
   st = S.statsOf(S.enemySrc(S.ENEMIES.findIndex(function (e) { return e.id === 'bird'; }), 1, false));

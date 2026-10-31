@@ -56,7 +56,21 @@ noLuck(function () {
   // ためる：3手ごとに ×2、ツノは まもりを むしする
   r = S.battle(P({ atk: 4 }, ['horn']), E({ atk: 0, def: 3, hp: 200 }), 1);
   var h1 = handHits(r, 'p', 1)[0], h3 = handHits(r, 'p', 3)[0];
-  ok(h1.dmg === (4 + C.heavyAtk) - 3 && h3.dmg === (4 + C.heavyAtk) * C.chargeMult && h3.pierce, 'ためる：3手めは ×2・ツノ：ためた 1げきは まもりを むしする');
+  ok(h1.dmg === 4 - 3 && h3.dmg === 4 * C.chargeMult && h3.pierce, 'ためる：3手めは ×2・ツノ：ためた 1げきは まもりを むしする');
+  // 10-31 強さ合わせ その8：ツノの キーワードは「ためる」だけ（おもい なし）。もつ 相手（ツノジカ・ぬし）は 生まれつき おもい で 前と 同じ 強さ
+  st = S.statsOf(P({}, ['horn']));
+  ok(S.PART_BY_ID.horn.kw.join() === 'charge' && st.atk === 5 && st.spd === 5, 'ツノ：キーワードは ためる だけ（こうげき・はやさは かわらない）');
+  ['deer', 'boss'].forEach(function (id) {
+    var idx = id === 'boss' ? 'boss' : S.ENEMIES.findIndex(function (e) { return e.id === id; }), d = S.ENEMY_BY_ID[id];
+    [1, 10].forEach(function (s) {
+      var now = S.statsOf(S.enemySrc(idx, s, true));
+      // 前の 形：ツノが「ためる・おもい」、相手の 生まれつきに おもい なし
+      var hk = S.PART_BY_ID.horn.kw; S.PART_BY_ID.horn.kw = ['charge', 'heavy'];
+      var old = S.statsOf({ base: S.enemyBase(idx, s, true), kw: d.kw.filter(function (k) { return k !== 'heavy'; }), parts: d.parts, enemy: true });
+      S.PART_BY_ID.horn.kw = hk;
+      ok(d.kw.indexOf('heavy') >= 0 && now.atk === old.atk && now.spd === old.spd && now.hp === old.hp && now.def === old.def, d.name + '：生まれつき おもい で 前と 同じ（段階' + s + '・こうげき ' + now.atk + '・はやさ ' + now.spd + '）');
+    });
+  });
   // ねらいうち：じょうたいの あいてへ +2（キバで どく → 2手めから）
   r = S.battle(P({ atk: 5 }, ['eye', 'fang'].slice(0, 1)), E({ atk: 0, hp: 200 }), 1);
   ok(handHits(r, 'p', 2)[0].dmg === 5 + S.PART_BY_ID.eye.bonus.atk, 'ねらいうち：じょうたい でない あいてには ふえない（ひかるめ こうげき +' + S.PART_BY_ID.eye.bonus.atk + '）');

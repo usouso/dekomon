@@ -44,7 +44,8 @@ h2 { margin:.2rem 0 .5rem; font-size:1.3rem; }
 .kws { display:flex; flex-wrap:wrap; gap:.25rem; min-height:1.7rem; }
 .kw { border-radius:999px; padding:.1rem .55rem; font-size:.85rem; font-weight:900; border:2px solid; background:#151a27; cursor:help; }
 .kw.atk { border-color:var(--atk); color:#ffb0aa; } .kw.def { border-color:var(--def); color:#b4d3ff; } .kw.mov { border-color:var(--mov); color:#b5f0bf; } .kw.luck { border-color:var(--luck); color:#ffe9a0; } .kw.st { border-color:var(--st); color:#e3c4ff; }
-.kw.born { box-shadow: 0 0 0 2px #fff3 inset; }
+.kw.born { box-shadow: 0 0 0 2px #fff3 inset; } /* 10-31 うまれつきは 中を ぬる（パーツから 来た バッジは わくだけ。確認役：見分けにくい） */
+.kw.born.atk { background:#74302c; } .kw.born.def { background:#264f86; } .kw.born.mov { background:#276633; } .kw.born.luck { background:#6e5a14; } .kw.born.st { background:#5a3779; }
 /* はじめての ことば：ひとこと（MTG の 注釈文。3戦 会ったら 消える） */
 .kw.knew { white-space:nowrap; }
 .kw .kwn { font-weight:800; font-size:.8rem; color:var(--ink); margin-left:.3rem; }
@@ -452,7 +453,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   var SEEN = kwSeen();
   function kwIsNew(k) { return (SEEN[k] || 0) < KW_NEW; }
   var KW_NOTE_MAX = 2, NOTE_LEFT = 99; // 1まいの カードに ひとことは 2つまで（多いと 画面に 入らない・読みきれない）
-  function kwBadge(k, born) { var d = S.KW_BY_ID[k], nw = kwIsNew(k) && NOTE_LEFT > 0; if (nw) NOTE_LEFT--; return '<span class="kw ' + d.role + (born ? ' born' : '') + (nw ? ' knew' : '') + '" data-kw="' + k + '">' + d.name + (nw ? '<span class="kwn">' + KW_SHORT[k] + '</span>' : '') + '</span>'; }
+  function kwBadge(k, born) { var d = S.KW_BY_ID[k], nw = kwIsNew(k) && NOTE_LEFT > 0; if (nw) NOTE_LEFT--; return '<span class="kw ' + d.role + (born ? ' born' : '') + (nw ? ' knew' : '') + '" data-kw="' + k + '"' + (born ? ' data-born="1"' : '') + '>' + d.name + (nw ? '<span class="kwn">' + KW_SHORT[k] + '</span>' : '') + '</span>'; }
   // 戦いに 出た ことば（自分＋相手）を 1つずつ 数える
   function countSeen(run, equip, road) {
     var sp = S.SPECIES_BY_ID[run.species], d = S.enemyDef(road.idx), ks = {};
@@ -466,7 +467,8 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   var KW_GROUPS = [{ id: 'atk', name: 'せめ' }, { id: 'st', name: 'じょうたい' }, { id: 'def', name: 'まもり' }, { id: 'mov', name: 'うごき' }, { id: 'luck', name: 'うん' }];
   function drawKotoba() {
     SEEN = kwSeen();
-    $('kotLeg').innerHTML = KW_GROUPS.map(function (g) { return '<span class="kw ' + g.id + '">' + g.name + '</span>'; }).join('');
+    $('kotLeg').innerHTML = KW_GROUPS.map(function (g) { return '<span class="kw ' + g.id + '">' + g.name + '</span>'; }).join('') +
+      '<span class="kw def born">ぬり＝うまれつき</span><span class="kw def">わく＝パーツから</span>'; // 10-31 確認役：ぬりと わくの 見本
     var h = '';
     KW_GROUPS.forEach(function (g) { S.KW.filter(function (k) { return k.role === g.id; }).forEach(function (k) {
       var n = SEEN[k.id] || 0;
@@ -524,7 +526,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     if (!el) return null;
     var k = el.getAttribute('data-kw'), p = el.getAttribute('data-part'), w = el.getAttribute('data-waza'), s = el.getAttribute('data-stat'), cp = el.getAttribute('data-cap');
     if (w && cp) { var cw = S.WAZA_BY_ID[w]; return '<b>' + cw.name + '</b>（おぼえた わざ）：いまは わくが たりなくて つかえない。おぼえた わざを つかえるのは わくの 数（' + cp + 'つ）まで、はやく おぼえた じゅん。' + cw.text; }
-    if (k) { var d = S.KW_BY_ID[k]; return '<b>' + d.name + '</b>：' + d.text() + '（おなじ ことばが 2つ あっても 1かいぶん）'; }
+    if (k) { var d = S.KW_BY_ID[k]; return '<b>' + d.name + '</b>' + (el.getAttribute('data-born') ? '（うまれつき）' : el.closest && el.closest('.kws') ? '（パーツから）' : '') + '：' + d.text() + '（おなじ ことばが 2つ あっても 1かいぶん）'; }
     if (p) { var pp = S.PART_BY_ID[p]; return '<b>' + pp.name + '</b>（' + S.ROLES.filter(function (r) { return r.id === pp.role; })[0].name + '）：' + pp.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('・') + '／' + pp.line; }
     if (w) { var ww = S.WAZA_BY_ID[w]; return '<b>' + ww.name + '</b>（' + (ww.learn ? (el.getAttribute('data-oya') ? 'おやから うけついだ わざ。' : 'おぼえた わざ。') + ww.kw.map(function (x) { return S.KW_BY_ID[x].name; }).join('か ') + 'の パーツを つけると つかえる' : 'うまれつきの わざ') + '）：' + ww.text; }
     if (s) { var tx = { hp: '0 に なると まけ', atk: '1げきの つよさ', def: 'うける 1げきを へらす', spd: 'はやい ほうが さきに うごく', luck: 'かいしんと かいひの でやすさ（かいしん ' + C.critBase + '%＋うん×' + C.critPerLuck + '%・かいひ うん×' + C.dodgePerLuck + '%）。あいては うんを もたない' }; return '<b>' + STAT_LABEL[s] + '</b>：' + tx[s]; }

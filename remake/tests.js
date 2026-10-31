@@ -137,6 +137,13 @@ noLuck(function () {
     var now = S.statsOf(S.enemySrc(ix, s2, hd));
     ok(S.enemyDef(ix).def === 1 && S.enemyDef(ix).parts.indexOf('scale') < 0 && now.kw.hard && !now.specials.scaleStack && now.def === Math.floor((s2 - 1) / C.stageDefEvery) + 1 + C.hardDef, id + '：段階' + s2 + (hd ? '・てごわい' : '') + ' の まもりは 前と 同じ（' + now.def + '）');
   }); }); });
+  // すいつくくち（11-01 強さ合わせ その15）：たいりょく +3 → +1。ヒカリクラゲは もとの たいりょく 15 → 16 で、どの 段階でも 前（15＋3）と ±2 まで（ほとんど ±1。てごわいの 段階9 だけ +2）
+  ok(S.PART_BY_ID.leech.line === 'たいりょく +1' && S.PART_BY_ID.leech.bonus.hp === 1, 'すいつくくち：たいりょく +1（2行目と 中身が 同じ）');
+  (function () {
+    var ix = S.ENEMIES.findIndex(function (e) { return e.id === 'jelly'; }), before = { f: [18, 22, 26, 29, 33, 37, 41, 44, 48, 52], t: [21, 26, 30, 35, 39, 44, 48, 53, 57, 62] }, bad = [];
+    for (var s3 = 1; s3 <= 10; s3++) [false, true].forEach(function (hd) { var hp = S.statsOf(S.enemySrc(ix, s3, hd)).hp, b0 = before[hd ? 't' : 'f'][s3 - 1]; if (Math.abs(hp - b0) > 2) bad.push(s3 + (hd ? 't' : '') + ':' + hp + '/' + b0); });
+    ok(S.ENEMIES[ix].hp === 16 && bad.length === 0, 'ヒカリクラゲ：たいりょくは どの 段階でも 前と ±2 まで（' + (bad.join(' ') || 'ずれ なし') + '）');
+  })();
   // かいふく・すいとり
   r = S.battle(P({ hp: 50 }, ['longtail']), E({ atk: 5 }), 1);
   ok(r.events.some(function (e) { return e.t === 'heal' && e.src === 'regen' && e.n === C.regenHeal; }), 'かいふく：じぶんの手の はじめに +2');

@@ -467,7 +467,8 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   var KW_GROUPS = [{ id: 'atk', name: 'せめ' }, { id: 'st', name: 'じょうたい' }, { id: 'def', name: 'まもり' }, { id: 'mov', name: 'うごき' }, { id: 'luck', name: 'うん' }];
   function drawKotoba() {
     SEEN = kwSeen();
-    $('kotLeg').innerHTML = KW_GROUPS.map(function (g) { return '<span class="kw ' + g.id + '">' + g.name + '</span>'; }).join('');
+    $('kotLeg').innerHTML = KW_GROUPS.map(function (g) { return '<span class="kw ' + g.id + '">' + g.name + '</span>'; }).join('') +
+      '<span class="kw def born">ぬり＝うまれつき</span><span class="kw def">わく＝パーツから</span>'; // 10-31 確認役：ぬりと わくの 見本
     var h = '';
     KW_GROUPS.forEach(function (g) { S.KW.filter(function (k) { return k.role === g.id; }).forEach(function (k) {
       var n = SEEN[k.id] || 0;

@@ -136,8 +136,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .hpnum { font-weight:900; font-size:1.2rem; text-align:right; white-space:nowrap; }
 .hpnum .chgmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#1b1b1b; background:#e5534b; }
 .hpnum .chgmark:empty { display:none; }
-.hpnum .sclmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#fff; background:var(--def); } /* いしのうろこで ふえた まもり（戦いの あいだ ずっと） */
+.hpnum .sclmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#1b1b1b; background:var(--def); } /* いしのうろこで ふえた まもり（戦いの あいだ ずっと） */
 .hpnum .sclmark:empty { display:none; }
+@media (max-width: 700px) { .hpnum { white-space:normal; } .hpnum > span { white-space:nowrap; } } /* スマホ：🛡＋⚡＋体力 が 1行に 入らない ときは 印が 上の 行へ（カードの 外へ はみ出さない） */
 .hpnum .chgmark.fx-chgnow { background:#ffe066; animation: fxchg .5s 2 alternate; }
 @keyframes fxchg { from { transform:scale(1); } to { transform:scale(1.15); } }
 .stage2 { position:relative; height: 14rem; background:#1a2030; border-radius:1rem; overflow:hidden; }

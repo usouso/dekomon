@@ -136,6 +136,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
 .hpnum { font-weight:900; font-size:1.2rem; text-align:right; white-space:nowrap; }
 .hpnum .chgmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#1b1b1b; background:#e5534b; }
 .hpnum .chgmark:empty { display:none; }
+.hpnum .sclmark { display:inline-block; margin-right:.5rem; padding:0 .4rem; border-radius:.4rem; font-size:1rem; color:#1b1b1b; background:var(--def); } /* いしのうろこで ふえた まもり（戦いの あいだ ずっと） */
+.hpnum .sclmark:empty { display:none; }
+@media (max-width: 700px) { .hpnum { white-space:normal; } .hpnum > span { white-space:nowrap; } } /* スマホ：🛡＋⚡＋体力 が 1行に 入らない ときは 印が 上の 行へ（カードの 外へ はみ出さない） */
 .hpnum .chgmark.fx-chgnow { background:#ffe066; animation: fxchg .5s 2 alternate; }
 @keyframes fxchg { from { transform:scale(1); } to { transform:scale(1.15); } }
 .stage2 { position:relative; height: 14rem; background:#1a2030; border-radius:1rem; overflow:hidden; }
@@ -689,7 +692,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
     else { addLog('hl', '▶ さっきの たたかいを もう一度 見るよ（けっかは おなじ）'); $('bStage').textContent += '　▶ もう一度'; } // 上の 帯にも（ログの 1行目は 流れて 見えなく なる）
     play(out, before, equip, d);
   }
-  function hpHtml(p, max) { return '<div class="hpnum"><span class="chgmark" id="' + p + 'Chg"></span><span id="' + p + 'HpN">' + max + ' / ' + max + '</span></div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }
+  function hpHtml(p, max) { return '<div class="hpnum"><span class="sclmark" id="' + p + 'Scl"></span><span class="chgmark" id="' + p + 'Chg"></span><span id="' + p + 'HpN">' + max + ' / ' + max + '</span></div><div class="hpbar"><i id="' + p + 'Hp" style="width:100%"></i></div>'; }
   function setHp(p, hp, max) { $(p + 'HpN').textContent = Math.max(0, hp) + ' / ' + max; $(p + 'Hp').style.width = Math.max(0, 100 * hp / max) + '%'; }
   function glow(side, sel) { var root = $(side === 'p' ? 'bMe' : 'bFoe'); Array.prototype.forEach.call(root.querySelectorAll(sel), function (el) { el.classList.remove('fx-glow'); void el.offsetWidth; el.classList.add('fx-glow'); }); }
   function glowKw(side, kw) { glow(side, '[data-kw="' + kw + '"]'); var root = $(side === 'p' ? 'bMe' : 'bFoe'); Array.prototype.forEach.call(root.querySelectorAll('.ptile'), function (el) { var p = S.PART_BY_ID[el.getAttribute('data-part')]; if (p && p.kw.indexOf(kw) >= 0) { el.classList.remove('fx-glow'); void el.offsetWidth; el.classList.add('fx-glow'); } }); }
@@ -716,6 +719,9 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
       el.className = 'chgmark' + (now ? ' fx-chgnow' : '');
     }
     chgMark('p', 0); chgMark('e', 0);
+    // いしのうろこの 印：うけて ふえた まもりを 体力の そばに ずっと 出す（11-01 その14 の 確認役：ログだけでは すぐ 消える）
+    function sclMark(side, n) { var el = $(side === 'p' ? 'mScl' : 'fScl'); if (!el) return; el.textContent = n > 0 ? '🛡+' + n : ''; el.title = n > 0 ? 'いしのうろこ：1げき うけるたび まもり +1（+' + C.scaleMax + ' まで）。いまは +' + n : ''; }
+    sclMark('p', 0); sclMark('e', 0);
     $('bSkip').onclick = function () { fast = true; };
     G.playing = true;
     function step() {
@@ -740,7 +746,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
         case 'kw':
           var kn = e.kw === 'fangGrow' ? 'キバで どくが ' + e.n + ' ダメージに' : e.kw === 'springExtra' ? 'ばねあしで もう1かい！' : e.kw === 'charge' ? 'ためた！ この手は ×' + C.chargeMult : e.kw === 'stagger' ? 'よろけて ちからが でない' : e.kw === 'immune' ? 'へっちゃら！' : e.kw === 'scaleStack' ? 'うろこで かたく なった（まもりが +' + e.n + ' に）' : e.kw;
           addLog(cls, nm + '：' + kn, e.kw === 'springExtra' ? null : e.kw === 'fangGrow' ? 'poison' : e.kw === 'scaleStack' ? 'hard' : e.kw);
-          if (e.kw === 'springExtra') glowPart(who, 'spring'); else if (e.kw === 'fangGrow') glowPart(who, 'fang'); else if (e.kw === 'scaleStack') glowPart(who, 'scale'); else glowKw(who, e.kw);
+          if (e.kw === 'springExtra') glowPart(who, 'spring'); else if (e.kw === 'fangGrow') glowPart(who, 'fang'); else if (e.kw === 'scaleStack') { glowPart(who, 'scale'); sclMark(who, e.n); } else glowKw(who, e.kw);
           delay = 300; break;
         case 'status': addLog(cls === 'p' ? 'e' : 'p', nm + 'は ' + STN[e.st] + 'に なった' + (e.long ? '（✨' + WZ.shitsukoi.name + '：' + e.n + '手）' : ''), e.st === 'brittle' ? 'brittle' : e.st); glowKw(e.who === 'p' ? 'e' : 'p', e.st === 'brittle' ? 'brittle' : e.st); if (e.long) glow(e.who === 'p' ? 'e' : 'p', '[data-waza="shitsukoi"]'); delay = 200; break;
         case 'counter':

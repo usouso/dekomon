@@ -195,6 +195,7 @@ body[data-scr="title"] #tip { display:none; } /* タイトルには カードも
   .bw .card .ptiles .ptile { width:2.8rem; height:2.8rem; flex:none; } .bw .card .ptiles .ptile svg { width:2.2rem; height:2.2rem; }
   .bw > * { min-width:0; } .bw .card .nm { flex-wrap:wrap; } /* ながい 名前＋「てごわい」で カードが ひろがって 横に はみ出さない（「てごわい」は つぎの 行へ） */
   .bw .card .stat b { font-size:1rem; }
+  #bMe, #bFoe { display:flex; flex-direction:column; } #bMe > .hpnum, #bFoe > .hpnum { order:-2; } #bMe > .hpbar, #bFoe > .hpbar { order:-1; margin:0 0 .4rem; } /* スマホの 戦い：体力は カードの 上（ログの すぐ 下）。前は カードの 下で 375×812 では 画面の いちばん 下・360×640 では 見えなかった（原則 2） */
   .kotgrid { grid-template-columns: 1fr; }
   body[data-scr="battle"] #tip:not(.tipon) { display:none; } /* スマホの 戦いは 下の 帯が 自分の 体力に かぶる → タップした ときだけ 出す */
   body[data-scr="battle"] #tip.tipon { top:0; bottom:auto; border-top:0; border-bottom:2px solid #3a4256; } /* 出す ときは 上に（体力を かくさない） */

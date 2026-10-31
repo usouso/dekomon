@@ -111,6 +111,32 @@ noLuck(function () {
   ok(cs.length > 0 && cs[0].dmg === 3, 'はんげき：こうげきの 半分で やりかえす');
   r = S.battle(P({ atk: 5 }, ['longleg']), E({ atk: 6, hp: 200 }, ['spike']), 1);
   ok(r.events.filter(function (e) { return e.t === 'counter'; }).length === 0, 'とおくから：はんげきを うけない');
+  // いしのうろこ（11-01 強さ合わせ その14）：1げき うけるたび まもり +1（+3 まで）。はんげきも 1げき。強さの 数字（st.def）は かえない
+  ok(S.PART_BY_ID.scale.line === '1げき うけるたび まもり +1（+' + C.scaleMax + ' まで）' && C.scaleMax === 3 && !S.PART_BY_ID.scale.bonus, 'いしのうろこ：2行目は 中身（+1・+' + C.scaleMax + ' まで）と 同じ');
+  r = S.battle(P({ atk: 1, hp: 300, spd: 1 }, ['scale']), E({ atk: 10, hp: 300, spd: 9 }), 1);
+  var sh = hits(r, 'e').slice(0, 5).map(function (e) { return e.dmg; });
+  ok(sh.join() === [8, 7, 6, 5, 5].join(), 'いしのうろこ：うけるたび まもり +1、+3 で とまる（' + sh.join() + '）');
+  ok(r.events.filter(function (e) { return e.t === 'kw' && e.kw === 'scaleStack' && e.who === 'p'; }).map(function (e) { return e.n; }).join() === '1,2,3', 'いしのうろこ：ログは 1・2・3 の 3回だけ');
+  ok(r.pSt.def === C.hardDef && S.statsOf(P({}, ['scale'])).def === C.hardDef, 'いしのうろこ：強さの まもりは かたいの +2 だけ（戦いの あとも かわらない）');
+  r = S.battle(P({ atk: 1, hp: 300, spd: 9 }, ['scale']), E({ atk: 10, hp: 300, spd: 1 }, ['spike']), 1);
+  cs = r.events.filter(function (e) { return e.t === 'counter'; });
+  ok(cs[0].dmg === 3 && hits(r, 'e')[0].dmg === 7 && cs[1].dmg === 1, 'いしのうろこ：はんげきも 1げき（うけると まもり +1。3 → 7 → 1）');
+  var ci0 = r.events.findIndex(function (e) { return e.t === 'counter'; }), si0 = r.events.findIndex(function (e) { return e.t === 'kw' && e.kw === 'scaleStack'; });
+  ok(ci0 >= 0 && si0 === ci0 + 1, 'いしのうろこ：はんげきを うけた あとに かたく なる（ログの 順）');
+  r = S.battle(P({ atk: 1, hp: 300, spd: 1 }, ['scale']), E({ atk: 10, hp: 300, spd: 9 }), 1, { waza: ['teppeki'] });
+  sh = hits(r, 'e').slice(0, 3).map(function (e) { return e.dmg; });
+  ok(sh.join() === '1,7,6', 'いしのうろこ＋てっぺき：さいしょは 1、そのあとも うろこが たまる（' + sh.join() + '）');
+  r = S.battle(P({ atk: 1, hp: 8, spd: 1 }, ['scale']), E({ atk: 10, hp: 300, spd: 9 }), 1);
+  ok(!r.win && r.events.filter(function (e) { return e.t === 'kw' && e.kw === 'scaleStack'; }).length === 0, 'いしのうろこ：たおれた 1げきでは かたく ならない');
+  r = S.battle(P({ atk: 20, hp: 300, spd: 1 }, ['horn']), E({ atk: 10, hp: 900, spd: 9 }, ['scale']), 1);
+  var hc = hits(r, 'p').filter(function (e) { return e.charged; })[0];
+  ok(hc && hc.pierce && hc.dmg === Math.round(20 * C.chargeMult), 'ツノの ためた 1げきは うろこで ふえた まもりも むしする');
+  // ヒカリクラゲ・ぬし：うろこを 外して 生まれつき かたい・もとの まもり 0 → 1 で 前（うろこ：かたい・まもり +1）と 同じ 強さ（段階 1・10、てごわいも）
+  ['jelly', 'boss'].forEach(function (id) { [1, 10].forEach(function (s2) { [false, true].forEach(function (hd) {
+    var ix = id === 'boss' ? 'boss' : S.ENEMIES.findIndex(function (e) { return e.id === id; });
+    var now = S.statsOf(S.enemySrc(ix, s2, hd));
+    ok(S.enemyDef(ix).def === 1 && S.enemyDef(ix).parts.indexOf('scale') < 0 && now.kw.hard && !now.specials.scaleStack && now.def === Math.floor((s2 - 1) / C.stageDefEvery) + 1 + C.hardDef, id + '：段階' + s2 + (hd ? '・てごわい' : '') + ' の まもりは 前と 同じ（' + now.def + '）');
+  }); }); });
   // かいふく・すいとり
   r = S.battle(P({ hp: 50 }, ['longtail']), E({ atk: 5 }), 1);
   ok(r.events.some(function (e) { return e.t === 'heal' && e.src === 'regen' && e.n === C.regenHeal; }), 'かいふく：じぶんの手の はじめに +2');

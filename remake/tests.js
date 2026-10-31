@@ -292,13 +292,13 @@ try {
       sp.name + '：ひらめきは HP +1、旧モードは HP +' + C.hpUp + '（ほかの 成長は 同じ）');
   });
 } finally { C.hira.on = growthOn; }
-// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +1）
+// ひらめきの 確率は 画面と 同じ パーツ込みの うん（はね うん +2）
 var oc = C.hira.chance, op = C.hira.perLuck; C.hira.chance = 0; C.hira.perLuck = 1;
 var lk = S.newRun(14, 'koron'); lk.stats.luck = 0; lk.equip = { atk: null, def: null, mov: 'wing' };
 var lk2 = S.newRun(14, 'koron'); lk2.stats.luck = 0; lk2.equip = { atk: null, def: null, mov: 'longleg' };
 var g1 = S.hirameki(lk, { hard: false }), g2 = S.hirameki(lk2, { hard: false });
 C.hira.chance = oc; C.hira.perLuck = op;
-ok(g1 && !g2, 'ひらめき：はねの うん +1 も 確率に 入る（画面の うんと 同じ）');
+ok(g1 && !g2, 'ひらめき：はねの うん（+2）も 確率に 入る（画面の うんと 同じ）');
 // 前の 保存（その1）：nare・learned が なくても 戦える
 var old = S.newRun(13, 'pyun'); delete old.nare; delete old.learned;
 var oo = S.fight(old, 0, old.equip); ok(oo && Array.isArray(old.learned) && typeof old.nare === 'object', '前の 保存（nare・learned なし）でも 戦える');

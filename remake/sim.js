@@ -26,6 +26,7 @@
     staggerMult: 0.5,      // よろけ：つぎの こうげきが ×0.5
     brittlePlus: 2, brittleHands: 3, // もろい：うける 1げき +2（3手）
     hardDef: 2,            // かたい：まもり +2
+    scaleMax: 3,           // いしのうろこ：1げき うけるたび まもり +1 の 上限（11-01 強さ合わせ その14）
     counterRatio: 0.5,     // はんげき：ちかくから 1げき うけるたび じぶんの こうげきの 半分で
     regenHeal: 2,          // かいふく：じぶんの手の はじめに たいりょく +2
     leechRatio: 1 / 3,     // すいとり：あたえた ダメージの 1/3
@@ -90,7 +91,7 @@
     { id: 'leech', short: 'すいつく', name: 'すいつくくち', role: 'def', kw: ['leech'],            line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spike', short: 'トゲ',    name: 'トゲ',         role: 'def', kw: ['counter'],          line: 'まもり +1', bonus: { def: 1 } },
     { id: 'shell', short: 'コウラ',    name: 'かたいコウラ', role: 'def', kw: ['hard', 'heavy'],    line: 'たいりょく +1', bonus: { hp: 1 } }, // 10-31 強さ合わせ その4：+3 → +1
-    { id: 'scale', short: 'うろこ',    name: 'いしのうろこ', role: 'def', kw: ['hard'],             line: 'まもり +1', bonus: { def: 1 } },
+    { id: 'scale', short: 'うろこ',    name: 'いしのうろこ', role: 'def', kw: ['hard'],             line: '1げき うけるたび まもり +1（+3 まで）', special: 'scaleStack' }, // 11-01 強さ合わせ その14：まもり +1 → これ（つけた ときの 勝ちやすさが ほかの まもりより −2.9。ヒカリクラゲ・ぬしは もとの まもり 0 → 1 で 前の +1 を もどす）
     { id: 'longtail', short: 'ながお', name: 'ながいしっぽ', role: 'def', kw: ['regen'],            line: 'たいりょく +2', bonus: { hp: 2 } },
     { id: 'fur', short: 'ふさふさ',      name: 'ふさふさのけ', role: 'def', kw: ['immune'],           line: 'たいりょく +3', bonus: { hp: 3 } },
     { id: 'spring', short: 'ばね',   name: 'ばねあし',     role: 'mov', kw: ['fast'],             line: '3手ごとに もう1かい こうげき', special: 'springExtra' },
@@ -148,12 +149,12 @@
     { id: 'bird',     name: 'ヤリドリ',       hp: 13, atk: 2, def: 0, spd: 6, kw: ['yokeru'], parts: ['longleg', 'eye'],   color: '#d9b36c', shape: 'tall' }, // 10-31 その7：atk 4 → 3（ひかるめ +2 の ぶんを もどす。こうげきは 段階1〜4 で 前と 同じ、段階5〜10 で 1〜2 ひくい＝もとの こうげき だけ 段階で のびる ため）。10-31 その11：atk 3 → 2（ながいあし +3 の ぶんを もどす。段階1 は 7 の まま・段階2〜10 は 前より 1〜2 ひくい）
     { id: 'frog',     name: 'ドロガエル',     hp: 15, atk: 3, def: 0, spd: 3, kw: ['hard'],   parts: ['spike', 'longtail'], color: '#7b6a4e', shape: 'blob' },
     { id: 'wolf',     name: 'ツタオオカミ',   hp: 14, atk: 3, def: 0, spd: 5, kw: [],         parts: ['claw', 'spring'],   color: '#5fa86a', shape: 'blob' },
-    { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 0, spd: 4, kw: ['ranged'], parts: ['leech', 'scale'],   color: '#6f9ceb', shape: 'dome' },
+    { id: 'jelly',    name: 'ヒカリクラゲ',   hp: 15, atk: 3, def: 1, spd: 4, kw: ['ranged', 'hard'], parts: ['leech'],   color: '#6f9ceb', shape: 'dome' }, // 11-01 その14：いしのうろこを 外して 生まれつき かたい・もとの まもり 0 → 1（前の うろこ まもり +1 を もとへ。強さは 前と 同じ。うろこの「うけるたび」は 相手が もつと 長い 戦いで かたく なりすぎる）
     { id: 'boar',     name: 'マグマイノシシ', hp: 15, atk: 3, def: 0, spd: 4, kw: [],         parts: ['weight', 'crush'],  color: '#b5413a', shape: 'wide' },
     { id: 'cat',      name: 'カゲネコ',       hp: 13, atk: 3, def: 0, spd: 6, kw: ['yokeru', 'heavy'], parts: ['tail', 'fang'], color: '#4a4f66', shape: 'round' } // 11-01 その13：生まれつき おもい（ふといしっぽから おもいを 外した ぶん。強さは 前と 同じ）
   ];
   ENEMIES.forEach(function (e, i) { e.index = i; });
-  var BOSS = { id: 'boss', name: 'やまの ぬし', hp: 22, atk: 3, def: 0, spd: 3, kw: ['regen', 'immune', 'heavy'], parts: ['horn', 'scale'], color: '#6b3fa0', shape: 'wide', boss: true, index: 'boss' };
+  var BOSS = { id: 'boss', name: 'やまの ぬし', hp: 22, atk: 3, def: 1, spd: 3, kw: ['regen', 'immune', 'heavy', 'hard'], parts: ['horn'], color: '#6b3fa0', shape: 'wide', boss: true, index: 'boss' }; // 11-01 その14：いしのうろこを 外して 生まれつき かたい・もとの まもり 0 → 1（強さは 前と 同じ）
   var ENEMY_BY_ID = {}; ENEMIES.forEach(function (e) { ENEMY_BY_ID[e.id] = e; }); ENEMY_BY_ID.boss = BOSS;
   function enemyDef(idx) { return idx === 'boss' ? BOSS : ENEMIES[idx]; }
 
@@ -229,7 +230,7 @@
   function fighter(side, name, src, waza) {
     var st = statsOf(src);
     return { side: side, name: name, st: st, kw: st.kw, sp: st.specials, hp: st.hp, maxHp: st.hp, hands: 0,
-      poison: 0, poisonPow: 0, stagger: false, brittle: 0, waza: waza || [], kokozoUsed: false, luckyNext: false, gaman: 0, hitTaken: 0, fukkatsuUsed: false };
+      poison: 0, poisonPow: 0, stagger: false, brittle: 0, waza: waza || [], kokozoUsed: false, luckyNext: false, gaman: 0, hitTaken: 0, fukkatsuUsed: false, scaleN: 0 };
   }
   function battle(pSrc, eSrc, seed, opts) {
     opts = opts || {};
@@ -245,6 +246,7 @@
       t.hp -= n; if (t.side === 'p') taken[src] = (taken[src] || 0) + n;
     }
     function heal(f, n, src) { if (n <= 0 || f.hp >= f.maxHp) return; var h = Math.min(n, f.maxHp - f.hp); f.hp += h; log({ t: 'heal', who: f.side, n: h, src: src, hp: f.hp }); }
+    function scaleUp(f) { if (f.sp.scaleStack && f.hp > 0 && f.scaleN < CFG.scaleMax) { f.scaleN++; log({ t: 'kw', who: f.side, kw: 'scaleStack', n: f.scaleN }); } } // いしのうろこ：1げき うけるたび まもり +1（CFG.scaleMax まで。st.def は かえない＝結果の 画面の 強さは もとの まま）
     function oneAttack(a, d, opt) {
       // opt：{ hits, mult1（1げきめの 倍率）, forceCrit1 }
       var hits = opt.hits, mult = a.kw.ren ? CFG.renMult : 1;
@@ -268,7 +270,7 @@
         var status = d.poison > 0 || d.stagger || d.brittle > 0;
         if (a.kw.nerai && status) raw += CFG.neraiPlus;
         if (d.brittle > 0) raw += CFG.brittlePlus;
-        var def = (charged && a.sp.hornPierce) ? 0 : d.st.def;
+        var def = (charged && a.sp.hornPierce) ? 0 : d.st.def + d.scaleN;
         var dmg = Math.max(1, Math.round(raw) - def);
         var crit = a.critPending || rng() * 100 < a.st.crit; a.critPending = false;
         if (crit) dmg *= CFG.critMult;
@@ -276,8 +278,9 @@
         if (wall) { dmg = 1; log({ t: 'waza', who: d.side, w: 'teppeki' }); }
         dmgTo(d, dmg, charged ? 'charge' : 'hit', a.side);
         dealtSum += dmg;
-        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, wall: wall, wz: wz, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def > 0), hp: d.hp });
+        log({ t: 'hit', who: a.side, to: d.side, dmg: dmg, crit: !!crit, wall: wall, wz: wz, charged: !!charged, nerai: !!(a.kw.nerai && status), brittle: d.brittle > 0, pierce: !!(charged && a.sp.hornPierce && d.st.def + d.scaleN > 0), hp: d.hp });
         if (d.waza.indexOf('gaman') >= 0 && d.gaman < 3) d.gaman++;
+        scaleUp(d);
         if (d.hp > 0) {
           // じょうたいを かける
           if (!d.kw.immune) {
@@ -291,11 +294,12 @@
             var craw = Math.round(d.st.atk * CFG.counterRatio) + (a.brittle > 0 ? CFG.brittlePlus : 0) + (d.kw.nerai && (a.poison > 0 || a.stagger || a.brittle > 0) ? CFG.neraiPlus : 0)
               + (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd ? 1 : 0) + (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp ? 2 : 0); // 覚えた 技の「1げき +」も のる
             var cwz = []; if (d.waza.indexOf('kakenuke') >= 0 && d.st.spd > a.st.spd) cwz.push('kakenuke'); if (d.waza.indexOf('todome') >= 0 && a.hp * 2 < a.maxHp) cwz.push('todome');
-            var c = Math.max(1, craw - a.st.def);
+            var c = Math.max(1, craw - a.st.def - a.scaleN);
             if (a.waza.indexOf('teppeki') >= 0 && a.hitTaken === 0) { c = 1; log({ t: 'waza', who: a.side, w: 'teppeki' }); }
             a.hitTaken++;
             dmgTo(a, c, 'counter', d.side);
             if (a.waza.indexOf('gaman') >= 0 && a.gaman < 3) a.gaman++;
+            scaleUp(a);
             log({ t: 'counter', who: d.side, to: a.side, dmg: c, hp: a.hp, wz: cwz });
           }
         }

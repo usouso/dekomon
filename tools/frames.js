@@ -1,5 +1,5 @@
 // たたみやま 版1 — コマ送り画像（0.05秒ごとに 10コマを 横に並べた 1枚）を 2つ作る
-// 使い方: node tools/frames.js [--port 8789] [--size 1366x768]
+// 使い方: node tools/frames.js [--port 8789] [--size 1366x768] [--suffix _375]
 //  1) change_frames.png … ぐらの数字が変わる瞬間（よつおりの上に みつおりを置く → 2→0 と 4→0）
 //  2) fall_frames.png   … 山が落ちる瞬間（合計9の山、seed 5 は かいだんで落ちる）
 // CDP の screencast で コマを集め、0.05秒ごとに いちばん近いコマを選ぶ。終わったら ブラウザと サーバーを 必ず閉じる。
@@ -10,6 +10,7 @@ var path = require('path'), fs = require('fs');
 function arg(name, def) { var i = process.argv.indexOf('--' + name); if (i < 0) return def; var v = process.argv[i + 1]; return (v === undefined || v.indexOf('--') === 0) ? true : v; }
 var PORT = parseInt(arg('port', '8789'), 10);
 var SZ = String(arg('size', '1366x768')).split('x').map(Number);
+var SUFFIX = String(arg('suffix', '')); // --suffix _375 のように 出力名に足す（スマホの大きさで撮る時）
 var DIR = path.join(__dirname, '..', 'screenshots');
 function startServer() { return new Promise(function (resolve) { var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: ['ignore', 'pipe', 'pipe'] }); sv.stdout.on('data', function () { resolve(sv); }); setTimeout(function () { resolve(sv); }, 1500); }); }
 
@@ -59,8 +60,8 @@ async function strip(browser, rec, clip, outFile, label) {
     var slot = await page.evaluate(function () { var r = document.querySelector('.slot[data-slot="0"]').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
     var clip1 = { x: Math.max(0, Math.round(slot.x - 10)), y: Math.round(slot.y + slot.h * 0.45), w: Math.round(slot.w + 20), h: Math.round(slot.h * 0.55) };
     var rec1 = await record(page, async function () { await page.evaluate(function () { window.__tatami.place('jeans', 'jeans_third', 0); }); }, 900, clip1);
-    var dts1 = await strip(browser, rec1, clip1, path.join(DIR, 'change_frames.png'), 'ぐらの数字が変わる瞬間：よつおり(2) の上に みつおり(4) → 2→0 と 4→0（0.05秒ごと・speed 0.5）');
-    console.log('change_frames.png コマ ' + rec1.frames.length + '、選んだ時刻 ' + JSON.stringify(dts1));
+    var dts1 = await strip(browser, rec1, clip1, path.join(DIR, 'change_frames' + SUFFIX + '.png'), 'ぐらの数字が変わる瞬間：よつおり(2) の上に みつおり(4) → 2→0 と 4→0（0.05秒ごと・speed 0.5）');
+    console.log('change_frames' + SUFFIX + '.png コマ ' + rec1.frames.length + '、選んだ時刻 ' + JSON.stringify(dts1));
     // 2) 山が落ちる瞬間：1日目 合計9、seed 5（かいだんで ジーンズが落ちる）
     await page.goto('http://localhost:' + PORT + '/?mute=1&seed=5&reset=1&speed=0.5');
     await page.evaluate(function () { var W = window.__tatami; W.start(5); ['tshirt_square', 'tshirt_square', 'socks_line', 'socks_line', 'towel_roll', 'jeans_half'].forEach(function (f) { W.place(W.T.FOLD_BY_ID[f].kind, f, 0); }); W.carry(); });
@@ -71,8 +72,8 @@ async function strip(browser, rec, clip, outFile, label) {
     while (Date.now() - t0 < 60000) { await page.waitForTimeout(40); var hot = await page.evaluate(function () { return !!document.querySelector('#carrierStack .fx-hot'); }); if (hot) { ok = true; break; } }
     if (!ok) throw new Error('落ちる瞬間が来なかった');
     var rec2 = await record(page, async function () { var t1 = Date.now(); while (Date.now() - t1 < 5000) { await page.waitForTimeout(15); var d = await page.evaluate(function () { return !!document.querySelector('#carrierStack .fx-drop'); }); if (d) break; } return Date.now() - 60; }, 700, clip2);
-    var dts2 = await strip(browser, rec2, clip2, path.join(DIR, 'fall_frames.png'), '山が落ちる瞬間：かいだんで ぐら9＋ゆれ3 ＞ 10 → ジーンズ(3) から上が落ちる（0.05秒ごと・speed 0.5）');
-    console.log('fall_frames.png コマ ' + rec2.frames.length + '、選んだ時刻 ' + JSON.stringify(dts2));
+    var dts2 = await strip(browser, rec2, clip2, path.join(DIR, 'fall_frames' + SUFFIX + '.png'), '山が落ちる瞬間：かいだんで ぐら9＋ゆれ3 ＞ 10 → ジーンズ(3) から上が落ちる（0.05秒ごと・speed 0.5）');
+    console.log('fall_frames' + SUFFIX + '.png コマ ' + rec2.frames.length + '、選んだ時刻 ' + JSON.stringify(dts2));
     await ctx.close();
   } finally { await browser.close(); sv.kill(); }
 })().catch(function (e) { console.error(e); process.exit(1); });

@@ -336,16 +336,30 @@
     var slot = $('stacks').querySelector('.slot[data-slot="' + fx.slot + '"]'); if (!slot) return;
     var sb = slot.querySelector('.stackbox'); var layers = sb.querySelectorAll('.layer'); var nums = sb.querySelectorAll('.gnum');
     var anyDown = false, anyUp = false;
-    fx.changes.forEach(function (ch) {
+    var W = sb.clientWidth, H = sb.clientHeight, placedYs = [];
+    fx.changes.forEach(function (ch, j) {
       var n = nums[ch.i]; if (!n) return;
       n.classList.add('chg'); if (ch.to > ch.from) n.classList.add('up');
       var pop = document.createElement('div'); pop.className = 'fx-chg' + (ch.to > ch.from ? ' up' : ''); pop.textContent = ch.from + '→' + ch.to;
-      var gm = sb.__geom || { offX: 0, sc: 1 };
-      pop.style.left = (gm.offX + 46 * gm.sc) + 'px'; pop.style.top = n.style.top; sb.appendChild(pop);
+      sb.appendChild(pop);
+      // 吹き出しは 数字の場所に出す（数字は その間 隠す）。2つ以上 同時なら 1つおきに 左（絵の上）に出して 重ならないように。箱の外には出さない
+      var pw = pop.offsetWidth || 40, ph = pop.offsetHeight || 24, x = parseFloat(n.style.left) || W / 2, y = parseFloat(n.style.top) || H / 2;
+      var numW = n.offsetWidth || 24;
+      if (H < ph + 4 || W < pw + numW + 12) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 箱が小さすぎて 吹き出しが入らない時は 数字の色だけ変える
+      if (sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden')) x = x - pw - 6; // 数字が詰まっている（2列・等間隔）時は 左（絵の上）に出して 隣の数字と重ねない
+      x = Math.max(pw / 2 + 2, Math.min(W - pw / 2 - 2, x));
+      // 縦：箱の中に おさめ、前に出した吹き出しと 重ならない所まで ずらす
+      var fits = function (yy) { for (var q = 0; q < placedYs.length; q++) if (Math.abs(placedYs[q] - yy) < ph + 2) return false; return true; };
+      var clampY = function (yy) { return Math.max(ph / 2 + 1, Math.min(H - ph / 2 - 1, yy)); };
+      y = clampY(y);
+      if (!fits(y)) { var up = y, down = y, k = 0; while (k++ < 20) { up -= ph + 2; down += ph + 2; if (up >= ph / 2 + 1 && fits(up)) { y = up; break; } if (down <= H - ph / 2 - 1 && fits(down)) { y = down; break; } } }
+      placedYs.push(y);
+      pop.style.left = x + 'px'; pop.style.top = y + 'px';
+      n.style.visibility = 'hidden';
       if (layers[ch.i]) layers[ch.i].classList.add('fx-take');
       ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); });
       if (ch.to < ch.from) anyDown = true; else anyUp = true;
-      setTimeout(function () { pop.remove(); n.classList.remove('chg', 'up'); }, D(1600));
+      setTimeout(function () { pop.remove(); n.classList.remove('chg', 'up'); n.style.visibility = ''; }, D(1600));
     });
     if (layers[fx.placed]) layers[fx.placed].classList.add('fx-pat');
     if (anyDown) SFX.good(); else if (anyUp) SFX.up();

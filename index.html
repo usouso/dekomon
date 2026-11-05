@@ -201,7 +201,10 @@
   }
   /* ---------- 低い画面（スマホの横向き・小さい窓） ---------- */
   @media (max-width: 900px) and (max-height: 700px) {
-    #colL { max-height: 30vh; }
+    #colL { max-height: 38vh; }
+    #colL #basketBox { min-height: 82px; } /* あとの スマホ用の min-height:0 より 強く */
+    #colL #foldBox { flex: none; }
+    #foldHint { display: none; }
     .st svg { height: 20px; }
     #roadHint { display: none !important; }
     .bitem svg { height: 18px; }

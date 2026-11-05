@@ -24,7 +24,7 @@ function eachFolds(kinds, cb) {
   })(0);
 }
 var cache = new Map();
-function ev(stack) { var key = stack.join(','); var v = cache.get(key); if (v) return v; var e = T.carryExpect(stack), c = T.stackCalc(stack); v = { E: e.expected, total: c.total }; cache.set(key, v); return v; }
+function ev(stack) { var key = stack.join(','); var v = cache.get(key); if (v) return v; var e = T.carryExpect(stack), c = T.stackCalc(stack); v = { E: e.expected, total: c.total }; if (stack.length <= 6) cache.set(key, v); return v; }
 function tally(name, run) {
   var t0 = Date.now(), all = 0, safe = 0, bestE = Infinity, bestTotal = Infinity, byTotal = {}, examples = [];
   run(function (stacks) {
@@ -44,4 +44,6 @@ console.log('|---|---|---|---|---|---|---|');
 var d1 = T.DAYS[0].basket, d2 = T.DAYS[1].basket;
 tally('1日目 1山（6まい）', function (cb) { eachOrdering(Object.assign({}, d1), function (ord) { eachFolds(ord, function (folds) { cb([folds.slice()]); }); }); });
 tally('1日目 2山（6まい。山の順は区別・空の山なし）', function (cb) { eachOrdering(Object.assign({}, d1), function (ord) { eachFolds(ord, function (folds) { for (var s = 1; s < folds.length; s++) cb([folds.slice(0, s), folds.slice(s)]); }); }); });
-tally('2日目 1山（9まい）', function (cb) { eachOrdering(Object.assign({}, d2), function (ord) { eachFolds(ord, function (folds) { cb([folds.slice()]); }); }); });
+if (process.argv.indexOf('--day2k2') < 0) tally('2日目 1山（9まい）', function (cb) { eachOrdering(Object.assign({}, d2), function (ord) { eachFolds(ord, function (folds) { cb([folds.slice()]); }); }); });
+// --day2k2：2日目 2山（9まい。山の順は区別・空の山なし）＝ 15120 × 256 × 8 ≈ 3100万通り。時間がかかる（10〜20分）
+if (process.argv.indexOf('--day2k2') >= 0) tally('2日目 2山（9まい。山の順は区別・空の山なし）', function (cb) { eachOrdering(Object.assign({}, d2), function (ord) { eachFolds(ord, function (folds) { for (var s = 1; s < folds.length; s++) cb([folds.slice(0, s), folds.slice(s)]); }); }); });

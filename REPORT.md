@@ -143,6 +143,8 @@ node tools/check.js --runs 3（?auto=1&bg=1&speed=10&mute=1。大きさごとに
 - 音：ヘッドレス Chrome で ▶ のあと 13種類の効果音を全部鳴らして、エラーなし（聞いてはいない）。
 - コマ送り（0.05秒ごと10コマ、speed 0.5）：screenshots/change_frames.png（よつおりの上に みつおり → 2→0 と 4→0）、screenshots/fall_frames.png（かいだんで ぐら9＋ゆれ3 → ジーンズから上が落ちる）。実際の時刻も各コマに書いた。
 
+最終確認（18:27 JST）：node tests.js 43 / 43 ok。node tools/check.js --runs 2（seed 7001〜）で 4つの大きさとも ずれ 0・重なり 0・はみ出し 0・ページのスクロール なし。
+
 ## 5. 確かめられなかったこと
 
 1. 音：ヘッドレスでは聞けない。鳴らす関数は呼ばれてもエラーにならないことだけ確かめた（4.の auto は無音）。

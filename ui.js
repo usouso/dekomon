@@ -575,8 +575,9 @@
       await wait(700);
       for (var e = 0; e < r.log.length; e++) {
         var en = r.log[e];
-        car.style.left = LEFT[e];
-        await wait(1200);
+        car.classList.add('walking'); car.style.left = LEFT[e];
+        await wait(1400);
+        car.classList.remove('walking');
         renderStations(e);
         var evDef = T.CFG.events[e];
         if (en.calm) { SFX.calm(); carryMsg(evDef.name + '：<span class="calm">' + evDef.calm + '（ゆれなし）</span>'); }
@@ -610,8 +611,9 @@
         if (!en.remain.length) break;
       }
       if (r.delivered.length) {
-        car.style.left = LEFT[3];
-        await wait(1200);
+        car.classList.add('walking'); car.style.left = LEFT[3];
+        await wait(1400);
+        car.classList.remove('walking');
         renderStations(3);
         SFX.deliver();
         tilt(0, 0);

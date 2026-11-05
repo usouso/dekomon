@@ -69,6 +69,32 @@ function planKotsu3(dayIndex, kinds, rng) {
   return stacks.map(function (s) { var out = []; if (s.bottom) out.push(s.bottom); var mid = shuffle(s.mid, rng); if (s.pair) { var pos = Math.floor(rng() * (mid.length + 1)); mid.splice(pos, 0, 'towel_quad', 'jeans_third'); } out = out.concat(mid); if (s.top) out.push(s.top); return out; }).filter(function (s) { return s.length; });
 }
 
+// （参考）文を読む人：札の文から素直に読める置き方だけ使う。
+//   シーツは いちばん下（上ぜんぶ −1）、その すぐ上に みつおり（シーツを 0に）。シーツのない山は ジーンズを ふたつおりで下。
+//   くつした1足は まるめて上、残りは ならべる。タオルは みつおりの すぐ下なら よつおり（お互い 0）、そうでなければ くるくる。
+//   Tシャツは しかく。つるつるは まるめる の すぐ下（+1 を 受けるのは 上の1まいだけ）。往復は全部使い、均等に配る。
+function planReader(dayIndex, kinds, rng) {
+  var k = Math.min(T.DAYS[dayIndex].trips, kinds.length);
+  var pool = shuffle(kinds.slice(), rng);
+  var stacks = []; for (var i = 0; i < k; i++) stacks.push({ bottom: [], mid: [], top: [] });
+  var take = function (kind) { var j = pool.indexOf(kind); if (j < 0) return false; pool.splice(j, 1); return true; };
+  // シーツ → 山1の下。すぐ上に みつおり（あれば）
+  if (take('sheet')) { stacks[0].bottom.push('sheet_fold'); if (take('jeans')) stacks[0].bottom.push('jeans_third'); }
+  // 残りの山に ジーンズを ふたつおりで下
+  stacks.forEach(function (s) { if (!s.bottom.length && take('jeans')) s.bottom.push('jeans_half'); });
+  // くつした1足を まるめて上
+  stacks.forEach(function (s) { if (take('socks')) s.top.push('socks_ball'); });
+  // 残りのジーンズは みつおり、その すぐ下に タオルを よつおり（組）
+  stacks.forEach(function (s, i) { if (pool.indexOf('jeans') >= 0 && pool.indexOf('towel') >= 0) { take('towel'); take('jeans'); s.mid.push(['towel_quad', 'jeans_third']); } });
+  // つるつるは まるめる の すぐ下
+  stacks.forEach(function (s) { if (s.top.length && take('slick')) s.top.unshift('slick_fold'); });
+  pool.forEach(function (kind, i) {
+    var f = { tshirt: 'tshirt_square', socks: 'socks_line', towel: 'towel_roll', jeans: 'jeans_third', slick: 'slick_fold', sheet: 'sheet_fold' }[kind];
+    stacks[i % k].mid.push(f);
+  });
+  return stacks.map(function (s) { var mid = shuffle(s.mid, rng); var flat = []; mid.forEach(function (m) { if (Array.isArray(m)) flat = flat.concat(m); else flat.push(m); }); return s.bottom.concat(flat, s.top); }).filter(function (s) { return s.length; });
+}
+
 // ---------- 探索（かしこい・にせの選択の検査） ----------
 // 焼きなまし（少しずつ入れ替えて、良くなれば取り、悪くなっても たまに取る）＋ やり直し。
 // 目標：obj = wE × 落ちる枚数の期待の合計 ＋ 山のぐらの合計（wE=1000 なら 期待を最優先、10 なら 指示書の ものさし）
@@ -177,6 +203,7 @@ function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
     runBot('ふつう（しかく・ならべる・よつおり・ふたつおり だけ）', planRandom(PLAIN), RUNS, [5, 25]),
     runBot('コツ2つ（ふたつおり いちばん下・まるめる いちばん上）', planKotsu, RUNS, [35, 65]),
     runBot('（参考）コツ3つ（よつおりの上に みつおり を先に組む＋コツ2つ）', planKotsu3, RUNS, [0, 100]),
+    runBot('（参考）文を読む人（シーツは下＋みつおり、ふたつおり下、まるめる上、よつおり＞みつおり、つるつるは まるめるの下）', planReader, RUNS, [0, 100]),
     runBot('かしこい（探索。期待 0.05以下の 最少の山）', planSmart, RUNS, [95, 100])
   ];
   console.log('| ボット | せいこう | のこりの平均 | ☆の平均 | 落ちた枚数の平均（1日目／2日目／3日目） | 山の数の平均 | 目標 | 届いたか |');

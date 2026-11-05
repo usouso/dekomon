@@ -264,14 +264,49 @@
       '<path d="M55 15.5 q1.5 -1 3 0 M62 15.5 q1.5 -1 3 0" stroke="#4a3220" stroke-width="1" fill="none"/>' +
       '<path d="M57 24.5 q3 2.5 6 0" stroke="#8a5a3a" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
   }
+  // 床：板の継ぎ目が 奥の1点（消失点）に集まる 板張り（y0〜y1。幅 1000）
+  function floorPerspective(y0, y1, VPy) {
+    var VPx = 500, k = (y0 - VPy) / (y1 - VPy), s = '<rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="#b3834f"/>';
+    var xs = []; for (var xb = -1300; xb <= 2300; xb += 95) xs.push(xb);
+    for (var i = 0; i + 1 < xs.length; i++) {
+      var a = xs[i], b = xs[i + 1], at = VPx + (a - VPx) * k, bt = VPx + (b - VPx) * k;
+      if (Math.max(b, bt) < 0 || Math.min(a, at) > 1000) continue;
+      s += '<path d="M' + a + ' ' + y1 + ' L' + b + ' ' + y1 + ' L' + bt + ' ' + y0 + ' L' + at + ' ' + y0 + 'z" fill="' + (i % 2 ? '#c49461' : '#b98a57') + '" stroke="#7a5431" stroke-width="1.6"/>';
+      for (var r = 0; r < 4; r++) {
+        if ((i + r) % 2) continue;
+        var yy = y1 - (y1 - y0) * [0.22, 0.48, 0.7, 0.86][r], kk = (yy - VPy) / (y1 - VPy);
+        s += '<line x1="' + (VPx + (a - VPx) * kk) + '" y1="' + yy + '" x2="' + (VPx + (b - VPx) * kk) + '" y2="' + yy + '" stroke="#7a5431" stroke-width="1.4"/>';
+      }
+    }
+    s += '<rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="url(#p-grain)"/><rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="url(#g-floor)"/>';
+    return s;
+  }
+  // 題名の絵（1000×600 の部屋を全画面に。障子の明かり・畳の上の大きな山・運ぶ人・かご・ねこ・タンス）
   function titleArt() {
-    var items = [{ kind: 'jeans', fold: 'jeans_half' }, { kind: 'towel', fold: 'towel_quad' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'sheet', fold: 'sheet_fold' }, { kind: 'socks', fold: 'socks_ball' }];
-    var s = '<rect x="0" y="0" width="420" height="170" fill="url(#g-wall)"/><rect x="0" y="170" width="420" height="90" fill="url(#p-planks)"/><rect x="0" y="170" width="420" height="90" fill="url(#g-shade)" opacity=".5"/>';
-    s += '<rect x="300" y="40" width="80" height="80" fill="url(#g-sky)" stroke="#8a6238" stroke-width="5"/><line x1="340" y1="40" x2="340" y2="120" stroke="#8a6238" stroke-width="3"/><line x1="300" y1="80" x2="380" y2="80" stroke="#8a6238" stroke-width="3"/>';
-    s += '<g filter="url(#f-soft)">' + tansuSVG(30, 95, 110, 90) + '</g>';
-    s += '<rect x="110" y="196" width="200" height="34" rx="4" fill="#c9c58f" stroke="#9a9460" stroke-width="3"/>';
-    var y = 198; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.5, w = sh.w * 1.8; s += pieceSVG(it.kind, it.fold, 210, y, w, h, { noDir: true, stroke: 2, shadow: true }); y -= h; });
-    s += '<g filter="url(#f-soft)" transform="translate(300,150) scale(.32)">' + basketBody(300, 420) + '</g>';
+    var s = '<rect width="1000" height="600" fill="url(#g-wall)"/><rect width="1000" height="600" fill="url(#p-paper)"/><rect width="1000" height="16" fill="#000" opacity=".14"/>';
+    // 障子（鴨居・柱・紙・桟・奥からの明かり）
+    s += '<rect x="300" y="30" width="400" height="14" fill="url(#g-wood)" stroke="#4a2e14" stroke-width="1.5"/><rect x="300" y="30" width="400" height="14" fill="url(#p-grain)"/>';
+    s += '<rect x="320" y="44" width="360" height="336" fill="#fbf6ea"/><rect x="320" y="44" width="360" height="336" fill="url(#g-light)"/>';
+    for (var gx = 320; gx <= 680; gx += 60) s += '<line x1="' + gx + '" y1="44" x2="' + gx + '" y2="380" stroke="#a98257" stroke-width="2.4"/>';
+    for (var gy = 44; gy <= 380; gy += 56) s += '<line x1="320" y1="' + gy + '" x2="680" y2="' + gy + '" stroke="#a98257" stroke-width="2.4"/>';
+    s += '<rect x="320" y="44" width="360" height="336" fill="none" stroke="#8a6238" stroke-width="4"/>';
+    s += '<rect x="298" y="30" width="22" height="350" fill="url(#g-wood)" stroke="#4a2e14" stroke-width="1.5"/><rect x="680" y="30" width="22" height="350" fill="url(#g-wood)" stroke="#4a2e14" stroke-width="1.5"/><rect x="298" y="30" width="22" height="350" fill="url(#p-grain)"/><rect x="680" y="30" width="22" height="350" fill="url(#p-grain)"/>';
+    // 幅木と床、障子からの光だまり
+    s += '<rect x="0" y="364" width="1000" height="16" fill="#7a5431"/><rect x="0" y="364" width="1000" height="4" fill="#b88a55"/><rect x="0" y="378" width="1000" height="2" fill="#3a2a1c"/>';
+    s += floorPerspective(380, 600, 200);
+    s += '<path d="M330 380 h340 l110 220 h-560z" fill="#fff6d6" opacity=".22"/><rect x="0" y="380" width="1000" height="220" fill="url(#g-glass)" opacity=".15"/>';
+    // タンス（右）と ねこ（座布団の上）
+    s += '<g filter="url(#f-soft)">' + tansuSVG(805, 290, 170, 160) + '</g>';
+    s += '<g transform="translate(690,468) scale(1.15)">' + STATION_BIG.neko + '</g>';
+    // かご（左。上からのぞく形）
+    s += '<g filter="url(#f-soft)" transform="translate(80,330) scale(.62)">' + basketBody(300, 420) + '</g>';
+    // 畳と 大きな山（中央やや左）
+    s += '<g filter="url(#f-soft)"><path d="M330 466 h220 l30 96 h-280z" fill="url(#p-tatami)" stroke="#2f3d2e" stroke-width="2"/><path d="M330 466 h220 v10 h-220z" fill="#2f3d2e"/><path d="M300 552 h280 v10 h-280z" fill="#2f3d2e"/><path d="M330 466 h220 l30 96 h-280z" fill="url(#g-shade)" opacity=".35"/></g>';
+    var items = [{ kind: 'jeans', fold: 'jeans_half' }, { kind: 'towel', fold: 'towel_quad' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'sheet', fold: 'sheet_fold' }, { kind: 'slick', fold: 'slick_fold' }, { kind: 'socks', fold: 'socks_ball' }];
+    var y = 548; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.7, w = sh.w * 2.1; s += pieceSVG(it.kind, it.fold, 440, y, w, h, { noDir: true, stroke: 2, shadow: true }); y -= h; });
+    // 運ぶ人（小さな山を かかえて 立っている）
+    s += '<g transform="translate(520,402) scale(1.6)">' + personSVG() + '</g>';
+    var y2 = 404; [{ kind: 'towel', fold: 'towel_roll' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'socks', fold: 'socks_line' }].forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.1, w = sh.w * 1.15; s += pieceSVG(it.kind, it.fold, 616, y2, w, h, { noDir: true, stroke: 1.5, shadow: true }); y2 -= h; });
     return s;
   }
   // かご（箱の大きさ W×H に合わせて描く。上から のぞきこむ見た目：口の内側・手前の編み面・編み込んだ縁・持ち手。模様は px のまま＝伸びない）
@@ -345,21 +380,8 @@
       '<rect x="500" y="50" width="10" height="130" fill="#8a6238"/><rect x="430" y="110" width="150" height="10" fill="#8a6238"/><rect x="424" y="180" width="162" height="12" fill="#a8773f"/><rect x="424" y="186" width="162" height="6" fill="#5a3a1a" opacity=".5"/>' +
       // 幅木
       '<rect x="0" y="292" width="1000" height="20" fill="#7a5431"/><rect x="0" y="292" width="1000" height="5" fill="#b88a55"/><rect x="0" y="309" width="1000" height="3" fill="#3a2a1c"/>';
-    // 床：板の継ぎ目が 奥の1点（消失点）に集まる＝奥行き。板の端は 互い違い
-    var VPx = 500, VPy = 150, y0 = 312, y1 = 500, k = (y0 - VPy) / (y1 - VPy);
-    s += '<rect x="0" y="312" width="1000" height="188" fill="#b3834f"/>';
-    var xs = []; for (var xb = -1300; xb <= 2300; xb += 95) xs.push(xb);
-    for (var i = 0; i + 1 < xs.length; i++) {
-      var a = xs[i], b = xs[i + 1], at = VPx + (a - VPx) * k, bt = VPx + (b - VPx) * k;
-      if (Math.max(b, bt) < 0 || Math.min(a, at) > 1000) continue;
-      s += '<path d="M' + a + ' ' + y1 + ' L' + b + ' ' + y1 + ' L' + bt + ' ' + y0 + ' L' + at + ' ' + y0 + 'z" fill="' + (i % 2 ? '#c49461' : '#b98a57') + '" stroke="#7a5431" stroke-width="1.6"/>';
-      for (var r = 0; r < 4; r++) {
-        if ((i + r) % 2) continue;
-        var yy = y1 - (y1 - y0) * [0.22, 0.48, 0.7, 0.86][r], kk = (yy - VPy) / (y1 - VPy);
-        s += '<line x1="' + (VPx + (a - VPx) * kk) + '" y1="' + yy + '" x2="' + (VPx + (b - VPx) * kk) + '" y2="' + yy + '" stroke="#7a5431" stroke-width="1.4"/>';
-      }
-    }
-    s += '<rect x="0" y="312" width="1000" height="188" fill="url(#p-grain)"/><rect x="0" y="312" width="1000" height="188" fill="url(#g-floor)"/>' +
+    s += floorPerspective(312, 500, 150);
+    s +=
       '<ellipse cx="505" cy="400" rx="240" ry="60" fill="url(#g-light)"/>' +
       '<rect x="0" y="312" width="1000" height="188" fill="url(#g-glass)" opacity=".18"/>';
     return s;

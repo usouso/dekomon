@@ -32,7 +32,7 @@
   try { G.guideDone = localStorage.getItem('tatami1.guide') === 'done'; } catch (e) { }
   if (OPT.auto) G.guideDone = false; // 自動でも 案内の文字を出して 重なりを検査する
 
-  function setSpeed(m) { G.speedMul = m; document.documentElement.style.setProperty('--spd', String(m * OPT.speed)); var bs = $('speedSeg').querySelectorAll('button'); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', parseFloat(bs[i].getAttribute('data-speed')) === m); }
+  function setSpeed(m) { G.speedMul = m; document.documentElement.style.setProperty('--spd', String(m * OPT.speed)); try { localStorage.setItem('tatami1.speed', String(m)); } catch (e) { } var bs = $('speedSeg').querySelectorAll('button'); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', parseFloat(bs[i].getAttribute('data-speed')) === m); }
   function D(ms) { return ms / (G.speedMul * OPT.speed); }
   function wait(ms) { return new Promise(function (r) { setTimeout(r, D(ms)); }); }
 
@@ -45,6 +45,7 @@
   }
   function tone(freq, dur, type, gain, when, slide) {
     if (!AC || OPT.mute) return;
+    if (AC.state === 'suspended') { try { AC.resume(); } catch (e) { } }
     var t = AC.currentTime + (when || 0);
     var o = AC.createOscillator(), g = AC.createGain();
     o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
@@ -184,6 +185,7 @@
       box.appendChild(g); els.push(g);
     }
     var numH = els[0].offsetHeight || 20, numW = els[0].offsetWidth || 24;
+    if (H < numH + 4) { els.forEach(function (e) { e.classList.add('hidden'); }); box.setAttribute('data-nummode', 'none'); box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH }; return; }
     var minLayer = Math.min.apply(null, out.hs) * sc;
     var mode = minLayer >= numH + 1 ? 'one' : (minLayer * 2 >= numH + 1 && 28 * sc >= numW + 2 && offX + 132 * sc + numW / 2 <= W + 1 ? 'zig' : 'pitch');
     if (opts.onlyHot) mode = 'one';
@@ -279,11 +281,11 @@
     var j = judgeOf(total, acc);
     var parts = [];
     if (acc) { parts.push('ぐら&nbsp;' + total); parts.push('＋ゆれ&nbsp;' + acc); parts.push('＝<span class="tot">' + (total + acc) + '</span>／10'); }
-    else if (opts && opts.height) { parts.push('ぐら&nbsp;' + (total - opts.height)); parts.push('＋たかさ&nbsp;' + opts.height); parts.push('＝<span class="tot">' + total + '</span>／10'); }
+    else if (opts && opts.height) { parts.push('<span class="brk">ぐら&nbsp;' + (total - opts.height) + '</span>'); parts.push('<span class="brk">＋たかさ&nbsp;' + opts.height + '</span>'); parts.push('<span class="brk">＝</span><span class="tot">' + total + '</span>／10'); }
     else parts.push('<span class="lbl">ごうけい&nbsp;</span><span class="tot">' + total + '</span>／10');
     return '<div class="cells">' + cells + '<div class="line4"></div></div><div class="txt">' + parts.map(function (p) { return '<span>' + p + '</span>'; }).join('') + '<span class="judge ' + j.cls + '">' + j.text + '</span></div>';
   }
-  function slotLabel(i, st) { return 'やま' + (i + 1) + (st.length ? '　' + st.length + 'まい' : ''); }
+  function slotLabel(i, st) { var done = G.carrying && G.carrying.done.indexOf(i) >= 0; return 'やま' + (i + 1) + (done ? '　はこんだ' : (st.length ? '　' + st.length + 'まい' : '')); }
   function renderStacks(fx) {
     var box = $('stacks'); box.innerHTML = '';
     var canPlace = G.screen === 'stack' && !!selItem() && !!G.selFold;
@@ -299,7 +301,6 @@
         var html = '<div class="sname">' + slotLabel(i, st) + '</div><div class="stackbox">' + stackSVG(st, calc, out) + '</div><div class="bar">' + barHTML(calc.total, 0, { height: calc.height }) + '</div>';
         slot.innerHTML = html;
         var sb = slot.querySelector('.stackbox');
-        if (G.carrying && G.carrying.done.indexOf(i) >= 0) { var done = document.createElement('div'); done.className = 'sname'; done.textContent = 'はこんだ'; slot.appendChild(done); }
         slot.addEventListener('click', function (ev) { onSlotClick(i, ev); });
         box.appendChild(slot);
         pending.push({ sb: sb, out: out, calc: calc });
@@ -513,6 +514,7 @@
       $('endLine').innerHTML = '3日で とどいた <b>' + G.total.delivered + '</b>まい' + (left ? '　のこり <b>' + left + '</b>まい' : '　かごは からっぽ');
       $('endStars').textContent = '☆の ごうけい ' + G.total.stars + '（' + G.dayLog.map(function (d) { return '☆' + d.stars; }).join('・') + '）';
       $('endDays').innerHTML = G.dayLog.map(function (d) { return d.day + '日目：とどいた ' + d.delivered + '・おちた ' + d.fallen; }).join('<br>') + (recs.length ? '<div id="falls" style="margin-top:6px">' + recs.map(fallRecHTML).join('') + '</div>' : '');
+      $('endSeed').textContent = 'たね ' + G.seed;
       $('end').classList.remove('hidden'); $('stackUI').classList.add('hidden');
       setScreen('end');
       if (left === 0) SFX.success();
@@ -542,7 +544,8 @@
   $('startBtn').addEventListener('click', function () { audioInit(); SFX.click(); $('title').classList.add('hidden'); newRun(OPT.seed !== null ? OPT.seed : ((Date.now() ^ (Math.random() * 1e9)) >>> 0)); });
   $('titleArt').innerHTML = titleArt();
   $('carrier').querySelector('.person').innerHTML = personSVG();
-  setSpeed(1);
+  var sp0 = 1; try { sp0 = parseFloat(localStorage.getItem('tatami1.speed') || '1') || 1; } catch (e) { }
+  setSpeed(sp0 === 2.5 ? 2.5 : 1);
   renderStations(-1);
   window.addEventListener('resize', function () { if (G.screen === 'stack' || G.screen === 'carry') renderStacks(); });
 
@@ -579,7 +582,7 @@
       out.push({ el: e, rects: rects, er: er, text: e.textContent.trim().slice(0, 30), button: e.tagName === 'BUTTON' });
     }
     // 固定のボタン（はこぶ・つぎの日・↻・はやい）も相手に入れる：文字が その上に 入っていたら 重なり
-    [$('carryBtn'), $('nextBtn'), $('againBtn')].forEach(function (b) { if (!b || b.offsetParent === null) return; var r = b.getBoundingClientRect(); if (r.width <= 0) return; out.push({ el: b, rects: [r], er: r, text: 'ボタン ' + b.textContent.trim(), button: true, fixed: true }); });
+    if (root === $('app')) [$('carryBtn'), $('nextBtn'), $('againBtn')].forEach(function (b) { if (!b || b.offsetParent === null) return; var r = b.getBoundingClientRect(); if (r.width <= 0) return; out.push({ el: b, rects: [r], er: r, text: 'ボタン ' + b.textContent.trim(), button: true, fixed: true }); });
     return out;
   }
   function checkOverlap() {
@@ -590,7 +593,8 @@
       if (a.el.scrollWidth > a.el.clientWidth + 2 && a.el.clientWidth > 0 && getComputedStyle(a.el).overflow !== 'visible') report('はみ出し', a.text, '(箱 ' + a.el.clientWidth + 'px / 文字 ' + a.el.scrollWidth + 'px)', a.er, null, a.el);
       var par = a.el.parentElement;
       if (par && par !== document.body) { var pr = par.getBoundingClientRect(); if (pr.width > 0 && (a.er.right > pr.right + 3 || a.er.left < pr.left - 3 || a.er.bottom > pr.bottom + 3)) report('親の外', a.text, (par.id || par.className || par.tagName), a.er, pr, a.el, par); }
-      if (a.er.right > window.innerWidth + 1 || a.er.bottom > window.innerHeight + 1) report('画面の外', a.text, window.innerWidth + '×' + window.innerHeight, a.er, null, a.el);
+      var mr = 0, mb = 0; a.rects.forEach(function (r) { mr = Math.max(mr, r.right); mb = Math.max(mb, r.bottom); }); // overflow で切り取られた部分は数えない
+      if (mr > window.innerWidth + 1 || mb > window.innerHeight + 1) report('画面の外', a.text, window.innerWidth + '×' + window.innerHeight, a.er, null, a.el);
       for (var j = 0; j < els.length; j++) {
         if (j === i) continue;
         var b = els[j];

@@ -13,4 +13,4 @@
 - REPORT.md … この版の報告
 
 動かす：`node tests.js`／`node bot.js [--runs 1000]`／`node serve.js` → http://localhost:8787/
-確認用の切り替え：`?auto=1`（自動で3日遊ぶ。必ず無音）`&bg=1`（タイマーで進める）`&speed=10&mute=1&seed=N&reset=1&runs=3`
+確認用の切り替え：`?auto=1`（自動で3日遊ぶ。必ず無音）`&bg=1`（タイマーで進める。この版は演出も全部 setTimeout で進むので、付けても付けなくても同じ）`&speed=10&mute=1&seed=N&reset=1&runs=3`

@@ -7,6 +7,7 @@ function arg(name, def) { var i = process.argv.indexOf('--' + name); if (i < 0) 
 var RUNS = parseInt(arg('runs', '1000'), 10);
 var SEED = parseInt(arg('seed', '1'), 10);
 var QUICK = arg('quick', false) === true;
+var VARIANT = arg('variant', null); if (VARIANT && VARIANT !== true) { if (!T.applyVariant(VARIANT)) { console.error('知らない切り替え: ' + VARIANT); process.exit(1); } }
 
 var FOLDS_OF = {}; T.KINDS.forEach(function (k) { FOLDS_OF[k.id] = T.foldsOf(k.id).map(function (f) { return f.id; }); });
 var PLAIN = { tshirt: ['tshirt_square'], socks: ['socks_line'], towel: ['towel_quad'], jeans: ['jeans_half'], slick: ['slick_fold'], sheet: ['sheet_fold'] };
@@ -154,7 +155,7 @@ function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
 
 (function main() {
   var t0 = Date.now();
-  console.log('# ボットの結果（runs ' + RUNS + '、seed ' + SEED + (QUICK ? '、quick' : '') + '）\n');
+  console.log('# ボットの結果（runs ' + RUNS + '、seed ' + SEED + (QUICK ? '、quick' : '') + (T.variant() ? '、切り替え ' + T.variant().name + '：' + T.variant().note : '') + '）\n');
   console.log('前提：指示書 3. の数字のまま（かかえる力 10、高さ 5まいめから、ゆれ 1/2/3、ゆれなし 30%、往復 2/2/4）。でたらめ・ふつう・コツ2つは 往復を全部使い、均等に配り、順番はランダム。\n');
   var rows = [
     runBot('でたらめ（たたみ方もランダム）', planRandom(FOLDS_OF), RUNS, [0, 10]),

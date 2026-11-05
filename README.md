@@ -14,4 +14,5 @@
 - REPORT.md … この版の報告
 
 動かす：`node tests.js`／`node bot.js [--runs 1000]`／`node serve.js` → http://localhost:8787/
+比べるための切り替え：`?v=c`（REPORT 3. の案C：くるくる＝「すぐ上の1まい ぐら+2。いちばん上なら ぐら2」。画面の文も変わり、見出しに「案C」が出る。ボットは `node bot.js --variant c`）。既定は指示書のまま。
 確認用の切り替え：`?auto=1`（自動で3日遊ぶ。必ず無音）`&bg=1`（タイマーで進める。この版は演出も全部 setTimeout で進むので、付けても付けなくても同じ）`&speed=10&mute=1&seed=N&reset=1&runs=3`

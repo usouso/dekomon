@@ -54,9 +54,9 @@
   .bitem .fdg { position: absolute; left: 4px; top: 2px; font-size: 14px; font-weight: 700; color: var(--sub); }
   #foldBox { min-height: 150px; }
   #foldBox .who { color: var(--ink); }
-  #folds { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
-  #folds.one { grid-template-columns: minmax(0, 1fr); }
-  .fbtn { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 6px 8px; text-align: left; min-height: 104px; background: #fff; }
+  #folds { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; } /* PC は 1列（効果の文を 2行までに おさめる） */
+  .fbtn { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 6px 8px; text-align: left; min-height: 0; background: #fff; }
+  .fbtn .ft { min-height: 0; }
   .fbtn svg { width: 100%; height: 34px; }
   .fbtn .fn { font-weight: 700; font-size: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 6px; }
   .fbtn .fn > span { white-space: nowrap; }
@@ -204,6 +204,8 @@
     .bitem svg { height: 22px; }
     .bitem .nm { font-size: 14px; }
     #foldBox { min-height: 0; }
+    #folds { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    #folds.one { grid-template-columns: minmax(0, 1fr); }
     .fbtn { min-height: 0; padding: 4px 6px; }
     .fbtn svg { height: 22px; }
     .fbtn .fn { font-size: 15px; }
@@ -243,6 +245,7 @@
     <span class="title">たたみやま</span>
     <span class="dayLbl" id="dayLbl">1日目／3</span>
     <span class="tripLbl" id="tripLbl">おうふく 2かい</span>
+    <span class="tripLbl hidden" id="variantLbl"></span>
     <span class="sp"></span>
     <span id="volBox"><span>おんりょう</span><input id="vol" type="range" min="0" max="100" value="30" aria-label="おんりょう"></span>
   </div>

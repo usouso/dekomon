@@ -86,5 +86,13 @@ eq('合計4以下なら かならず届く（ゆれ6 でも）', carried(['sheet
   eq('同じ seed なら 同じ結果', a.delivered.length, b.delivered.length);
   eq('かごの中身と 山の中身が合う', T.sameItems(T.basketOf(0), [S9]), true);
 })();
+// 比べるための切り替え c（既定では入っていない。入れたら くるくる は いちばん上なら ぐら2）
+eq('切り替え前：くるくる 1まいだけ = 0', guras(['tshirt_roll']).g, [0]);
+eq('切り替え c を入れられる', T.applyVariant('c'), true);
+eq('切り替え c：くるくる 1まいだけ = 2（いちばん上）', guras(['tshirt_roll']).g, [2]);
+eq('切り替え c：しかく > くるくる = 1, 2', guras(['tshirt_square', 'tshirt_roll']).g, [1, 2]);
+eq('切り替え c：くるくる > しかく = 0, 3（上でなければ 0。すぐ上 +2 はそのまま）', guras(['tshirt_roll', 'tshirt_square']).g, [0, 3]);
+eq('切り替え c：文も変わる', T.FOLD_BY_ID.tshirt_roll.text, 'すぐ上の1まい ぐら+2。いちばん上なら ぐら2');
+eq('切り替えは 二度 入れられない', T.applyVariant('c'), false);
 console.log('\n' + (count - fails) + ' / ' + count + ' ok' + (fails ? '（NG ' + fails + '）' : ''));
 process.exit(fails ? 1 : 0);

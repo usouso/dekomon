@@ -52,6 +52,19 @@
   var FOLD_BY_ID = {}; FOLDS.forEach(function (f) { FOLD_BY_ID[f.id] = f; });
   function foldsOf(kind) { return FOLDS.filter(function (f) { return f.kind === kind; }); }
 
+  // 比べるための切り替え（既定は 指示書のまま。?v=c／bot.js --variant c で入る。一度入れたら 読み込み直すまで戻さない）
+  //   c：くるくる＝「すぐ上の1まい ぐら+2。いちばん上なら ぐら2」（REPORT.md 3. の案C）
+  var VARIANTS = {
+    c: { id: 'c', name: '案C', note: 'くるくるは いちばん上なら ぐら2', folds: { tshirt_roll: { text: 'すぐ上の1まい ぐら+2。いちばん上なら ぐら2', topBase: 2 } } }
+  };
+  var activeVariant = null;
+  function applyVariant(id) {
+    var v = VARIANTS[id]; if (!v || activeVariant) return false;
+    Object.keys(v.folds).forEach(function (fid) { var patch = v.folds[fid]; Object.keys(patch).forEach(function (k) { FOLD_BY_ID[fid][k] = patch[k]; }); });
+    activeVariant = id; return true;
+  }
+  function variant() { return activeVariant ? VARIANTS[activeVariant] : null; }
+
   // 3日の中身（かご）と 往復の回数
   var DAYS = [
     { day: 1, trips: 2, basket: { tshirt: 2, socks: 2, towel: 1, jeans: 1 } },
@@ -88,6 +101,7 @@
       var base = f.gura;
       var e = f.effect;
       var condHit = false;
+      if (f.topBase !== undefined && i === n - 1) { base = f.topBase; condHit = true; } // 切り替え c：いちばん上なら ぐら topBase（手順1）
       if (e && e.type === 'cond') {
         var isTop = (i === n - 1), isBottom = (i === 0);
         if ((e.where === 'top' && isTop) || (e.where === 'bottom' && isBottom)) { base = e.base; condHit = true; }
@@ -205,6 +219,7 @@
 
   return {
     CFG: CFG, KINDS: KINDS, KIND_BY_ID: KIND_BY_ID, FOLDS: FOLDS, FOLD_BY_ID: FOLD_BY_ID, foldsOf: foldsOf,
+    VARIANTS: VARIANTS, applyVariant: applyVariant, variant: variant,
     DAYS: DAYS, basketOf: basketOf, makeRng: makeRng,
     stackCalc: stackCalc, diffCalc: diffCalc, fallIndex: fallIndex, carry: carry, carryWith: carryWith, carryExpect: carryExpect,
     runDay: runDay, sameItems: sameItems

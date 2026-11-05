@@ -7,6 +7,7 @@
   var Q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { if (!kv) return; var p = kv.split('='); Q[decodeURIComponent(p[0])] = p.length > 1 ? decodeURIComponent(p[1]) : '1'; });
   var OPT = { auto: Q.auto === '1', bg: Q.bg === '1', speed: parseFloat(Q.speed || '1') || 1, mute: Q.mute === '1', seed: Q.seed ? parseInt(Q.seed, 10) : null, reset: Q.reset === '1', runs: parseInt(Q.runs || '1', 10) };
   if (OPT.auto) OPT.mute = true;
+  if (Q.v && T.applyVariant(Q.v)) OPT.variant = Q.v; // 比べるための切り替え（?v=c）
   if (OPT.reset) { try { localStorage.removeItem('tatami1.guide'); localStorage.removeItem('tatami1.vol'); } catch (e) { } }
 
   var KIND_COLOR = { tshirt: '#7fb3ff', socks: '#ffb27f', towel: '#8fd68f', jeans: '#4a6fb5', slick: '#d9c2ff', sheet: '#fff0b3' };
@@ -231,6 +232,7 @@
   function setScreen(sc) { G.screen = sc; document.body.className = 'sc-' + sc; }
   function guide(id, on) { var e = $(id); e.classList.toggle('hidden', !(on && !G.guideDone)); }
   function renderHead() {
+    var v = T.variant(); $('variantLbl').textContent = v ? v.name : ''; $('variantLbl').classList.toggle('hidden', !v); $('variantLbl').title = v ? v.note : '';
     $('dayLbl').textContent = (G.day + 1) + '日目／3';
     $('tripLbl').textContent = 'おうふく ' + tripsToday() + 'かい';
   }
@@ -368,6 +370,7 @@
     var st = G.stacks[i];
     if (layer && st.length && parseInt(layer.getAttribute('data-i'), 10) === st.length - 1) { unplaceTop(i); return; }
     if (it && !G.selFold) { $('foldHint').textContent = 'さきに たたみかたを えらぶ'; var fb = $('foldBox'); fb.style.boxShadow = '0 0 0 3px #4a7fd6'; setTimeout(function () { fb.style.boxShadow = ''; }, 600); }
+    else if (!it && G.basket.length) { $('foldHint').textContent = 'さきに かごの 1まいを えらぶ'; var bb = $('basketBox'); bb.style.boxShadow = '0 0 0 3px #4a7fd6'; setTimeout(function () { bb.style.boxShadow = ''; }, 600); }
   }
   function placeItem(it, foldId, slotIdx) {
     var st = G.stacks[slotIdx];

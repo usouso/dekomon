@@ -1,5 +1,5 @@
 // たたみやま 版1 — 画面の検査（ヘッドレス Chrome / Playwright）
-// 使い方: node tools/check.js [--runs 3] [--sizes 1366x768,1920x1080,1920x910,375x812] [--port 8787] [--seed 1]
+// 使い方: node tools/check.js [--runs 3] [--sizes 1366x768,1920x1080,1920x910,375x812] [--port 8787] [--seed 1] [--v c]
 // やること: node serve.js を立てて、?auto=1&bg=1&speed=10&mute=1 の自動プレイ（3日）を 大きさごとに runs 周回し、
 //   ui.js が console に出す '[たたみやま auto]'（ずれ・おちた・数字の変化）と '[たたみやま 検査]'（重なり・はみ出し・ページのスクロール）を集めて 表（Markdown）にする。
 //   終わったら ブラウザと サーバーを 必ず閉じる。
@@ -13,6 +13,7 @@ var SIZES = String(arg('sizes', '1366x768,1920x1080,1920x910,375x812')).split(',
 var PORT = parseInt(arg('port', '8787'), 10);
 var SEED0 = parseInt(arg('seed', '1'), 10);
 var TIMEOUT_MS = parseInt(arg('timeout', String(10 * 60 * 1000)), 10);
+var VARIANT = arg('v', null); // --v c で 案C（?v=c）の画面を検査
 function startServer() {
   return new Promise(function (resolve, reject) {
     var sv = spawn(process.execPath, [path.join(__dirname, '..', 'serve.js'), String(PORT)], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -29,7 +30,7 @@ async function runSize(browser, size, idx) {
   page.on('console', function (m) { var t = m.text(); if (t.indexOf('[たたみやま auto]') === 0) autoLines.push(t); else if (t.indexOf('[たたみやま 検査]') === 0) errs.push(t); else if (t.indexOf('[たたみやま] 画面と計算がずれた') === 0) mism.push(t); else if (m.type() === 'error') misc.push(t); });
   page.on('pageerror', function (e) { misc.push('pageerror: ' + e.message); });
   var seed = SEED0 + idx * 100;
-  await page.goto('http://localhost:' + PORT + '/?auto=1&bg=1&speed=10&mute=1&seed=' + seed + '&reset=1&runs=' + RUNS);
+  await page.goto('http://localhost:' + PORT + '/?auto=1&bg=1&speed=10&mute=1&seed=' + seed + '&reset=1&runs=' + RUNS + (VARIANT && VARIANT !== true ? '&v=' + VARIANT : ''));
   var t0 = Date.now(), fin = false;
   while (!fin && Date.now() - t0 < TIMEOUT_MS) {
     await page.waitForTimeout(500);

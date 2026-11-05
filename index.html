@@ -273,6 +273,49 @@
     #endBig { font-size: 30px; }
     #title h1 { font-size: 34px; }
   }
+
+  /* ---------- スマホの横向き（幅 900px 未満・横長・低い）：PC と同じ3列を 小さく ---------- */
+  @media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+    :root { --fs: 14px; }
+    #app { grid-template-rows: 40px 1fr; }
+    #head { gap: 8px; padding: 0 8px; }
+    #main { grid-template-columns: 200px minmax(0, 1fr) 236px; grid-template-rows: minmax(0, 1fr); gap: 6px; padding: 6px; }
+    #colL { order: 0; max-height: none; } #colM { order: 1; } #colR { order: 2; }
+    body.sc-carry #colL, body.sc-evening #colL, body.sc-end #colL { display: flex; }
+    body.sc-stack #walk, body.sc-stack #carryMsg, body.sc-stack #delivered { display: block; }
+    #roadHint { display: none !important; }
+    .box { padding: 4px 6px; }
+    .box h2 { font-size: 14px; margin-bottom: 2px; }
+    #basketBox { flex: 1; min-height: 70px; }
+    #basket { grid-template-columns: repeat(4, 1fr); gap: 3px; }
+    .bitem { padding: 1px; } .bitem svg { height: 16px; } .bitem .nm { font-size: 14px; line-height: 1.1; }
+    #foldBox { flex: none; min-height: 0; }
+    #folds { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .fbtn { padding: 2px 6px; flex-direction: row; align-items: center; gap: 6px; }
+    .fbtn svg { width: 40px; height: 22px; flex: none; }
+    .fbtn .fn { font-size: 14px; flex-direction: column; align-items: flex-start; gap: 0; }
+    .fbtn .ft { font-size: 14px; min-height: 0; flex: 1; }
+    #foldHint { display: none; }
+    #stackUI { gap: 2px; }
+    #stacks { gap: 4px; }
+    .slot { padding: 2px; } .slot .sname { font-size: 14px; }
+    .bar .cells { height: 8px; } .bar .txt { font-size: 14px; margin-top: 1px; }
+    #carryBtnRow { gap: 6px; } #carryBtn { font-size: 15px; padding: 3px 14px; } #carryNote { font-size: 14px; }
+    .guide { font-size: 14px; padding: 0 6px; }
+    #roadBox { flex: 1; }
+    .stations { gap: 2px; } .st { font-size: 14px; padding-bottom: 1px; } .st svg { height: 16px; }
+    #walk { height: 70px; margin-top: 2px; }
+    #carrier { width: 34%; } #carrier .cst { height: 48px; } #carrier .person { height: 20px; }
+    #carryMsg { font-size: 14px; min-height: 2.3em; padding: 2px 4px; margin-top: 2px; line-height: 1.25; }
+    #delivered { display: none; }
+    .overlay { padding: 6px; gap: 3px; } .overlay h3 { font-size: 16px; }
+    .bigline { font-size: 14px; } .bigline b { font-size: 17px; }
+    .fallrec { font-size: 14px; padding: 2px 6px; gap: 4px; } .fallrec > svg { width: 26px; height: 22px; } .fallrec .minibox { width: 24px; height: 44px; } .fallrec .picks { max-width: 30%; } .fallrec .picks svg { width: 18px; height: 16px; }
+    .overlay .btnrow button { font-size: 15px; padding: 4px 16px; }
+    #endBig { font-size: 24px; margin: 2px 0; }
+    #title h1 { font-size: 28px; } #title p { font-size: 14px; } #titleArt { width: 120px; height: 90px; } #startBtn { font-size: 24px; padding: 4px 30px; }
+    #title { gap: 8px; }
+  }
 </style>
 </head>
 <body>

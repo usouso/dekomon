@@ -291,8 +291,10 @@
       '<path d="M48.5 17 q2 -13 11.5 -13 q9.5 0 11.5 13 q-4 -6 -11.5 -6 q-7.5 0 -11.5 6z" fill="#4a3220"/><circle cx="60" cy="5.5" r="4" fill="#4a3220"/><path d="M52 10 q6 -4 13 -1" stroke="#7a5a40" stroke-width="1.4" fill="none" opacity=".8"/>' +
       '<ellipse cx="52.5" cy="22" rx="2.4" ry="1.6" fill="#e8a0a0" opacity=".55"/><ellipse cx="67.5" cy="22" rx="2.4" ry="1.6" fill="#e8a0a0" opacity=".55"/>' +
       '<circle cx="56" cy="19" r="1.4" fill="#2b2118"/><circle cx="64" cy="19" r="1.4" fill="#2b2118"/><circle cx="56.5" cy="18.5" r=".5" fill="#fff"/><circle cx="64.5" cy="18.5" r=".5" fill="#fff"/>' +
-      '<path d="M55 15.5 q1.5 -1 3 0 M62 15.5 q1.5 -1 3 0" stroke="#4a3220" stroke-width="1" fill="none"/>' +
-      '<path d="M57 24.5 q3 2.5 6 0" stroke="#8a5a3a" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+      '<g class="face face-n"><path d="M55 15.5 q1.5 -1 3 0 M62 15.5 q1.5 -1 3 0" stroke="#4a3220" stroke-width="1" fill="none"/><path d="M57 24.5 q3 2.5 6 0" stroke="#8a5a3a" stroke-width="1.1" fill="none" stroke-linecap="round"/></g>' +
+      '<g class="face face-w"><path d="M54.5 16 q2 -2 4 -0.5 M65.5 16 q-2 -2 -4 -0.5" stroke="#4a3220" stroke-width="1" fill="none"/><ellipse cx="60" cy="24.5" rx="1.6" ry="1.3" fill="#8a5a3a"/><path d="M48.5 12 q-1 2 -0.5 4" stroke="#9fc8ea" stroke-width="1.4" fill="none" stroke-linecap="round"/></g>' +
+      '<g class="face face-s"><path d="M54.5 14 q2 -1.5 4 -0.5 M65.5 14 q-2 -1.5 -4 -0.5" stroke="#4a3220" stroke-width="1" fill="none"/><ellipse cx="60" cy="25" rx="2.2" ry="2.6" fill="#5a2a2a"/><circle cx="56" cy="19" r="2" fill="none" stroke="#2b2118" stroke-width=".8"/><circle cx="64" cy="19" r="2" fill="none" stroke="#2b2118" stroke-width=".8"/></g>' +
+      '<g class="face face-h"><path d="M55 15.5 q1.5 -1 3 0 M62 15.5 q1.5 -1 3 0" stroke="#4a3220" stroke-width="1" fill="none"/><path d="M54 19.5 q2 -2.5 4 0 M62 19.5 q2 -2.5 4 0" stroke="#2b2118" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M56 23.5 q4 4 8 0" stroke="#8a5a3a" stroke-width="1.2" fill="#d9736a" stroke-linecap="round"/><circle cx="52" cy="22.5" r="2.6" fill="#e8a0a0" opacity=".5"/><circle cx="68" cy="22.5" r="2.6" fill="#e8a0a0" opacity=".5"/></g>';
   }
   // 床：板の継ぎ目が 奥の1点（消失点）に集まる 板張り（y0〜y1。幅 1000）
   function floorPerspective(y0, y1, VPy, W) {
@@ -444,7 +446,7 @@
     var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/><rect width="600" height="330" fill="url(#p-paper)"/><rect width="600" height="12" fill="#000" opacity=".14"/>';
     // 窓
     s += '<rect x="54" y="34" width="202" height="172" fill="#4a2e14"/><rect x="60" y="40" width="190" height="160" fill="url(#' + (night ? 'g-night' : 'g-sunset') + ')"/>';
-    if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="196" cy="84" r="4" fill="#efe3b0" opacity=".6"/><circle cx="208" cy="96" r="3" fill="#efe3b0" opacity=".6"/><circle cx="110" cy="70" r="2" fill="#fff"/><circle cx="150" cy="120" r="1.6" fill="#fff"/><circle cx="90" cy="150" r="1.8" fill="#fff"/><circle cx="130" cy="180" r="1.4" fill="#fff"/>';
+    if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="196" cy="84" r="4" fill="#efe3b0" opacity=".6"/><circle cx="208" cy="96" r="3" fill="#efe3b0" opacity=".6"/><circle class="fx-star" cx="110" cy="70" r="2" fill="#fff"/><circle class="fx-star s2" cx="150" cy="120" r="1.6" fill="#fff"/><circle class="fx-star s3" cx="90" cy="150" r="1.8" fill="#fff"/><circle class="fx-star s2" cx="130" cy="180" r="1.4" fill="#fff"/><circle class="fx-star s3" cx="80" cy="58" r="1.3" fill="#fff"/><circle class="fx-star" cx="236" cy="150" r="1.5" fill="#fff"/>';
     else s += '<circle cx="155" cy="150" r="34" fill="#ffd27a"/><circle cx="155" cy="150" r="44" fill="#ffd27a" opacity=".25"/><rect x="60" y="150" width="190" height="50" fill="#e97a3f" opacity=".7"/><path d="M60 172 q40 -8 95 0 t95 0 v28 h-190z" fill="#7a3a3a" opacity=".55"/>';
     s += '<rect x="60" y="40" width="190" height="160" fill="url(#g-glass)"/><line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="7"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="7"/><rect x="60" y="40" width="190" height="160" fill="none" stroke="#3a2a1c" stroke-width="1"/><rect x="54" y="200" width="202" height="10" fill="#a8773f"/><rect x="54" y="200" width="202" height="3" fill="#fff" opacity=".35"/><rect x="58" y="210" width="194" height="4" fill="#000" opacity=".25"/>';
     // 幅木と床（奥行き）
@@ -685,7 +687,8 @@
     cs.innerHTML = stackSVG(items, calc, out);
     layoutNums(cs, out, calc, { hot: hot, onlyHot: cs.clientHeight < 150 });
   }
-  function tilt(total, acc) { var v = Math.min(1, (total + acc) / T.CFG.capacity); var deg = v * v * 26; $('carrierStack').style.transform = 'rotate(' + (acc % 2 ? -deg : deg) + 'deg)'; }
+  function face(f) { var c = $('carrier'); ['worry', 'shock', 'happy'].forEach(function (k) { c.classList.toggle(k, k === f); }); }
+  function tilt(total, acc) { var v = Math.min(1, (total + acc) / T.CFG.capacity); var deg = v * v * 26; $('carrierStack').style.transform = 'rotate(' + (acc % 2 ? -deg : deg) + 'deg)'; if (total + acc > T.CFG.capacity) face('shock'); else face(total + acc >= 8 ? 'worry' : null); }
   function carryMsg(html) { $('carryMsg').innerHTML = html; syncNums(); }
   function itemName(fold) { var F = T.FOLD_BY_ID[fold]; return T.KIND_BY_ID[F.kind].name + '（' + F.name + '）'; }
   async function startCarry() {
@@ -731,11 +734,11 @@
           renderCarrierStack(dr.stack.map(function (f) { return { kind: T.FOLD_BY_ID[f].kind, fold: f }; }), dr.calc, dr.fromIndex);
           var ls = $('carrierStack').querySelectorAll('.layer');
           if (ls[dr.fromIndex]) ls[dr.fromIndex].classList.add('fx-hot');
-          SFX.hot();
+          SFX.hot(); face('shock');
           carryMsg(evDef.name + '：ぐら ' + dr.total + '＋ゆれ ' + dr.acc + '＝' + (dr.total + dr.acc) + ' ＞ 10！<br>ぐらが いちばん 大きい <b>' + itemName(dr.fromFold) + '</b>から 上が おちる');
           await wait(800);
           SFX.fall();
-          for (var li = dr.fromIndex; li < ls.length; li++) { ls[li].classList.add('fx-drop'); ls[li].style.animationDelay = ((li - dr.fromIndex) * 60 / (G.speedMul * OPT.speed)) + 'ms'; }
+          for (var li = dr.fromIndex; li < ls.length; li++) { ls[li].classList.add('fx-drop'); if ((li - dr.fromIndex) % 2) ls[li].classList.add('alt'); ls[li].style.animationDelay = ((li - dr.fromIndex) * 60 / (G.speedMul * OPT.speed)) + 'ms'; }
           var nums = $('carrierStack').querySelectorAll('.gnum'); for (var ni = dr.fromIndex; ni < nums.length; ni++) nums[ni].style.opacity = '0';
           recs.push({ day: G.day, event: evDef, fromFold: dr.fromFold, fromIndex: dr.fromIndex, items: dr.items, stack: si, total: dr.total, acc: dr.acc, before: dr.stack.slice(), calc: dr.calc });
           G.auto.falls += dr.items.length;
@@ -757,9 +760,9 @@
         car.classList.remove('walking');
         renderStations(3);
         SFX.deliver();
-        tilt(0, 0);
+        tilt(0, 0); face('happy');
         carryMsg('タンスに とどいた：' + r.delivered.length + 'まい' + (r.fallen.length ? '（おちた ' + r.fallen.length + 'まい）' : ''));
-      } else { carryMsg('ぜんぶ おちた…'); }
+      } else { carryMsg('ぜんぶ おちた…'); face('shock'); }
       G.carrying.delivered += r.delivered.length;
       G.carrying.done.push(si);
       $('delivered').textContent = 'きょう とどいた：' + G.carrying.delivered + 'まい';

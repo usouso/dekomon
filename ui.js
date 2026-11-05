@@ -85,8 +85,13 @@
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
   // 1枚の絵。cx: 中心x、by: 下のy、w,h: 大きさ。fold: たたみ方（kind だけなら かごの中の まだ たたんでいない姿）
   // 本体の形は 3回重ねて描く：色 → 布の模様 → 光と影。そのあとに 縫い目などの飾り。
+  // 上下の辺が 少しふくらむ四角（たたんだ布の 厚みと やわらかさ）
+  function plump(x, y, w, h, rx, b) {
+    return 'M' + (x + rx) + ' ' + y + ' Q' + (x + w / 2) + ' ' + (y - b) + ' ' + (x + w - rx) + ' ' + y + ' q' + rx + ' 0 ' + rx + ' ' + rx + ' v' + (h - 2 * rx) + ' q0 ' + rx + ' -' + rx + ' ' + rx + ' Q' + (x + w / 2) + ' ' + (y + h + b * 0.6) + ' ' + (x + rx) + ' ' + (y + h) + ' q-' + rx + ' 0 -' + rx + ' -' + rx + ' v-' + (h - 2 * rx) + ' q0 -' + rx + ' ' + rx + ' -' + rx + 'z';
+  }
   function pieceSVG(kind, fold, cx, by, w, h, opts) {
     opts = opts || {};
+    var bul = Math.min(3, h * 0.15);
     var c = KIND_COLOR[kind], d = KIND_DARK[kind];
     var x = cx - w / 2, y = by - h;
     var shape = fold ? T.FOLD_BY_ID[fold].shape : 'raw';
@@ -99,8 +104,10 @@
         deco += '<path d="M' + (x + w * 0.3) + ' ' + (y + h * 0.5) + ' q' + (w * 0.1) + ' ' + (h * 0.3) + ' ' + (w * 0.25) + ' ' + (h * 0.35) + '" fill="none" stroke="' + d + '" stroke-width="' + (sw * 0.8) + '" opacity=".6"/>';
         break;
       case 'flat': case 'shiny': // 平たい四角（えり）／ツヤの線
-        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2.5" FILL/>');
+        parts.push('<path d="' + plump(x, y, w, h, 2.5, bul) + '" FILL/>');
         deco += '<path d="M' + (cx - w * 0.12) + ' ' + (y + 1) + ' q' + (w * 0.12) + ' ' + (h * 0.5) + ' ' + (w * 0.24) + ' 0" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
+        if (kind === 'tshirt') deco += '<path d="M' + (x + w * 0.22) + ' ' + (y + 1.5) + ' q-' + (w * 0.04) + ' ' + (h * 0.5) + ' 0 ' + (h - 3) + ' M' + (x + w * 0.78) + ' ' + (y + 1.5) + ' q' + (w * 0.04) + ' ' + (h * 0.5) + ' 0 ' + (h - 3) + '" fill="none" stroke="' + d + '" stroke-width="' + (sw * 0.7) + '" opacity=".5"/>';
+        if (kind === 'towel') deco += '<path d="M' + (x + 3) + ' ' + (y + h * 0.3) + ' h' + (w - 6) + ' M' + (x + 3) + ' ' + (y + h * 0.3 + 2.2) + ' h' + (w - 6) + '" stroke="#fff" stroke-opacity=".55" stroke-width="' + (sw * 0.8) + '"/>';
         deco += '<line x1="' + (x + w * 0.5) + '" y1="' + (y + h * 0.55) + '" x2="' + (x + w - 3) + '" y2="' + (y + h * 0.55) + '" stroke="' + d + '" stroke-width="' + (sw * 0.7) + '" opacity=".5"/>';
         if (shape === 'shiny') for (var k = 0; k < 3; k++) { var gx = x + w * (0.2 + k * 0.25); deco += '<line x1="' + gx + '" y1="' + (y + h - 2) + '" x2="' + (gx + w * 0.1) + '" y2="' + (y + 2) + '" stroke="#fff" stroke-width="' + (sw * 1.4) + '" stroke-linecap="round" opacity=".85"/>'; }
         break;
@@ -121,18 +128,21 @@
         deco += '<rect x="' + (cx - br * 0.5) + '" y="' + (by - br * 2 + 1) + '" width="' + (br * 0.8) + '" height="' + (br * 0.3) + '" rx="1" fill="#fff" opacity=".75"/>';
         break;
       case 'thick': case 'short': // 厚い四角（層の線）／短くて厚い
-        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" FILL/>');
+        parts.push('<path d="' + plump(x, y, w, h, 3, bul) + '" FILL/>');
+        if (kind === 'towel') deco += '<path d="M' + (x + 3) + ' ' + (y + h * 0.5 - 1.6) + ' h' + (w - 6) + ' M' + (x + 3) + ' ' + (y + h * 0.5 + 1.6) + ' h' + (w - 6) + '" stroke="#fff" stroke-opacity=".5" stroke-width="' + (sw * 0.8) + '"/>';
+        if (kind === 'jeans' && shape === 'thick') deco += '<path d="M' + (x + w * 0.7) + ' ' + (y + h * 0.4) + ' h' + (w * 0.16) + ' l-' + (w * 0.02) + ' ' + (h * 0.26) + ' h-' + (w * 0.12) + 'z" fill="none" stroke="#e8c070" stroke-width="' + (sw * 0.7) + '" stroke-dasharray="1.6 1.2" opacity=".9"/>';
         for (var q = 1; q <= 2; q++) deco += '<line x1="' + (x + 2) + '" y1="' + (y + h * q / 3) + '" x2="' + (x + w - 2) + '" y2="' + (y + h * q / 3) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".75"/>';
         if (shape === 'short') deco += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
         break;
       case 'long': // 長い
-        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" FILL/>');
+        parts.push('<path d="' + plump(x, y, w, h, 3, bul) + '" FILL/>');
         deco += '<line x1="' + cx + '" y1="' + (y + 2) + '" x2="' + cx + '" y2="' + (y + h - 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".8"/>';
         deco += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
         deco += '<rect x="' + (x + w * 0.42) + '" y="' + (y + 2) + '" width="' + (w * 0.16) + '" height="' + (h * 0.28) + '" rx="1" fill="#e8c070" opacity=".8"/>';
         break;
       case 'wide': // 幅が広い
-        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" FILL/>');
+        parts.push('<path d="' + plump(x, y, w, h, 2, bul) + '" FILL/>');
+        deco += '<path d="M' + (x + w * 0.3) + ' ' + (y + 2) + ' q' + (w * 0.02) + ' ' + (h * 0.4) + ' 0 ' + (h - 4) + ' M' + (x + w * 0.7) + ' ' + (y + 2) + ' q-' + (w * 0.02) + ' ' + (h * 0.4) + ' 0 ' + (h - 4) + '" fill="none" stroke="' + d + '" stroke-width="' + (sw * 0.6) + '" opacity=".45"/>';
         deco += '<line x1="' + (x + 2) + '" y1="' + (y + h / 2) + '" x2="' + (x + w - 2) + '" y2="' + (y + h / 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".7"/>';
         break;
     }

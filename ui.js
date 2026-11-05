@@ -256,7 +256,8 @@
     $('foldWho').textContent = it ? T.KIND_BY_ID[it.kind].name : '';
     if (!it) { $('foldHint').textContent = G.basket.length ? 'かごの 1まいを えらぶ' : ''; box.className = ''; guide('gFold', false); return; }
     var fs = T.foldsOf(it.kind);
-    box.className = fs.length === 1 ? 'one' : '';
+    var longText = fs.some(function (F) { return F.text.length > 16; }); // 長い文（案Cなど）は スマホでも 1列にして 2行までに
+    box.className = (fs.length === 1 || longText) ? 'one' : '';
     fs.forEach(function (F) {
       var btn = document.createElement('button');
       btn.className = 'fbtn' + (G.selFold === F.id ? ' sel' : '');

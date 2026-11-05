@@ -73,8 +73,8 @@ function planKotsu3(dayIndex, kinds, rng) {
 //   シーツは いちばん下（上ぜんぶ −1）、その すぐ上に みつおり（シーツを 0に）。シーツのない山は ジーンズを ふたつおりで下。
 //   くつした1足は まるめて上、残りは ならべる。タオルは みつおりの すぐ下なら よつおり（お互い 0）、そうでなければ くるくる。
 //   Tシャツは しかく。つるつるは まるめる の すぐ下（+1 を 受けるのは 上の1まいだけ）。往復は全部使い、均等に配る。
-function planReader(dayIndex, kinds, rng) {
-  var k = Math.min(T.DAYS[dayIndex].trips, kinds.length);
+function planReader(dayIndex, kinds, rng, kOverride) {
+  var k = Math.min(kOverride || T.DAYS[dayIndex].trips, kinds.length);
   var pool = shuffle(kinds.slice(), rng);
   var stacks = []; for (var i = 0; i < k; i++) stacks.push({ bottom: [], mid: [], top: [] });
   var take = function (kind) { var j = pool.indexOf(kind); if (j < 0) return false; pool.splice(j, 1); return true; };
@@ -206,7 +206,8 @@ function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
     runBot('ふつう（しかく・ならべる・よつおり・ふたつおり だけ）', planRandom(PLAIN), RUNS, [5, 25]),
     runBot('コツ2つ（ふたつおり いちばん下・まるめる いちばん上）', planKotsu, RUNS, [35, 65]),
     runBot('（参考）コツ3つ（よつおりの上に みつおり を先に組む＋コツ2つ）', planKotsu3, RUNS, [0, 100]),
-    runBot('（参考）文を読む人（シーツは下＋みつおり、ふたつおり下、まるめる上、よつおり＞みつおり、つるつるは まるめるの下）', planReader, RUNS, [0, 100]),
+    runBot('（参考）文を読む人（シーツは下＋みつおり、ふたつおり下、まるめる上、よつおり＞みつおり、つるつるは まるめるの下。残りは枚数が少ない山へ）', planReader, RUNS, [0, 100]),
+    runBot('（参考）文を読む人が ☆を取りに 1日目1山・3日目3山（1・2・3）', function (d, kinds, rng) { return planReader(d, kinds, rng, d === 0 ? 1 : (d === 2 ? 3 : 2)); }, RUNS, [0, 100]),
     runBot('かしこい（探索。期待 0.05以下の 最少の山）', planSmart, RUNS, [95, 100])
   ];
   console.log('| ボット | せいこう | のこりの平均 | ☆の平均 | 落ちた枚数の平均（1日目／2日目／3日目） | 山の数の平均 | 目標 | 届いたか |');

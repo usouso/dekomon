@@ -188,6 +188,7 @@
       g.className = 'gnum' + (r.gura === 0 ? ' z' : '') + (opts.hot === i ? ' chg up' : '');
       g.textContent = r.gura; g.setAttribute('data-li', i);
       if (opts.onlyHot && opts.hot !== i) g.classList.add('hidden');
+      if (box.__pops && box.__pops[i]) g.style.visibility = 'hidden'; // 吹き出しが出ている段
       box.appendChild(g); els.push(g);
     }
     var numH = els[0].offsetHeight || 20, numW = els[0].offsetWidth || 24;
@@ -346,7 +347,7 @@
       var pw = pop.offsetWidth || 40, ph = pop.offsetHeight || 24, x = parseFloat(n.style.left) || W / 2, y = parseFloat(n.style.top) || H / 2;
       var numW = n.offsetWidth || 24;
       if (H < ph + 4 || W < pw + numW + 12) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 箱が小さすぎて 吹き出しが入らない時は 数字の色だけ変える
-      if (sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden')) x = x - pw - 6; // 数字が詰まっている（2列・等間隔）時は 左（絵の上）に出して 隣の数字と重ねない
+      if (sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden')) { var gm2 = sb.__geom || { offX: 0, sc: 1 }; x = (gm2.offX + 104 * gm2.sc) - numW / 2 - pw / 2 - 6; } // 数字が詰まっている（2列・等間隔）時は 数字の列ぜんぶの 左（絵の上）に出して 隣の数字と重ねない
       x = Math.max(pw / 2 + 2, Math.min(W - pw / 2 - 2, x));
       // 縦：箱の中に おさめ、前に出した吹き出しと 重ならない所まで ずらす
       var fits = function (yy) { for (var q = 0; q < placedYs.length; q++) if (Math.abs(placedYs[q] - yy) < ph + 2) return false; return true; };
@@ -355,11 +356,11 @@
       if (!fits(y)) { var up = y, down = y, k = 0; while (k++ < 20) { up -= ph + 2; down += ph + 2; if (up >= ph / 2 + 1 && fits(up)) { y = up; break; } if (down <= H - ph / 2 - 1 && fits(down)) { y = down; break; } } }
       placedYs.push(y);
       pop.style.left = x + 'px'; pop.style.top = y + 'px';
-      n.style.visibility = 'hidden';
+      n.style.visibility = 'hidden'; sb.__pops = sb.__pops || {}; sb.__pops[ch.i] = true; // 置き直しが入っても 吹き出しの間は この段の数字を隠したまま
       if (layers[ch.i]) layers[ch.i].classList.add('fx-take');
       ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); });
       if (ch.to < ch.from) anyDown = true; else anyUp = true;
-      setTimeout(function () { pop.remove(); n.classList.remove('chg', 'up'); n.style.visibility = ''; }, D(1600));
+      setTimeout(function () { pop.remove(); n.classList.remove('chg', 'up'); n.style.visibility = ''; if (sb.__pops) delete sb.__pops[ch.i]; var cur = sb.querySelectorAll('.gnum')[ch.i]; if (cur) cur.style.visibility = ''; }, D(1600));
     });
     if (layers[fx.placed]) layers[fx.placed].classList.add('fx-pat');
     if (anyDown) SFX.good(); else if (anyUp) SFX.up();

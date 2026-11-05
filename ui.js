@@ -192,9 +192,16 @@
     }
     var numH = els[0].offsetHeight || 20, numW = els[0].offsetWidth || 24;
     if (H < numH + 4) { els.forEach(function (e) { e.classList.add('hidden'); }); box.setAttribute('data-nummode', 'none'); box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH }; return; }
-    var minLayer = Math.min.apply(null, out.hs) * sc;
+    var minLayerU = Math.min.apply(null, out.hs), minLayer = minLayerU * sc;
     var mode = minLayer >= numH + 1 ? 'one' : (minLayer * 2 >= numH + 1 && 28 * sc >= numW + 2 && offX + 132 * sc + numW / 2 <= W + 1 ? 'zig' : 'pitch');
     if (opts.onlyHot) mode = 'one';
+    // 1列で足りる（数字の2列目の場所が要らない）なら、絵の幅 120 ぶんだけを使って 絵を大きくする（広い画面向け）
+    var svg = box.querySelector('svg');
+    if (svg) {
+      var sc2 = Math.min(W / 120, H / VBH);
+      if (!opts.onlyHot && sc2 > sc + 1e-6 && minLayerU * sc2 >= numH + 1 && (W - 120 * sc2) / 2 + 104 * sc2 + numW / 2 <= W + 1) { svg.setAttribute('viewBox', '0 0 120 ' + VBH); sc = sc2; offY = H - VBH * sc; offX = (W - 120 * sc) / 2; mode = 'one'; minLayer = minLayerU * sc; }
+      else svg.setAttribute('viewBox', '0 0 150 ' + VBH);
+    }
     var show = {}; for (var q = 0; q < n; q++) show[q] = true;
     if (mode === 'pitch') {
       // 等間隔に 置けるだけ 置く。足りなければ ぐら0 の段は 小さな緑の丸にして、数字は 0でない段（と いちばん上）に使う

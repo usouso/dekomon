@@ -88,9 +88,12 @@ function planReader(dayIndex, kinds, rng) {
   stacks.forEach(function (s, i) { if (pool.indexOf('jeans') >= 0 && pool.indexOf('towel') >= 0) { take('towel'); take('jeans'); s.mid.push(['towel_quad', 'jeans_third']); } });
   // つるつるは まるめる の すぐ下
   stacks.forEach(function (s) { if (s.top.length && take('slick')) s.top.unshift('slick_fold'); });
-  pool.forEach(function (kind, i) {
+  // 残りは いちばん枚数の少ない山へ（人が「均等に」配るのに近い）
+  var count = function (s) { var n = s.bottom.length + s.top.length; s.mid.forEach(function (m) { n += Array.isArray(m) ? m.length : 1; }); return n; };
+  pool.forEach(function (kind) {
     var f = { tshirt: 'tshirt_square', socks: 'socks_line', towel: 'towel_roll', jeans: 'jeans_third', slick: 'slick_fold', sheet: 'sheet_fold' }[kind];
-    stacks[i % k].mid.push(f);
+    var best = 0; for (var q = 1; q < k; q++) if (count(stacks[q]) < count(stacks[best])) best = q;
+    stacks[best].mid.push(f);
   });
   return stacks.map(function (s) { var mid = shuffle(s.mid, rng); var flat = []; mid.forEach(function (m) { if (Array.isArray(m)) flat = flat.concat(m); else flat.push(m); }); return s.bottom.concat(flat, s.top); }).filter(function (s) { return s.length; });
 }

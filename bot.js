@@ -178,7 +178,7 @@ function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
     var kinds = T.basketOf(d), cells = [], detail = [];
     for (var k = 1; k <= 4; k++) {
       if (k > T.DAYS[d].trips) { cells.push('-'); continue; }
-      var r = searchCached(kinds, k, { wE: 'E', rng: T.makeRng(1000 + k), restarts: QUICK ? 6 : 16, iters: QUICK ? 1500 : 4000, tag: 'smart' });
+      var r = searchCached(kinds, k, { wE: 'E', rng: T.makeRng(1000 + k), restarts: QUICK ? 6 : 24, iters: QUICK ? 1500 : 10000, tag: 'table' });
       cells.push(f2(r.E) + '（ぐら ' + r.total + '）');
       detail.push({ k: k, r: r });
     }

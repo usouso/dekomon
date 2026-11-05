@@ -187,13 +187,26 @@
     var minLayer = Math.min.apply(null, out.hs) * sc;
     var mode = minLayer >= numH + 1 ? 'one' : (minLayer * 2 >= numH + 1 && 28 * sc >= numW + 2 && offX + 132 * sc + numW / 2 <= W + 1 ? 'zig' : 'pitch');
     if (opts.onlyHot) mode = 'one';
+    var show = {}; for (var q = 0; q < n; q++) show[q] = true;
+    if (mode === 'pitch') {
+      // 等間隔に 置けるだけ 置く。足りなければ ぐら0 の段は 小さな緑の丸にして、数字は 0でない段（と いちばん上）に使う
+      var cap = Math.max(1, Math.floor((H - 4) / (numH + 1)));
+      var idx = []; for (var q2 = 0; q2 < n; q2++) idx.push(q2);
+      if (idx.length > cap) { idx = idx.filter(function (q3) { return calc.items[q3].gura > 0 || q3 === opts.hot || q3 === n - 1; }); }
+      if (idx.length > cap) idx = idx.slice(idx.length - cap);
+      show = {}; idx.forEach(function (q4) { show[q4] = true; });
+      var pos = {}; idx.forEach(function (q5, r) { pos[q5] = H - 2 - numH / 2 - r * (numH + 1); });
+    }
     for (var j = 0; j < n; j++) {
       var y = offY + out.ys[j] * sc, x = offX + 104 * sc;
       if (mode === 'zig' && (j % 2)) x = offX + 132 * sc;
-      if (mode === 'pitch') y = H - 2 - numH / 2 - j * (numH + 1);
+      if (mode === 'pitch') {
+        if (show[j]) y = pos[j];
+        else if (calc.items[j].gura === 0) { els[j].classList.add('gdot'); els[j].textContent = ''; els[j].setAttribute('aria-label', '0'); }
+        else els[j].classList.add('hidden');
+      }
       y = Math.max(numH / 2 + 1, Math.min(H - numH / 2 - 1, y));
       els[j].style.left = x + 'px'; els[j].style.top = y + 'px';
-      if (mode === 'pitch' && y <= numH / 2 + 1 && j < n - 1) els[j].classList.add('hidden');
     }
     box.setAttribute('data-nummode', mode);
     box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH };
@@ -201,7 +214,7 @@
   function personSVG() { return '<circle cx="60" cy="12" r="9" fill="#f3c9a4" stroke="#8a5a3a" stroke-width="1.5"/><path d="M44 54 v-18 q0 -10 16 -10 q16 0 16 10 v18z" fill="#6aa9d9" stroke="#2f5f8a" stroke-width="1.5"/><path d="M44 36 l-10 -4 M76 36 l10 -4" stroke="#f3c9a4" stroke-width="5" stroke-linecap="round"/>'; }
   function titleArt() {
     var items = [{ kind: 'jeans', fold: 'jeans_half' }, { kind: 'towel', fold: 'towel_quad' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'socks', fold: 'socks_ball' }];
-    var s = '', y = 150; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 2.2, w = sh.w * 1.9; s += pieceSVG(it.kind, it.fold, 110, y, w, h, { noDir: true, stroke: 2 }); y -= h; });
+    var s = '', y = 154; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.5, w = sh.w * 1.8; s += pieceSVG(it.kind, it.fold, 110, y, w, h, { noDir: true, stroke: 2 }); y -= h; });
     return s;
   }
 
@@ -382,7 +395,7 @@
     s += '<div class="st' + (now === 3 ? ' now' : '') + '"><svg viewBox="0 0 60 40">' + STATION_ART.tansu + '</svg><div class="sn">タンス</div><div>とどく</div></div>';
     $('stations').innerHTML = s;
   }
-  var LEFT = ['0%', '26%', '52%', '75%'];
+  var LEFT = ['0%', '20%', '40%', '60%']; // 運ぶ人の幅は 40%。はみ出さないように
   function renderCarrierStack(items, calc, hot) {
     var out = {}; var cs = $('carrierStack');
     cs.innerHTML = stackSVG(items, calc, out);
@@ -402,9 +415,10 @@
     var res = T.runDay(G.day, folds, G.rng); // 乱数は ここでだけ引く（山の順に 出来事×3）
     G.carrying = { res: res, done: [], delivered: 0 };
     var recs = [];
-    renderStacks(); $('carryBtn').disabled = true; $('carryNote').textContent = 'はこんでいる…';
+    $('carryBtn').disabled = true; $('carryNote').textContent = 'はこんでいる…';
     $('carryBar').classList.remove('hidden'); $('carrier').classList.remove('hidden');
     $('delivered').textContent = '';
+    renderStacks();
     var stackIdx = []; G.stacks.forEach(function (s, i) { if (s.length) stackIdx.push(i); });
     for (var k = 0; k < used.length; k++) {
       var si = stackIdx[k], items = used[k].slice(), r = res.results[k];
@@ -471,8 +485,9 @@
 
   // ---------- 夕方・次の日・おわり ----------
   function fallRecHTML(rec) {
-    var pics = rec.items.map(function (f) { return iconSVG(T.FOLD_BY_ID[f].kind, f); }).join('');
-    return '<div class="fallrec"><svg viewBox="0 0 60 40">' + STATION_ART[rec.event.id] + '</svg><div>' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
+    var shown = rec.items.slice(0, 6);
+    var pics = shown.map(function (f) { return iconSVG(T.FOLD_BY_ID[f].kind, f); }).join('') + (rec.items.length > 6 ? '<span>＋' + (rec.items.length - 6) + '</span>' : '');
+    return '<div class="fallrec"><svg viewBox="0 0 60 40">' + STATION_ART[rec.event.id] + '</svg><div class="txt">' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
   }
   function endDay(res, recs) {
     setScreen('evening');
@@ -581,6 +596,7 @@
         var b = els[j];
         if (!b.fixed && j < i) continue;
         if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        if (a.el.closest('#carrierStack') && b.el.closest('#carrierStack')) continue; // 傾いている山の中の数字どうしは、回転で箱が重なるだけ（配置は同じ）
         var hit = null;
         for (var x = 0; x < a.rects.length && !hit; x++) for (var y = 0; y < b.rects.length && !hit; y++) {
           var ra = a.rects[x], rb = b.rects[y];

@@ -32,7 +32,7 @@ async function strip(browser, rec, clip, outFile, label) {
   var picks = [];
   for (var k = 0; k < 10; k++) {
     var want = rec.t0 + k * 50, best = null;
-    rec.frames.forEach(function (f) { if (f.t <= want + 25 && (!best || Math.abs(f.t - want) < Math.abs(best.t - want))) best = f; });
+    rec.frames.forEach(function (f) { if (f.t >= rec.t0 - 30 && (!best || Math.abs(f.t - want) < Math.abs(best.t - want))) best = f; });
     if (!best) best = rec.frames[rec.frames.length - 1];
     picks.push({ k: k, f: best, dt: best ? best.t - rec.t0 : null });
   }

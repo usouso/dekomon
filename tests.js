@@ -97,6 +97,15 @@ eq('合計4以下なら かならず届く（ゆれ6 でも）', carried(['sheet
   eq('合計4以下の山は どんな運でも 全部とどく', T.runDay(0, [['towel_quad', 'jeans_third']], T.makeRng(1)).delivered.length, 2);
 })();
 
+// 画面が使う 補助：積む前後の差（「3→0」の元）と、かごと山の中身の照合
+(function () {
+  var before = T.stackCalc(['towel_quad']), after = T.stackCalc(['towel_quad', 'jeans_third']);
+  eq('diffCalc：よつおりの上に みつおり → 1段目が 2→0', T.diffCalc(before, after), [{ i: 0, from: 2, to: 0 }]);
+  eq('diffCalc：変わらなければ 空', T.diffCalc(T.stackCalc(['tshirt_square']), T.stackCalc(['tshirt_square', 'socks_line'])), []);
+  eq('sameItems：種類と枚数が合わないと false', T.sameItems(['tshirt', 'socks'], [['tshirt_square', 'tshirt_square']]), false);
+  eq('fallIndex：同じ数なら 上の方（1,1,1 → 3段目）', T.fallIndex(T.stackCalc(['tshirt_square', 'tshirt_square', 'tshirt_square'])), 2);
+})();
+
 // 比べるための切り替え c（既定では入っていない。入れたら くるくる は いちばん上なら ぐら2）
 eq('切り替え前：くるくる 1まいだけ = 0', guras(['tshirt_roll']).g, [0]);
 eq('切り替え c を入れられる', T.applyVariant('c'), true);

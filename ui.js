@@ -468,7 +468,7 @@
           SFX.fall();
           for (var li = dr.fromIndex; li < ls.length; li++) { ls[li].classList.add('fx-drop'); ls[li].style.animationDelay = ((li - dr.fromIndex) * 60 / (G.speedMul * OPT.speed)) + 'ms'; }
           var nums = $('carrierStack').querySelectorAll('.gnum'); for (var ni = dr.fromIndex; ni < nums.length; ni++) nums[ni].style.opacity = '0';
-          recs.push({ day: G.day, event: evDef, fromFold: dr.fromFold, items: dr.items, stack: si, total: dr.total, acc: dr.acc });
+          recs.push({ day: G.day, event: evDef, fromFold: dr.fromFold, fromIndex: dr.fromIndex, items: dr.items, stack: si, total: dr.total, acc: dr.acc, before: dr.stack.slice(), calc: dr.calc });
           G.auto.falls += dr.items.length;
           await wait(900);
           var remain = dr.stack.slice(0, dr.fromIndex);
@@ -502,9 +502,16 @@
 
   // ---------- 夕方・次の日・おわり ----------
   function fallRecHTML(rec) {
-    var shown = rec.items.slice(0, 6);
-    var pics = shown.map(function (f) { return iconSVG(T.FOLD_BY_ID[f].kind, f); }).join('') + (rec.items.length > 6 ? '<span>＋' + (rec.items.length - 6) + '</span>' : '');
-    return '<div class="fallrec"><svg viewBox="0 0 60 40">' + STATION_ART[rec.event.id] + '</svg><div class="txt">' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
+    var shown = rec.items.slice(0, 5);
+    var pics = shown.map(function (f) { return iconSVG(T.FOLD_BY_ID[f].kind, f); }).join('') + (rec.items.length > 5 ? '<span>＋' + (rec.items.length - 5) + '</span>' : '');
+    // 落ちる直前の山（落ちた1枚から上を 赤く）
+    var mini = '';
+    if (rec.before && rec.before.length) {
+      var items = rec.before.map(function (f) { return { kind: T.FOLD_BY_ID[f].kind, fold: f }; });
+      mini = stackSVG(items, rec.calc, null, {}).replace('<svg ', '<svg class="mini" ');
+      mini = mini.replace(/<g class="layer([^"]*)" data-i="(\d+)">/g, function (m0, cls, i) { return '<g class="layer' + cls + (parseInt(i, 10) >= rec.fromIndex ? ' fx-hot' : '') + '" data-i="' + i + '">'; });
+    }
+    return '<div class="fallrec"><svg viewBox="0 0 60 40">' + STATION_ART[rec.event.id] + '</svg><div class="minibox">' + mini + '</div><div class="txt">' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
   }
   function endDay(res, recs) {
     setScreen('evening');

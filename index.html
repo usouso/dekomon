@@ -85,6 +85,10 @@
   /* 歩いている間：人が上下に揺れ、山も少し遅れて揺れる */
   #carrier.walking .person { animation: fx-walk calc(.5s / var(--spd, 1)) ease-in-out infinite; }
   #carrier.walking .cst { animation: fx-sway calc(.5s / var(--spd, 1)) ease-in-out infinite; }
+  .cat-tail { transform-box: fill-box; transform-origin: 100% 100%; animation: fx-tail 3s ease-in-out infinite; }
+  @keyframes fx-tail { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-14deg); } }
+  .cat-eye-open { animation: fx-blink 5s steps(1) infinite; }
+  @keyframes fx-blink { 0%, 93% { opacity: 0; } 94%, 97% { opacity: 1; } 98%, 100% { opacity: 0; } }
   @keyframes fx-walk { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
   @keyframes fx-sway { 0%, 100% { margin-left: 0; } 50% { margin-left: 3px; } }
   .layer.fx-pat { animation: fx-pat calc(.35s / var(--spd, 1)) ease-out; transform-box: fill-box; transform-origin: 50% 100%; }

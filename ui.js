@@ -262,18 +262,53 @@
     s += '<g filter="url(#f-soft)">' + tansuSVG(30, 95, 110, 90) + '</g>';
     s += '<rect x="110" y="196" width="200" height="34" rx="4" fill="#c9c58f" stroke="#9a9460" stroke-width="3"/>';
     var y = 198; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.5, w = sh.w * 1.8; s += pieceSVG(it.kind, it.fold, 210, y, w, h, { noDir: true, stroke: 2, shadow: true }); y -= h; });
-    s += '<g filter="url(#f-soft)" transform="translate(300,150) scale(.32)">' + basketBody() + '</g>';
+    s += '<g filter="url(#f-soft)" transform="translate(300,150) scale(.32)">' + basketBody(300, 420) + '</g>';
     return s;
   }
-  // かご（viewBox 300×420 に合わせた本体）
-  function basketBody() {
-    return '<path d="M22 86 q0 -18 128 -18 q128 0 128 18 l-20 300 q-8 22 -108 22 q-100 0 -108 -22z" fill="url(#p-wicker)" stroke="#7a5431" stroke-width="4"/>' +
-      '<path d="M22 86 q0 -18 128 -18 q128 0 128 18 l-20 300 q-8 22 -108 22 q-100 0 -108 -22z" fill="url(#g-shade)" opacity=".7"/>' +
-      '<ellipse cx="150" cy="86" rx="128" ry="22" fill="#6b4a2a"/><ellipse cx="150" cy="86" rx="118" ry="16" fill="#3a2a1c"/>' +
-      '<path d="M22 86 q0 -22 128 -22 q128 0 128 22" fill="none" stroke="#e0b57a" stroke-width="6" stroke-linecap="round"/><path d="M22 86 q0 -22 128 -22 q128 0 128 22" fill="none" stroke="#7a5431" stroke-width="2"/>' +
-      '<path d="M60 70 q90 -70 180 0" fill="none" stroke="#8a6238" stroke-width="9" stroke-linecap="round"/><path d="M60 70 q90 -70 180 0" fill="none" stroke="#d4a86a" stroke-width="4" stroke-linecap="round"/>';
+  // かご（箱の大きさ W×H に合わせて描く。上から のぞきこむ見た目：口の内側・手前の編み面・編み込んだ縁・持ち手。模様は px のまま＝伸びない）
+  function basketBody(W, H) {
+    W = W || 300; H = H || 420;
+    var ox = W * 0.08, ow = W * 0.84, oy = H * 0.03, oh = H * 0.72, r = Math.min(ow, oh) * 0.28;
+    var openPath = 'M' + (ox + r) + ' ' + oy + ' h' + (ow - 2 * r) + ' a' + r + ' ' + r + ' 0 0 1 ' + r + ' ' + r + ' v' + (oh - 2 * r) + ' a' + r + ' ' + r + ' 0 0 1 -' + r + ' ' + r + ' h-' + (ow - 2 * r) + ' a' + r + ' ' + r + ' 0 0 1 -' + r + ' -' + r + ' v-' + (oh - 2 * r) + ' a' + r + ' ' + r + ' 0 0 1 ' + r + ' -' + r + 'z';
+    var fb = H * 0.975, fx0 = ox + W * 0.02, fx1 = ox + ow - W * 0.02, fr = Math.min(W, H) * 0.08;
+    var frontPath = 'M' + ox + ' ' + (oy + oh * 0.5) + ' h' + ow + ' L' + fx1 + ' ' + (fb - fr) + ' q0 ' + fr + ' -' + fr + ' ' + fr + ' h-' + (fx1 - fx0 - 2 * fr) + ' q-' + fr + ' 0 -' + fr + ' -' + fr + 'z';
+    var rw = Math.max(8, Math.min(W, H) * 0.045), s = '';
+    // 床の影
+    s += '<ellipse cx="' + (W / 2) + '" cy="' + (H * 0.975) + '" rx="' + (W * 0.47) + '" ry="' + (H * 0.035) + '" fill="url(#g-ao)"/>';
+    // 手前の編み面（横方向の陰影で 丸み）
+    s += '<path d="' + frontPath + '" fill="url(#p-wicker)" stroke="#5a3a1a" stroke-width="2"/>';
+    s += '<path d="' + frontPath + '" fill="url(#g-cyl)"/>';
+    s += '<path d="' + frontPath + '" fill="url(#g-shade)" opacity=".45"/>';
+    // 口の内側（暗い編み目と 縁の落とす影）
+    s += '<path d="' + openPath + '" fill="#4a3217"/>';
+    s += '<path d="' + openPath + '" fill="url(#p-wicker)" opacity=".5"/>';
+    s += '<path d="' + openPath + '" fill="#2a1a0a" opacity=".42"/>';
+    s += '<path d="' + openPath + '" fill="url(#g-inner)"/>';
+    s += '<path d="' + openPath + '" fill="url(#g-cyl)" opacity=".7"/>';
+    // 縁（編み込み：土台→芯→ねじれ→光）
+    s += '<path d="' + openPath + '" fill="none" stroke="#5a3a1a" stroke-width="' + (rw + 3) + '" stroke-linejoin="round"/>';
+    s += '<path d="' + openPath + '" fill="none" stroke="#c99a5a" stroke-width="' + rw + '" stroke-linejoin="round"/>';
+    s += '<path d="' + openPath + '" fill="none" stroke="#946531" stroke-width="' + rw + '" stroke-dasharray="' + (rw * 0.9) + ' ' + (rw * 0.9) + '" stroke-linejoin="round" opacity=".55"/>';
+    s += '<path d="' + openPath + '" fill="none" stroke="#f0d4a6" stroke-width="' + (rw * 0.22) + '" stroke-dasharray="' + (rw * 0.9) + ' ' + (rw * 0.9) + '" stroke-dashoffset="' + (rw * 0.45) + '" stroke-linejoin="round" opacity=".7"/>';
+    // 持ち手（左右）
+    var hy = oy + oh * 0.42, hh = oh * 0.16, hw = W * 0.07;
+    [[ox, -1], [ox + ow, 1]].forEach(function (p) {
+      var d = 'M' + p[0] + ' ' + hy + ' q' + (p[1] * hw * 1.7) + ' ' + (hh / 2) + ' 0 ' + hh;
+      s += '<path d="' + d + '" fill="none" stroke="#5a3a1a" stroke-width="' + (rw * 0.9) + '" stroke-linecap="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="#c99a5a" stroke-width="' + (rw * 0.6) + '" stroke-linecap="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="#946531" stroke-width="' + (rw * 0.6) + '" stroke-dasharray="' + (rw * 0.5) + ' ' + (rw * 0.5) + '" opacity=".5"/>';
+    });
+    return s;
   }
-  function basketSVG() { return '<g filter="url(#f-soft)">' + basketBody() + '</g>'; }
+  function basketSVG(W, H) { return '<g filter="url(#f-soft)">' + basketBody(W, H) + '</g>'; }
+  // かごの絵を 箱の大きさ（px）に合わせて描き直す（viewBox を px にそろえるので 編み目が伸びない）
+  function fitBasket() {
+    var art = $('basketArt'), svg = art.querySelector('svg.bk'); if (!svg) return;
+    var W = art.clientWidth, H = art.clientHeight; if (!W || !H) return;
+    if (svg.__w === W && svg.__h === H) return; svg.__w = W; svg.__h = H;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = basketSVG(W, H);
+  }
+  var ROB = window.ResizeObserver ? new ResizeObserver(function () { fitBasket(); }) : null;
   function tansuSVG(x, y, w, h) {
     var s = '<ellipse cx="' + (x + w / 2) + '" cy="' + (y + h + 6) + '" rx="' + (w * 0.55) + '" ry="' + Math.max(4, h * 0.05) + '" fill="url(#g-ao)"/>';
     s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-wood)" stroke="#4a2e14" stroke-width="2.5"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#p-grain)"/>';
@@ -330,8 +365,8 @@
     var cols = 4, cw = 50, x0 = 340, y0 = 146;
     delivered.slice(0, 12).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind, sh = SHAPE[T.FOLD_BY_ID[f].shape]; var r = Math.floor(i / cols), c = i % cols; var w = Math.min(44, sh.w * 0.5), h = Math.min(22, sh.h * 0.8); s += pieceSVG(kind, f, x0 + c * cw + 22, y0 - r * 24, w, h, { noDir: true, shadow: true }); });
     // かご（落ちた物）
-    s += '<g transform="translate(40,300) scale(.5)">' + basketBody() + '</g>';
-    fallen.slice(0, 8).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind; s += pieceSVG(kind, null, 70 + (i % 4) * 28 + 20, 345 + Math.floor(i / 4) * 10, 30, 14, {}); });
+    s += '<g transform="translate(40,300) scale(.5)">' + basketBody(300, 420) + '</g>';
+    fallen.slice(0, 8).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind; s += pieceSVG(kind, null, 62 + (i % 4) * 28 + 14, 352 + Math.floor(i / 4) * 14, 28, 13, {}); });
     return s;
   }
   // ---------- かご・たたみ方・山の描画 ----------
@@ -341,6 +376,7 @@
   function setScreen(sc) {
     G.screen = sc; document.body.className = 'sc-' + sc;
     Object.keys(SCR).forEach(function (k) { $(SCR[k]).classList.toggle('on', k === sc); });
+    if (sc === 'stack') fitBasket();
   }
   function guide(id, on) { var e = $(id); e.classList.toggle('hidden', !(on && !G.guideDone)); }
   function renderHead() {
@@ -349,6 +385,7 @@
     $('tripLbl').textContent = 'おうふく ' + tripsToday() + 'かい';
   }
   function renderBasket() {
+    fitBasket();
     var b = $('basket'); b.innerHTML = '';
     $('basketCnt').textContent = G.basket.length ? 'のこり ' + G.basket.length + 'まい' : 'からっぽ';
     G.basket.forEach(function (it) {
@@ -418,7 +455,7 @@
         slot.className = 'slot' + (canPlace ? ' can' : '') + (G.carrying && G.carrying.done.indexOf(i) >= 0 ? ' away' : '');
         slot.setAttribute('data-slot', i);
         var out = {};
-        var html = '<div class="sname">' + slotLabel(i, st) + '</div><div class="stackbox">' + stackSVG(st, calc, out) + '</div><div class="bar">' + barHTML(calc.total, 0, { height: calc.height }) + '</div>';
+        var html = '<div class="stackbox"><div class="mat"></div>' + stackSVG(st, calc, out) + '</div><div class="sname">' + slotLabel(i, st) + '</div><div class="bar">' + barHTML(calc.total, 0, { height: calc.height }) + '</div>';
         slot.innerHTML = html;
         var sb = slot.querySelector('.stackbox');
         slot.addEventListener('click', function (ev) { onSlotClick(i, ev); });
@@ -701,12 +738,12 @@
   $('startBtn').addEventListener('click', function () { audioInit(); SFX.click(); $('title').classList.add('hidden'); newRun(OPT.seed !== null ? OPT.seed : ((Date.now() ^ (Math.random() * 1e9)) >>> 0)); });
   $('titleArt').innerHTML = titleArt();
   $('carrier').querySelector('.person').innerHTML = personSVG();
-  $('basketArt').querySelector('svg.bk').innerHTML = basketSVG();
+  fitBasket(); if (ROB) ROB.observe($('basketArt'));
   $('hall').querySelector('svg.bg').innerHTML = hallSVG();
   var sp0 = 1; try { sp0 = parseFloat(localStorage.getItem('tatami1.speed') || '1') || 1; } catch (e) { }
   setSpeed(sp0 === 2.5 ? 2.5 : 1);
   renderStations(-1);
-  window.addEventListener('resize', function () { if (G.screen === 'stack' || G.screen === 'carry') renderStacks(); });
+  window.addEventListener('resize', function () { if (G.screen === 'stack' || G.screen === 'carry') renderStacks(); fitBasket(); });
 
   // ---------- 検査：文字の重なり・はみ出し・ページのスクロール（?auto=1 のあいだ） ----------
   var seenOverlap = {};

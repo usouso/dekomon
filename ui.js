@@ -265,12 +265,13 @@
       '<path d="M57 24.5 q3 2.5 6 0" stroke="#8a5a3a" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
   }
   // 床：板の継ぎ目が 奥の1点（消失点）に集まる 板張り（y0〜y1。幅 1000）
-  function floorPerspective(y0, y1, VPy) {
-    var VPx = 500, k = (y0 - VPy) / (y1 - VPy), s = '<rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="#b3834f"/>';
-    var xs = []; for (var xb = -1300; xb <= 2300; xb += 95) xs.push(xb);
+  function floorPerspective(y0, y1, VPy, W) {
+    W = W || 1000;
+    var VPx = W / 2, k = (y0 - VPy) / (y1 - VPy), s = '<rect x="0" y="' + y0 + '" width="' + W + '" height="' + (y1 - y0) + '" fill="#b3834f"/>';
+    var xs = []; for (var xb = VPx - 1800; xb <= VPx + 1800; xb += 95) xs.push(xb);
     for (var i = 0; i + 1 < xs.length; i++) {
       var a = xs[i], b = xs[i + 1], at = VPx + (a - VPx) * k, bt = VPx + (b - VPx) * k;
-      if (Math.max(b, bt) < 0 || Math.min(a, at) > 1000) continue;
+      if (Math.max(b, bt) < 0 || Math.min(a, at) > W) continue;
       s += '<path d="M' + a + ' ' + y1 + ' L' + b + ' ' + y1 + ' L' + bt + ' ' + y0 + ' L' + at + ' ' + y0 + 'z" fill="' + (i % 2 ? '#c49461' : '#b98a57') + '" stroke="#7a5431" stroke-width="1.6"/>';
       for (var r = 0; r < 4; r++) {
         if ((i + r) % 2) continue;
@@ -278,7 +279,7 @@
         s += '<line x1="' + (VPx + (a - VPx) * kk) + '" y1="' + yy + '" x2="' + (VPx + (b - VPx) * kk) + '" y2="' + yy + '" stroke="#7a5431" stroke-width="1.4"/>';
       }
     }
-    s += '<rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="url(#p-grain)"/><rect x="0" y="' + y0 + '" width="1000" height="' + (y1 - y0) + '" fill="url(#g-floor)"/>';
+    s += '<rect x="0" y="' + y0 + '" width="' + W + '" height="' + (y1 - y0) + '" fill="url(#p-grain)"/><rect x="0" y="' + y0 + '" width="' + W + '" height="' + (y1 - y0) + '" fill="url(#g-floor)"/>';
     return s;
   }
   // 題名の絵（1000×600 の部屋を全画面に。障子の明かり・畳の上の大きな山・運ぶ人・かご・ねこ・タンス）
@@ -408,20 +409,31 @@
     tansu: ''
   };
   function stationArt(id) { return id === 'tansu' ? tansuSVG(8, 10, 84, 82) : STATION_BIG[id]; }
-  // 夕方・夜の部屋（タンスに とどいた物、かごに 落ちた物）
+  // 夕方・夜の部屋（タンスに とどいた物、かごに 落ちた物、座布団のねこ、夜は 行灯の明かり）
   function roomScene(delivered, fallen, night) {
-    var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/><rect width="600" height="330" fill="url(#p-paper)"/>';
+    var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/><rect width="600" height="330" fill="url(#p-paper)"/><rect width="600" height="12" fill="#000" opacity=".14"/>';
+    // 窓
     s += '<rect x="54" y="34" width="202" height="172" fill="#4a2e14"/><rect x="60" y="40" width="190" height="160" fill="url(#' + (night ? 'g-night' : 'g-sunset') + ')"/>';
-    if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="110" cy="70" r="2" fill="#fff"/><circle cx="150" cy="120" r="1.6" fill="#fff"/><circle cx="90" cy="150" r="1.8" fill="#fff"/>';
-    else s += '<circle cx="155" cy="150" r="34" fill="#ffd27a"/><rect x="60" y="150" width="190" height="50" fill="#e97a3f" opacity=".7"/>';
-    s += '<rect x="60" y="40" width="190" height="160" fill="url(#g-glass)"/><line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="7"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="7"/><rect x="54" y="200" width="202" height="10" fill="#a8773f"/>';
-    s += '<rect x="0" y="330" width="600" height="170" fill="url(#p-planks)"/><rect x="0" y="330" width="600" height="170" fill="url(#p-grain)"/><rect x="0" y="330" width="600" height="170" fill="url(#g-floor)"/>';
-    s += '<rect x="0" y="316" width="600" height="14" fill="#7a5431"/><rect x="0" y="316" width="600" height="4" fill="#b88a55"/>';
-    s += (night ? '<ellipse cx="155" cy="380" rx="150" ry="36" fill="#cfe0ff" opacity=".18"/>' : '<path d="M60 200 l190 0 l80 180 l-350 0z" fill="#ffb347" opacity=".22"/>');
+    if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="196" cy="84" r="4" fill="#efe3b0" opacity=".6"/><circle cx="208" cy="96" r="3" fill="#efe3b0" opacity=".6"/><circle cx="110" cy="70" r="2" fill="#fff"/><circle cx="150" cy="120" r="1.6" fill="#fff"/><circle cx="90" cy="150" r="1.8" fill="#fff"/><circle cx="130" cy="180" r="1.4" fill="#fff"/>';
+    else s += '<circle cx="155" cy="150" r="34" fill="#ffd27a"/><circle cx="155" cy="150" r="44" fill="#ffd27a" opacity=".25"/><rect x="60" y="150" width="190" height="50" fill="#e97a3f" opacity=".7"/><path d="M60 172 q40 -8 95 0 t95 0 v28 h-190z" fill="#7a3a3a" opacity=".55"/>';
+    s += '<rect x="60" y="40" width="190" height="160" fill="url(#g-glass)"/><line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="7"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="7"/><rect x="60" y="40" width="190" height="160" fill="none" stroke="#3a2a1c" stroke-width="1"/><rect x="54" y="200" width="202" height="10" fill="#a8773f"/><rect x="54" y="200" width="202" height="3" fill="#fff" opacity=".35"/><rect x="58" y="210" width="194" height="4" fill="#000" opacity=".25"/>';
+    // 幅木と床（奥行き）
+    s += '<rect x="0" y="316" width="600" height="14" fill="#7a5431"/><rect x="0" y="316" width="600" height="4" fill="#b88a55"/><rect x="0" y="328" width="600" height="2" fill="#3a2a1c"/>';
+    s += floorPerspective(330, 500, 190, 600);
+    s += '<rect x="0" y="330" width="600" height="170" fill="url(#g-glass)" opacity=".12"/>';
+    if (night) s += '<rect x="0" y="330" width="600" height="170" fill="#1a1a3a" opacity=".35"/><rect width="600" height="330" fill="#1a1a3a" opacity=".2"/>';
+    // 窓からの光（夕方）／行灯の明かり（夜）
+    if (night) s += '<ellipse cx="292" cy="300" rx="190" ry="150" fill="url(#g-light)"/><ellipse cx="292" cy="300" rx="110" ry="90" fill="url(#g-light)"/>';
+    else s += '<path d="M60 200 l190 0 l80 180 l-350 0z" fill="#ffb347" opacity=".22"/><ellipse cx="155" cy="300" rx="150" ry="36" fill="#cfe0ff" opacity="0"/>';
+    // タンス
     s += '<g filter="url(#f-soft)">' + tansuSVG(330, 150, 230, 200) + '</g>';
+    // 行灯（夜だけ）：木の枠の紙のあかり
+    if (night) s += '<g filter="url(#f-shadow)"><rect x="272" y="236" width="40" height="88" rx="3" fill="#fff1c0"/><rect x="272" y="236" width="40" height="88" rx="3" fill="url(#g-light)"/><path d="M272 258 h40 M272 280 h40 M272 302 h40 M292 236 v88" stroke="#8a6238" stroke-width="1.6"/><rect x="270" y="232" width="44" height="6" rx="1.5" fill="#4a2e14"/><rect x="270" y="322" width="44" height="6" rx="1.5" fill="#4a2e14"/><rect x="270" y="232" width="4" height="96" fill="#4a2e14"/><rect x="310" y="232" width="4" height="96" fill="#4a2e14"/></g>';
     // タンスの上に とどいた物を たたんで 並べる（最大 12）
     var cols = 4, cw = 50, x0 = 340, y0 = 146;
     delivered.slice(0, 12).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind, sh = SHAPE[T.FOLD_BY_ID[f].shape]; var r = Math.floor(i / cols), c = i % cols; var w = Math.min(44, sh.w * 0.5), h = Math.min(22, sh.h * 0.8); s += pieceSVG(kind, f, x0 + c * cw + 22, y0 - r * 24, w, h, { noDir: true, shadow: true }); });
+    // 座布団のねこ（タンスの前）
+    s += '<g transform="translate(236,396) scale(.95)">' + STATION_BIG.neko + '</g>';
     // かご（落ちた物）
     s += '<g transform="translate(40,300) scale(.5)">' + basketBody(300, 420) + '</g>';
     fallen.slice(0, 8).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind; s += pieceSVG(kind, null, 62 + (i % 4) * 28 + 14, 352 + Math.floor(i / 4) * 14, 28, 13, {}); });

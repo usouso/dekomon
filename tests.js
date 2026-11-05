@@ -86,6 +86,17 @@ eq('合計4以下なら かならず届く（ゆれ6 でも）', carried(['sheet
   eq('同じ seed なら 同じ結果', a.delivered.length, b.delivered.length);
   eq('かごの中身と 山の中身が合う', T.sameItems(T.basketOf(0), [S9]), true);
 })();
+// 1日の計算：☆は 使わなかった往復、落ちた分は あしたのかごへ（たたみ方は ほどける）
+(function () {
+  var day = T.runDay(0, [S9], T.makeRng(3)); // 1日目 往復2・山1つ
+  eq('1日目に 山1つなら ☆1', day.stars, 1);
+  var carried = day.fallen.map(function (f) { return T.FOLD_BY_ID[f].kind; });
+  eq('あしたのかご＝2日目の9まい＋きのう落ちた分（種類だけ。たたみ方は ほどける）', T.basketOf(1, carried).length, 9 + day.fallen.length);
+  eq('2日目に 山2つなら ☆0', T.runDay(1, [['tshirt_square'], ['socks_line']], T.makeRng(3)).stars, 0);
+  eq('3日目は 往復4：山2つなら ☆2', T.runDay(2, [['tshirt_square'], ['socks_line']], T.makeRng(3)).stars, 2);
+  eq('合計4以下の山は どんな運でも 全部とどく', T.runDay(0, [['towel_quad', 'jeans_third']], T.makeRng(1)).delivered.length, 2);
+})();
+
 // 比べるための切り替え c（既定では入っていない。入れたら くるくる は いちばん上なら ぐら2）
 eq('切り替え前：くるくる 1まいだけ = 0', guras(['tshirt_roll']).g, [0]);
 eq('切り替え c を入れられる', T.applyVariant('c'), true);

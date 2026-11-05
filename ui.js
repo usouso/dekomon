@@ -168,6 +168,11 @@
   // 山の各段の 数字を置く。box の中で SVG は 下寄せ・中央（xMidYMax meet）なので、同じ計算で px に直す。
   // 段が薄くて 数字が重なるなら 2列（ジグザグ）、それでも重なるなら 等間隔に並べる。
   var RO = window.ResizeObserver ? new ResizeObserver(function (entries) { entries.forEach(function (en) { var b = en.target; if (b.__nums && b.isConnected) { var W = b.clientWidth, H = b.clientHeight; if (b.__nums.W !== W || b.__nums.H !== H) { var old = b.querySelectorAll('.gnum'); for (var i = 0; i < old.length; i++) old[i].remove(); layoutNums(b, b.__nums.out, b.__nums.calc, b.__nums.opts); } } }); }) : null;
+  // 箱の大きさが変わっていたら、その場で数字を置き直す（ResizeObserver は次の描画前に動くが、文字の検査や 文の差し替えの直後にも そろえておく）
+  function syncNums() {
+    var boxes = document.querySelectorAll('.stackbox, #carrierStack');
+    for (var i = 0; i < boxes.length; i++) { var b = boxes[i]; if (!b.__nums || !b.isConnected) continue; if (b.clientWidth !== b.__nums.W || b.clientHeight !== b.__nums.H) { var old = b.querySelectorAll('.gnum'); for (var j = 0; j < old.length; j++) old[j].remove(); layoutNums(b, b.__nums.out, b.__nums.calc, b.__nums.opts); } }
+  }
   function layoutNums(box, out, calc, opts) {
     opts = opts || {};
     box.__nums = { out: out, calc: calc, opts: opts, W: box.clientWidth, H: box.clientHeight };
@@ -403,7 +408,7 @@
     layoutNums(cs, out, calc, { hot: hot, onlyHot: cs.clientHeight < 150 });
   }
   function tilt(total, acc) { var v = Math.min(1, (total + acc) / T.CFG.capacity); var deg = v * v * 26; $('carrierStack').style.transform = 'rotate(' + (acc % 2 ? -deg : deg) + 'deg)'; }
-  function carryMsg(html) { $('carryMsg').innerHTML = html; }
+  function carryMsg(html) { $('carryMsg').innerHTML = html; syncNums(); }
   function itemName(fold) { var F = T.FOLD_BY_ID[fold]; return T.KIND_BY_ID[F.kind].name + '（' + F.name + '）'; }
   async function startCarry() {
     if (G.screen !== 'stack') return;
@@ -586,6 +591,7 @@
     return out;
   }
   function checkOverlap() {
+    syncNums();
     var els = textElements();
     for (var i = 0; i < els.length; i++) {
       var a = els[i];

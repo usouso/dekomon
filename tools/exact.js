@@ -4,6 +4,7 @@
 //   落ちる枚数の期待が 0（かならず とどく）の並べ方の数、最良の期待、ぐらの合計の分布 を出す。
 'use strict';
 var T = require('../rules.js');
+var vi = process.argv.indexOf('--variant'); if (vi >= 0) { if (!T.applyVariant(process.argv[vi + 1])) { console.error('知らない切り替え'); process.exit(1); } console.log('切り替え：' + T.variant().name + '（' + T.variant().note + '）\n'); }
 function foldsOf(kind) { return T.foldsOf(kind).map(function (f) { return f.id; }); }
 // 同じ種類を区別しない 並べ方を 全部
 function eachOrdering(counts, cb) {

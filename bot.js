@@ -54,6 +54,21 @@ function planKotsu(dayIndex, kinds, rng) {
   return stacks.map(function (s) { var out = []; if (s.bottom) out.push(s.bottom); out = out.concat(shuffle(s.mid, rng)); if (s.top) out.push(s.top); return out; }).filter(function (s) { return s.length; });
 }
 
+// コツ3つ：「よつおりの すぐ上に みつおり」を 先に組む（タオルと ジーンズが 両方あれば 1組ずつ 山へ）。残りのジーンズは ふたつおりで いちばん下、くつした1足は まるめて いちばん上（コツ2つ）
+function planKotsu3(dayIndex, kinds, rng) {
+  var k = Math.min(T.DAYS[dayIndex].trips, kinds.length);
+  var pool = shuffle(kinds.slice(), rng);
+  var stacks = []; for (var i = 0; i < k; i++) stacks.push({ bottom: null, mid: [], top: null, pair: false });
+  stacks.forEach(function (s) { var j = pool.indexOf('jeans'), t = pool.indexOf('towel'); if (j >= 0 && t >= 0) { s.pair = true; pool.splice(Math.max(j, t), 1); pool.splice(Math.min(j, t), 1); } });
+  stacks.forEach(function (s) { var j = pool.indexOf('jeans'); if (j >= 0) { s.bottom = 'jeans_half'; pool.splice(j, 1); } });
+  stacks.forEach(function (s) { var j = pool.indexOf('socks'); if (j >= 0) { s.top = 'socks_ball'; pool.splice(j, 1); } });
+  pool.forEach(function (kind, i) {
+    var f = { tshirt: 'tshirt_square', socks: 'socks_line', towel: 'towel_roll', jeans: 'jeans_third', slick: 'slick_fold', sheet: 'sheet_fold' }[kind];
+    stacks[i % k].mid.push(f);
+  });
+  return stacks.map(function (s) { var out = []; if (s.bottom) out.push(s.bottom); var mid = shuffle(s.mid, rng); if (s.pair) { var pos = Math.floor(rng() * (mid.length + 1)); mid.splice(pos, 0, 'towel_quad', 'jeans_third'); } out = out.concat(mid); if (s.top) out.push(s.top); return out; }).filter(function (s) { return s.length; });
+}
+
 // ---------- 探索（かしこい・にせの選択の検査） ----------
 // 焼きなまし（少しずつ入れ替えて、良くなれば取り、悪くなっても たまに取る）＋ やり直し。
 // 目標：obj = wE × 落ちる枚数の期待の合計 ＋ 山のぐらの合計（wE=1000 なら 期待を最優先、10 なら 指示書の ものさし）
@@ -161,6 +176,7 @@ function f2(x) { return (Math.round(x * 100) / 100).toFixed(2); }
     runBot('でたらめ（たたみ方もランダム）', planRandom(FOLDS_OF), RUNS, [0, 10]),
     runBot('ふつう（しかく・ならべる・よつおり・ふたつおり だけ）', planRandom(PLAIN), RUNS, [5, 25]),
     runBot('コツ2つ（ふたつおり いちばん下・まるめる いちばん上）', planKotsu, RUNS, [35, 65]),
+    runBot('（参考）コツ3つ（よつおりの上に みつおり を先に組む＋コツ2つ）', planKotsu3, RUNS, [0, 100]),
     runBot('かしこい（探索。期待 0.05以下の 最少の山）', planSmart, RUNS, [95, 100])
   ];
   console.log('| ボット | せいこう | のこりの平均 | ☆の平均 | 落ちた枚数の平均（1日目／2日目／3日目） | 山の数の平均 | 目標 | 届いたか |');

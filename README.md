@@ -10,6 +10,7 @@
 - tools/check.js … ヘッドレス Chrome で 自動プレイ（?auto=1）を4つの大きさで回し、画面と計算のずれ・文字の重なり・ページのスクロールを数える
 - tools/screens.js … スクリーンショット（screenshots/）
 - tools/frames.js … コマ送り画像（0.05秒ごとに10コマ）
+- tools/exact.js … 小さい場面（1日目・2日目1山）の全部の並べ方を数える（約2分）
 - REPORT.md … この版の報告
 
 動かす：`node tests.js`／`node bot.js [--runs 1000]`／`node serve.js` → http://localhost:8787/

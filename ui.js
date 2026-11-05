@@ -65,18 +65,38 @@
     var g = AC.createGain(); g.gain.value = gain || 0.3;
     s.connect(f); f.connect(g); g.connect(master); s.start(t);
   }
+  // 布ずれ（帯域を しぼった雑音を すべらせる）：ぱさっ・さっ
+  function swish(dur, gain, when, f0, f1, q) {
+    if (!AC || OPT.mute) return;
+    var t = AC.currentTime + (when || 0);
+    var n = Math.floor(AC.sampleRate * dur), buf = AC.createBuffer(1, n, AC.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) { var e = i / n; d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * Math.min(1, e * 1.6)) * (1 - e * 0.4); }
+    var src = AC.createBufferSource(); src.buffer = buf;
+    var f = AC.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = q || 1.2; f.frequency.setValueAtTime(f0 || 1800, t); f.frequency.exponentialRampToValueAtTime(f1 || 900, t + dur);
+    var g = AC.createGain(); g.gain.value = gain || 0.3;
+    src.connect(f); f.connect(g); g.connect(master); src.start(t);
+  }
+  // 低い「とん」：布や足が 床や山に つく音
+  function thud(when, gain, f0, f1, dur) { tone(f0 || 150, dur || 0.09, 'sine', gain || 0.25, when || 0, f1 || 70); noise(0.03, (gain || 0.25) * 0.5, when || 0, 400); }
   var SFX = {
     click: function () { tone(880, 0.05, 'triangle', 0.15); },
-    pat: function () { noise(0.09, 0.35, 0, 1400); tone(180, 0.09, 'sine', 0.25, 0.02, 90); },
-    place: function () { tone(140, 0.12, 'sine', 0.3, 0, 70); noise(0.05, 0.15, 0, 600); },
-    back: function () { tone(400, 0.08, 'triangle', 0.12, 0, 300); },
+    pat: function () { swish(0.16, 0.35, 0, 2600, 1200); thud(0.06, 0.2, 170, 90, 0.08); },
+    place: function () { swish(0.12, 0.25, 0, 1800, 700); thud(0.05, 0.3, 140, 60, 0.12); },
+    back: function () { swish(0.14, 0.22, 0, 900, 2400); },
+    door: function () { noise(0.32, 0.18, 0, 1200); swish(0.3, 0.12, 0, 600, 1600, 0.8); thud(0.3, 0.3, 220, 110, 0.07); },
+    step: function (when) { thud(when || 0, 0.11, 110, 55, 0.06); },
+    nya: function (when) { tone(520, 0.11, 'triangle', 0.1, when || 0, 900); tone(880, 0.16, 'triangle', 0.1, (when || 0) + 0.1, 470); },
+    knock: function () { tone(320, 0.07, 'triangle', 0.22, 0, 150); noise(0.04, 0.25, 0, 700); },
+    creak: function () { tone(170, 0.28, 'sawtooth', 0.07, 0, 120); tone(172, 0.28, 'sawtooth', 0.05, 0.02, 115); noise(0.08, 0.1, 0, 500); },
     good: function () { tone(660, 0.12, 'triangle', 0.25); tone(990, 0.18, 'triangle', 0.25, 0.1); tone(1320, 0.25, 'sine', 0.18, 0.2); },
     up: function () { tone(330, 0.12, 'square', 0.12); tone(262, 0.2, 'square', 0.12, 0.1); },
-    shake: function (n) { noise(0.12 + 0.06 * n, 0.25 + 0.1 * n, 0, 500); tone(90, 0.2, 'sine', 0.2, 0, 60); },
-    calm: function () { tone(1046, 0.08, 'sine', 0.12); tone(1318, 0.12, 'sine', 0.1, 0.08); },
+    shake: function (n, id) { if (id === 'shikii') SFX.knock(); else if (id === 'neko') SFX.nya(); else if (id === 'kaidan') SFX.creak(); noise(0.12 + 0.06 * n, 0.2 + 0.08 * n, 0.04, 500); tone(90, 0.2, 'sine', 0.18, 0.04, 60); swish(0.2, 0.12, 0.05, 1400, 800); },
+    calm: function (id) { if (id === 'neko') SFX.nya(0.05); tone(1046, 0.08, 'sine', 0.12); tone(1318, 0.12, 'sine', 0.1, 0.08); },
     hot: function () { tone(220, 0.25, 'sawtooth', 0.1); tone(233, 0.25, 'sawtooth', 0.1); },
-    fall: function () { tone(400, 0.45, 'sawtooth', 0.2, 0, 110); noise(0.3, 0.3, 0.3, 700); },
-    deliver: function () { tone(523, 0.12, 'triangle', 0.2); tone(784, 0.25, 'triangle', 0.2, 0.12); },
+    fall: function () { swish(0.35, 0.3, 0, 2200, 500); tone(400, 0.45, 'sawtooth', 0.14, 0, 110); noise(0.3, 0.3, 0.3, 700); thud(0.42, 0.3, 120, 50, 0.14); },
+    deliver: function () { swish(0.18, 0.18, 0, 900, 400, 0.8); tone(523, 0.12, 'triangle', 0.2, 0.1); tone(784, 0.25, 'triangle', 0.2, 0.22); },
+    // 歩く間の足音（実時間 sec のあいだ、0.26秒ごと）
+    steps: function (sec) { var n = Math.floor(sec / 0.26); for (var i = 0; i < n; i++) SFX.step(0.08 + i * 0.26); },
     star: function () { tone(784, 0.1, 'sine', 0.2); tone(988, 0.1, 'sine', 0.2, 0.1); tone(1319, 0.3, 'sine', 0.2, 0.2); },
     success: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.25, 'triangle', 0.22, i * 0.14); }); tone(1319, 0.6, 'sine', 0.2, 0.6); }
   };
@@ -670,7 +690,7 @@
   function itemName(fold) { var F = T.FOLD_BY_ID[fold]; return T.KIND_BY_ID[F.kind].name + '（' + F.name + '）'; }
   async function startCarry() {
     if (G.screen !== 'stack') return;
-    audioInit(); SFX.click();
+    audioInit(); SFX.door();
     setScreen('carry');
     if (!G.guideDone) { G.guideDone = true; try { localStorage.setItem('tatami1.guide', 'done'); } catch (e) { } }
     ['gSelect', 'gFold', 'gStack', 'gCarry'].forEach(function (id) { guide(id, false); });
@@ -696,13 +716,13 @@
       await wait(700);
       for (var e = 0; e < r.log.length; e++) {
         var en = r.log[e];
-        car.classList.add('walking'); car.style.left = LEFT[e];
+        car.classList.add('walking'); car.style.left = LEFT[e]; SFX.steps(1.4 / (G.speedMul * OPT.speed));
         await wait(1400);
         car.classList.remove('walking');
         renderStations(e);
         var evDef = T.CFG.events[e];
-        if (en.calm) { SFX.calm(); carryMsg(evDef.name + '：<span class="calm">' + evDef.calm + '（ゆれなし）</span>'); }
-        else { SFX.shake(evDef.shake); carryMsg(evDef.name + '：<b>ゆれ +' + evDef.shake + '</b>'); }
+        if (en.calm) { SFX.calm(evDef.id); carryMsg(evDef.name + '：<span class="calm">' + evDef.calm + '（ゆれなし）</span>'); }
+        else { SFX.shake(evDef.shake, evDef.id); carryMsg(evDef.name + '：<b>ゆれ +' + evDef.shake + '</b>'); }
         $('carryBar').innerHTML = barHTML(en.totalBefore, en.acc);
         tilt(en.totalBefore, en.acc);
         await wait(900);
@@ -732,7 +752,7 @@
         if (!en.remain.length) break;
       }
       if (r.delivered.length) {
-        car.classList.add('walking'); car.style.left = LEFT[3];
+        car.classList.add('walking'); car.style.left = LEFT[3]; SFX.steps(1.4 / (G.speedMul * OPT.speed));
         await wait(1400);
         car.classList.remove('walking');
         renderStations(3);

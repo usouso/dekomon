@@ -394,10 +394,12 @@
     for (var i = 0; i < n; i++) {
       var dy = y + 6 + i * dh, open = (i === 0 ? Math.min(6, h * 0.04) : 0);
       s += '<rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#3a2a1c"/>';
+      if (i === 0) s += '<g class="drawer-top">';
       s += '<rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#d9ad74" stroke="#7a5431" stroke-width="1.5"/><rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#p-grain)"/><rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#g-shade)" opacity=".7"/>';
       var hr = Math.max(2.2, dh * 0.09), hx = x + w / 2, hy = dy + open + (dh - 5) / 2;
       s += '<rect x="' + (hx - hr * 2.4) + '" y="' + (hy - hr * 0.5) + '" width="' + (hr * 4.8) + '" height="' + hr + '" rx="' + (hr * 0.5) + '" fill="url(#g-metal)" stroke="#3a2a1c" stroke-width=".8"/>';
       if (open) s += '<path d="M' + (x + 10) + ' ' + (dy + 1) + ' h' + (w - 20) + '" stroke="#fff" stroke-width="2" opacity=".6"/>';
+      if (i === 0) s += '</g>';
     }
     s += '<rect x="' + (x + 4) + '" y="' + (y + h) + '" width="10" height="6" fill="#4a2e14"/><rect x="' + (x + w - 14) + '" y="' + (y + h) + '" width="10" height="6" fill="#4a2e14"/>';
     s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-glass)" opacity=".15"/>';
@@ -762,6 +764,13 @@
         SFX.deliver();
         tilt(0, 0); face('happy');
         carryMsg('タンスに とどいた：' + r.delivered.length + 'まい' + (r.fallen.length ? '（おちた ' + r.fallen.length + 'まい）' : ''));
+        // 引き出しが開いて 山が しまわれる
+        var drw = $('stations').querySelector('.drawer-top'); if (drw) drw.classList.add('open');
+        await wait(350);
+        $('carrierStack').classList.add('fx-into');
+        await wait(750);
+        $('carrierStack').innerHTML = ''; $('carrierStack').classList.remove('fx-into');
+        if (drw) drw.classList.remove('open');
       } else { carryMsg('ぜんぶ おちた…'); face('shock'); }
       G.carrying.delivered += r.delivered.length;
       G.carrying.done.push(si);
@@ -822,6 +831,7 @@
     G.day = d; G.basket = []; G.stacks = []; G.sel = null; G.selFold = null; G.carrying = null;
     T.basketOf(d, G.carried).forEach(function (kind) { G.basket.push({ id: G.nextId++, kind: kind, fold: null }); });
     setScreen('stack');
+    var sc = $('scr-stack'); sc.classList.remove('fx-dawn'); void sc.offsetWidth; sc.classList.add('fx-dawn');
     renderHead(); renderBasket(); renderFolds(); renderStacks(); renderStations(-1);
     carryMsg('');
     $('delivered').textContent = ''; $('carryTitle').textContent = '';

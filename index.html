@@ -42,6 +42,9 @@
 
   /* ---------- たたむ・つむ の場面（部屋） ---------- */
   #scr-stack { background: linear-gradient(#f3e9d6 0, #e9dcc4 58%, transparent 58%), url(#none); }
+  /* 1日の始まり：朝の光が さっと 差す */
+  #scr-stack.fx-dawn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255,214,140,.6), rgba(255,246,214,0) 65%); animation: fx-dawn calc(1.4s / var(--spd, 1)) ease-out forwards; pointer-events: none; z-index: 5; }
+  @keyframes fx-dawn { from { opacity: 1; } to { opacity: 0; } }
   #scr-stack .room { flex: 1; min-height: 0; position: relative; display: grid; grid-template-columns: 300px minmax(0, 1fr) 320px; gap: 14px; padding: 12px 16px 14px; }
   #scr-stack .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; z-index: 0; }
   #scr-stack .floor svg { width: 100%; height: 100%; }
@@ -161,6 +164,11 @@
   #carrier { position: absolute; left: 2%; bottom: 23%; width: 22%; transition: left calc(1.4s / var(--spd, 1)) linear; display: flex; flex-direction: column; align-items: center; }
   #carrier .cst { position: relative; width: 100%; height: 240px; transform-origin: 50% 100%; transition: transform calc(.5s / var(--spd, 1)) ease; }
   #carrier .cst svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  /* とどいた：引き出しが手前に出て、山が しまわれる */
+  .drawer-top { transform-box: fill-box; transform-origin: 50% 50%; transition: transform calc(.3s / var(--spd, 1)) ease-out; }
+  .drawer-top.open { transform: translateY(6%) scale(1.08); }
+  #carrier .cst.fx-into { animation: fx-into calc(.7s / var(--spd, 1)) ease-in forwards; }
+  @keyframes fx-into { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(55%) scale(.2); opacity: 0; } }
   #carrier .person { width: 70%; height: 112px; margin-top: -6px; }
   #carrier .person .leg { transform-box: fill-box; transform-origin: 50% 0; }
   /* 顔：ふだん／はらはら（ゆれが大きい）／びっくり（おちる）／にっこり（とどいた） */
@@ -233,7 +241,7 @@
   @media (prefers-reduced-motion: reduce) {
     .layer.fx-take, .layer.fx-pat, .fx-chg, .scr.on, .guide { animation-duration: .01s; animation-iteration-count: 1; }
     .slot.can .mat { animation: none; filter: drop-shadow(0 0 6px #3f6fb5) drop-shadow(0 0 2px #3f6fb5); }
-    .fx-star, .cat-tail, .cat-eye-open { animation: none; }
+    .fx-star, .cat-tail, .cat-eye-open { animation: none; } #scr-stack.fx-dawn::after { animation-duration: .01s; } #carrier .cst.fx-into { animation-duration: .01s; }
     #carrier, #carrier .cst { transition-duration: .01s; }
   }
 

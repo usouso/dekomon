@@ -37,7 +37,7 @@
   #vol { width: 90px; }
   .guide { display: inline-block; background: var(--accent); color: #fff; font-size: 15px; padding: 1px 10px; border-radius: 10px; animation: fx-guide 1.2s ease-in-out infinite; }
   @keyframes fx-guide { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-  .panel-title { font-size: 18px; font-weight: 700; color: #fbf3e4; text-shadow: 0 1px 2px rgba(0,0,0,.5); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .panel-title { font-size: 18px; font-weight: 700; color: var(--ink); text-shadow: 0 1px 0 rgba(255,255,255,.7); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .panel-title > * { white-space: nowrap; }
 
   /* ---------- たたむ・つむ の場面（部屋） ---------- */
@@ -64,7 +64,7 @@
   #stackUI { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
   #stacks { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: end; padding: 4px 2px 0; }
   .slot { max-height: min(100%, 520px); height: 100%; }
-  .slot { display: flex; flex-direction: column; align-items: center; border-radius: 6px; padding: 6px 6px 6px; cursor: pointer; min-height: 0; position: relative; background-color: #cfcb94; background-image: linear-gradient(rgba(255,255,255,.18), rgba(0,0,0,.08)), repeating-linear-gradient(0deg, rgba(120,116,70,.45) 0 1px, transparent 1px 5px), repeating-linear-gradient(90deg, rgba(120,116,70,.18) 0 1px, transparent 1px 8px); border-left: 7px solid #3e4a3a; border-right: 7px solid #3e4a3a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 6px 10px rgba(0,0,0,.35); }
+  .slot { display: flex; flex-direction: column; align-items: center; border-radius: 6px; padding: 6px 3px 6px; cursor: pointer; min-height: 0; position: relative; background-color: #cfcb94; background-image: linear-gradient(rgba(255,255,255,.18), rgba(0,0,0,.08)), repeating-linear-gradient(0deg, rgba(120,116,70,.45) 0 1px, transparent 1px 5px), repeating-linear-gradient(90deg, rgba(120,116,70,.18) 0 1px, transparent 1px 8px); border-left: 5px solid #3e4a3a; border-right: 5px solid #3e4a3a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 6px 10px rgba(0,0,0,.35); }
   .slot::after { content: ""; position: absolute; inset: 0; border-radius: 6px; box-shadow: inset 0 -14px 20px -12px rgba(0,0,0,.35), inset 0 14px 20px -14px rgba(255,255,255,.35); pointer-events: none; }
   .slot.can { box-shadow: inset 0 0 0 3px var(--accent), 0 0 12px #3f6fb588, 0 4px 6px rgba(0,0,0,.3); }
   .slot.away { opacity: .4; }
@@ -111,7 +111,7 @@
   .fbtn .ft { font-size: 15px; color: var(--sub); min-height: 2.6em; }
   .fbtn.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #3f6fb566, 0 2px 3px rgba(0,0,0,.25); }
   #foldHint { font-size: 15px; color: #4a3a28; margin-top: 6px; }
-  #foldBox .who { color: #fff; }
+  #foldBox .who { color: var(--accent); }
   /* はこぶ の戸 */
   #carryBtnRow { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
   #carryBtn { width: 100%; font-size: 22px; font-weight: 700; padding: 12px 10px; background: linear-gradient(#5b86c9, #3f6fb5); color: #fff; border-color: #2b4f86; border-radius: 14px; box-shadow: 0 4px 8px rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; gap: 10px; }

@@ -341,19 +341,24 @@
     fx.changes.forEach(function (ch, j) {
       var n = nums[ch.i]; if (!n) return;
       n.classList.add('chg'); if (ch.to > ch.from) n.classList.add('up');
-      var pop = document.createElement('div'); pop.className = 'fx-chg' + (ch.to > ch.from ? ' up' : ''); pop.textContent = ch.from + '→' + ch.to;
+      var pop = document.createElement('div'); pop.className = 'fx-chg' + (ch.to > ch.from ? ' up' : '') + (W < 100 ? ' small' : ''); pop.textContent = ch.from + '→' + ch.to;
       sb.appendChild(pop);
       // 吹き出しは 数字の場所に出す（数字は その間 隠す）。2つ以上 同時なら 1つおきに 左（絵の上）に出して 重ならないように。箱の外には出さない
       var pw = pop.offsetWidth || 40, ph = pop.offsetHeight || 24, x = parseFloat(n.style.left) || W / 2, y = parseFloat(n.style.top) || H / 2;
       var numW = n.offsetWidth || 24;
-      if (H < ph + 4 || W < pw + numW + 12) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 箱が小さすぎて 吹き出しが入らない時は 数字の色だけ変える
-      if (sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden')) { var gm2 = sb.__geom || { offX: 0, sc: 1 }; x = (gm2.offX + 104 * gm2.sc) - numW / 2 - pw / 2 - 6; } // 数字が詰まっている（2列・等間隔）時は 数字の列ぜんぶの 左（絵の上）に出して 隣の数字と重ねない
+      if (H < ph + 4) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 箱が低すぎて 吹き出しが入らない時は 数字の色だけ変える
+      var dense = sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden');
+      if (dense && W >= pw + numW + 12) { var gm2 = sb.__geom || { offX: 0, sc: 1 }; x = (gm2.offX + 104 * gm2.sc) - numW / 2 - pw / 2 - 6; } // 数字が詰まっている（2列・等間隔）時は 数字の列ぜんぶの 左（絵の上）に出して 隣の数字と重ねない。箱が狭くて左に出せない時は 数字の場所に（小さい吹き出し）
       x = Math.max(pw / 2 + 2, Math.min(W - pw / 2 - 2, x));
       // 縦：箱の中に おさめ、前に出した吹き出しと 重ならない所まで ずらす
-      var fits = function (yy) { for (var q = 0; q < placedYs.length; q++) if (Math.abs(placedYs[q] - yy) < ph + 2) return false; return true; };
+      // ほかの吹き出しとは ph+2 以上、見えている数字（自分以外）とは 高さの半分ずつ −4px 以上 離す
+      var numH2 = n.offsetHeight || 20, busyYs = [];
+      for (var bi = 0; bi < nums.length; bi++) { var nn = nums[bi]; if (nn === n || nn.classList.contains('hidden') || nn.classList.contains('gdot') || nn.style.visibility === 'hidden') continue; busyYs.push(parseFloat(nn.style.top)); }
+      var fits = function (yy) { for (var q = 0; q < placedYs.length; q++) if (Math.abs(placedYs[q] - yy) < ph + 2) return false; for (var q2 = 0; q2 < busyYs.length; q2++) if (Math.abs(busyYs[q2] - yy) < (ph + numH2) / 2 - 4) return false; return true; };
       var clampY = function (yy) { return Math.max(ph / 2 + 1, Math.min(H - ph / 2 - 1, yy)); };
       y = clampY(y);
       if (!fits(y)) { var up = y, down = y, k = 0; while (k++ < 20) { up -= ph + 2; down += ph + 2; if (up >= ph / 2 + 1 && fits(up)) { y = up; break; } if (down <= H - ph / 2 - 1 && fits(down)) { y = down; break; } } }
+      if (!fits(y)) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 置ける所が無い（低い箱で 同時に何枚も変わった）時は この段は 数字の色だけ
       placedYs.push(y);
       pop.style.left = x + 'px'; pop.style.top = y + 'px';
       n.style.visibility = 'hidden'; sb.__pops = sb.__pops || {}; sb.__pops[ch.i] = true; // 置き直しが入っても 吹き出しの間は この段の数字を隠したまま

@@ -142,6 +142,11 @@
       if (pat && !opts.flat) out += pt.replace('FILL', 'fill="url(#' + pat + ')"');
       if (!opts.flat) out += pt.replace('FILL', 'fill="url(#' + shade + ')"');
     });
+    // しわの光（上側に 1本）と すその縫い目（四角い形だけ）
+    if (!opts.flat && shape !== 'raw' && shape !== 'ball' && shape !== 'pair' && shape !== 'tube') {
+      out += '<path d="M' + (x + w * 0.08) + ' ' + (y + h * 0.3) + ' q' + (w * 0.2) + ' -' + (h * 0.18) + ' ' + (w * 0.42) + ' ' + (h * 0.02) + '" stroke="#fff" stroke-opacity=".45" stroke-width="' + (sw * 0.9) + '" fill="none" stroke-linecap="round"/>';
+      out += '<line x1="' + (x + 2) + '" y1="' + (y + h - 1.8) + '" x2="' + (x + w - 2) + '" y2="' + (y + h - 1.8) + '" stroke="' + d + '" stroke-opacity=".55" stroke-width="' + (sw * 0.6) + '" stroke-dasharray="1.6 1.4"/>';
+    }
     out += deco;
     if (opts.shadow) out = '<g filter="url(#f-shadow)">' + out + '</g>';
     if (fold && T.FOLD_BY_ID[fold].dir && !opts.noDir) {
@@ -209,6 +214,7 @@
     if (svg) {
       var sc2 = Math.min(W / 120, H / VBH);
       if (!opts.onlyHot && sc2 > sc + 1e-6 && minLayerU * sc2 >= numH + 1 && (W - 120 * sc2) / 2 + 108 * sc2 + numW / 2 <= W + 1) { svg.setAttribute('viewBox', '0 0 120 ' + VBH); sc = sc2; offY = H - VBH * sc; offX = (W - 120 * sc) / 2; mode = 'one'; minLayer = minLayerU * sc; }
+      else if (mode !== 'zig' && sc2 > sc + 1e-6 && (W - 120 * sc2) / 2 + 108 * sc2 + numW / 2 <= W + 1) { svg.setAttribute('viewBox', '0 0 120 ' + VBH); sc = sc2; offY = H - VBH * sc; offX = (W - 120 * sc) / 2; mode = 'pitch'; minLayer = minLayerU * sc; } // 等間隔でも 2列目は要らないので 絵を大きく
       else svg.setAttribute('viewBox', '0 0 150 ' + VBH);
     }
     var show = {}; for (var q = 0; q < n; q++) show[q] = true;
@@ -236,12 +242,13 @@
     box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH };
   }
   function personSVG() {
-    return '<ellipse cx="60" cy="92" rx="30" ry="4" fill="#000" opacity=".25"/>' +
+    return '<ellipse cx="60" cy="92" rx="34" ry="5" fill="url(#g-ao)"/>' +
       '<path d="M46 60 l-3 28 h10 l3 -26z" fill="#3a4a6b"/><path d="M74 60 l3 28 h-10 l-3 -26z" fill="#3a4a6b"/>' +
       '<path d="M41 88 h14 v4 h-16z M79 88 h-14 v4 h16z" fill="#2b2118"/>' +
       '<path d="M40 60 v-22 q0 -10 20 -10 q20 0 20 10 v22z" fill="#5f9fd6" stroke="#2f5f8a" stroke-width="1.5"/><path d="M40 60 v-22 q0 -10 20 -10 q20 0 20 10 v22z" fill="url(#g-shade)"/>' +
-      '<path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#5f9fd6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#f3c9a4" stroke-width="5" stroke-linecap="round" fill="none"/>' +
-      '<circle cx="60" cy="18" r="11" fill="#f3c9a4" stroke="#8a5a3a" stroke-width="1.2"/><path d="M49 16 q3 -12 11 -12 q9 0 11 12 q-5 -5 -11 -5 q-6 0 -11 5z" fill="#4a3220"/>' +
+      '<path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#4a86bd" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#5f9fd6" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M38 16 q-2 -8 -2 -12 M82 16 q2 -8 2 -12" stroke="#f3c9a4" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="36" cy="3" r="4" fill="#f3c9a4"/><circle cx="84" cy="3" r="4" fill="#f3c9a4"/>' +
+      '<path d="M46 60 l-3 28 h10 l3 -26z M74 60 l3 28 h-10 l-3 -26z" fill="url(#g-shade)"/>' +
+      '<circle cx="60" cy="18" r="11" fill="#f3c9a4" stroke="#8a5a3a" stroke-width="1.2"/><circle cx="60" cy="18" r="11" fill="url(#g-shade)" opacity=".5"/><path d="M49 16 q3 -12 11 -12 q9 0 11 12 q-5 -5 -11 -5 q-6 0 -11 5z" fill="#4a3220"/><path d="M53 9 q5 -3 10 -1" stroke="#7a5a40" stroke-width="1.5" fill="none" opacity=".8"/><circle cx="53" cy="22" r="2" fill="#e8a0a0" opacity=".5"/><circle cx="67" cy="22" r="2" fill="#e8a0a0" opacity=".5"/>' +
       '<circle cx="56" cy="19" r="1.2" fill="#2b2118"/><circle cx="64" cy="19" r="1.2" fill="#2b2118"/><path d="M57 24 q3 2 6 0" stroke="#8a5a3a" stroke-width="1" fill="none"/>';
   }
   function titleArt() {
@@ -264,36 +271,56 @@
   }
   function basketSVG() { return '<g filter="url(#f-soft)">' + basketBody() + '</g>'; }
   function tansuSVG(x, y, w, h) {
-    var s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-wood)" stroke="#5a3a1a" stroke-width="2.5"/>';
+    var s = '<ellipse cx="' + (x + w / 2) + '" cy="' + (y + h + 6) + '" rx="' + (w * 0.55) + '" ry="' + Math.max(4, h * 0.05) + '" fill="url(#g-ao)"/>';
+    s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-wood)" stroke="#4a2e14" stroke-width="2.5"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#p-grain)"/>';
+    s += '<rect x="' + (x - 3) + '" y="' + (y - 4) + '" width="' + (w + 6) + '" height="7" rx="2" fill="#a8773f" stroke="#4a2e14" stroke-width="1.5"/><rect x="' + (x - 3) + '" y="' + (y - 4) + '" width="' + (w + 6) + '" height="3" fill="#fff" opacity=".3"/>';
     var n = 3, dh = (h - 14) / n;
-    for (var i = 0; i < n; i++) { var dy = y + 6 + i * dh; s += '<rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#d9ad74" stroke="#7a5431" stroke-width="1.5"/><rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#g-shade)" opacity=".6"/><circle cx="' + (x + w / 2) + '" cy="' + (dy + (dh - 5) / 2) + '" r="' + Math.max(2, dh * 0.08) + '" fill="#3a2a1c"/>'; }
-    s += '<rect x="' + (x + 4) + '" y="' + (y + h) + '" width="10" height="6" fill="#5a3a1a"/><rect x="' + (x + w - 14) + '" y="' + (y + h) + '" width="10" height="6" fill="#5a3a1a"/>';
+    for (var i = 0; i < n; i++) {
+      var dy = y + 6 + i * dh, open = (i === 0 ? Math.min(6, h * 0.04) : 0);
+      s += '<rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#3a2a1c"/>';
+      s += '<rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#d9ad74" stroke="#7a5431" stroke-width="1.5"/><rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#p-grain)"/><rect x="' + (x + 7) + '" y="' + (dy + open) + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#g-shade)" opacity=".7"/>';
+      var hr = Math.max(2.2, dh * 0.09), hx = x + w / 2, hy = dy + open + (dh - 5) / 2;
+      s += '<rect x="' + (hx - hr * 2.4) + '" y="' + (hy - hr * 0.5) + '" width="' + (hr * 4.8) + '" height="' + hr + '" rx="' + (hr * 0.5) + '" fill="url(#g-metal)" stroke="#3a2a1c" stroke-width=".8"/>';
+      if (open) s += '<path d="M' + (x + 10) + ' ' + (dy + 1) + ' h' + (w - 20) + '" stroke="#fff" stroke-width="2" opacity=".6"/>';
+    }
+    s += '<rect x="' + (x + 4) + '" y="' + (y + h) + '" width="10" height="6" fill="#4a2e14"/><rect x="' + (x + w - 14) + '" y="' + (y + h) + '" width="10" height="6" fill="#4a2e14"/>';
+    s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-glass)" opacity=".15"/>';
     return s;
   }
   function hallSVG() {
-    return '<rect width="1000" height="310" fill="url(#g-wall)"/>' +
-      '<rect x="0" y="0" width="1000" height="310" fill="url(#p-linen)" opacity=".5"/>' +
-      '<rect x="430" y="50" width="150" height="130" fill="url(#g-sky)" stroke="#8a6238" stroke-width="8"/><line x1="505" y1="50" x2="505" y2="180" stroke="#8a6238" stroke-width="5"/><line x1="430" y1="115" x2="580" y2="115" stroke="#8a6238" stroke-width="5"/>' +
-      '<rect x="0" y="296" width="1000" height="16" fill="#7a5431"/><rect x="0" y="296" width="1000" height="4" fill="#a8773f"/>' +
-      '<rect x="0" y="312" width="1000" height="188" fill="url(#p-planks)"/>' +
-      '<rect x="0" y="312" width="1000" height="188" fill="url(#g-shade)" opacity=".6"/>' +
-      '<rect x="0" y="312" width="1000" height="40" fill="#000" opacity=".12"/>';
+    return '<rect width="1000" height="310" fill="url(#g-wall)"/><rect width="1000" height="310" fill="url(#p-paper)"/>' +
+      '<rect x="0" y="0" width="1000" height="22" fill="#000" opacity=".12"/>' +
+      // 額
+      '<g filter="url(#f-shadow)"><rect x="150" y="80" width="110" height="80" fill="#6b4a2a"/><rect x="158" y="88" width="94" height="64" fill="#cfe3c8"/><path d="M158 140 q25 -30 45 -10 t49 -20 v42 h-94z" fill="#7aa36b"/><circle cx="230" cy="105" r="8" fill="#fff3b0"/></g>' +
+      // 窓（ガラスの反射・木枠の陰影）
+      '<rect x="424" y="44" width="162" height="142" fill="#5a3a1a"/><rect x="430" y="50" width="150" height="130" fill="url(#g-sky)"/><rect x="430" y="50" width="150" height="130" fill="url(#g-glass)"/><path d="M440 150 q40 -30 70 -60" stroke="#fff" stroke-opacity=".35" stroke-width="6" fill="none"/>' +
+      '<rect x="500" y="50" width="10" height="130" fill="#8a6238"/><rect x="430" y="110" width="150" height="10" fill="#8a6238"/><rect x="424" y="180" width="162" height="12" fill="#a8773f"/><rect x="424" y="186" width="162" height="6" fill="#5a3a1a" opacity=".5"/>' +
+      // 幅木
+      '<rect x="0" y="292" width="1000" height="20" fill="#7a5431"/><rect x="0" y="292" width="1000" height="5" fill="#b88a55"/><rect x="0" y="309" width="1000" height="3" fill="#3a2a1c"/>' +
+      // 床：板目＋木目＋奥が暗い（奥行き）
+      '<rect x="0" y="312" width="1000" height="188" fill="url(#p-planks)"/><rect x="0" y="312" width="1000" height="188" fill="url(#p-grain)"/><rect x="0" y="312" width="1000" height="188" fill="url(#g-floor)"/>' +
+      // 窓からの光だまり
+      '<ellipse cx="505" cy="400" rx="240" ry="60" fill="url(#g-light)"/>' +
+      // ニスの照り
+      '<rect x="0" y="312" width="1000" height="188" fill="url(#g-glass)" opacity=".18"/>';
   }
   var STATION_BIG = {
-    shikii: '<rect x="4" y="76" width="92" height="14" rx="2" fill="#8a6238"/><rect x="4" y="70" width="92" height="8" rx="2" fill="#c49461"/><rect x="4" y="70" width="92" height="8" fill="url(#p-linen)" opacity=".6"/><line x1="4" y1="78" x2="96" y2="78" stroke="#5a3a1a" stroke-width="1.5"/><ellipse cx="50" cy="92" rx="48" ry="4" fill="#000" opacity=".2"/>',
-    neko: '<ellipse cx="50" cy="90" rx="44" ry="5" fill="#000" opacity=".25"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="#6b6b6b"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="url(#g-shade)"/><path d="M20 70 q-14 -4 -10 -20 q2 -6 8 -4" stroke="#6b6b6b" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="74" cy="66" r="14" fill="#6b6b6b"/><circle cx="74" cy="66" r="14" fill="url(#g-shade)"/><path d="M63 56 l2 -12 l9 8z M85 56 l-2 -12 l-9 8z" fill="#6b6b6b" stroke="#555" stroke-width="1"/><path d="M66 55 l1 -7 l5 5z M82 55 l-1 -7 l-5 5z" fill="#d9a3a3"/><path d="M67 66 q3 -3 6 0 M76 66 q3 -3 6 0" stroke="#2b2118" stroke-width="1.5" fill="none"/><path d="M74 71 q-2 2 -4 1 M74 71 q2 2 4 1" stroke="#2b2118" stroke-width="1" fill="none"/><path d="M60 72 l-12 -2 M60 75 l-12 2 M88 72 l12 -2 M88 75 l12 2" stroke="#ddd" stroke-width="1"/><path d="M30 64 q4 8 0 16 M40 62 q4 10 0 20" stroke="#555" stroke-width="2" fill="none" opacity=".7"/>',
-    kaidan: '<path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#p-planks)"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8" fill="none" stroke="#5a3a1a" stroke-width="2.5"/><path d="M24 70 v20 M46 50 v20 M68 30 v20 M90 10 v20" stroke="#7a5431" stroke-width="2"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#g-shade)" opacity=".5"/>',
+    shikii: '<ellipse cx="50" cy="92" rx="50" ry="5" fill="url(#g-ao)"/><rect x="4" y="76" width="92" height="14" rx="2" fill="#7a5431"/><rect x="4" y="76" width="92" height="14" fill="url(#p-grain)"/><rect x="4" y="69" width="92" height="9" rx="2" fill="#c49461"/><rect x="4" y="69" width="92" height="9" fill="url(#p-grain)"/><rect x="4" y="69" width="92" height="3" fill="#fff" opacity=".35"/><rect x="4" y="73" width="92" height="2" fill="url(#g-metal)"/><line x1="4" y1="78" x2="96" y2="78" stroke="#3a2a1c" stroke-width="1.5"/>',
+    neko: '<ellipse cx="50" cy="91" rx="46" ry="6" fill="url(#g-ao)"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="url(#g-fur)"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="url(#p-fur)"/><path d="M20 70 q-14 -4 -10 -20 q2 -6 8 -4" stroke="#555" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M20 70 q-14 -4 -10 -20 q2 -6 8 -4" stroke="#8a8a8a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/><ellipse cx="40" cy="80" rx="18" ry="7" fill="#d9d2c4" opacity=".7"/><circle cx="74" cy="66" r="14" fill="url(#g-fur)"/><circle cx="74" cy="66" r="14" fill="url(#p-fur)"/><path d="M63 56 l2 -12 l9 8z M85 56 l-2 -12 l-9 8z" fill="#5e5e5e" stroke="#3f3f3f" stroke-width="1"/><path d="M66 55 l1 -7 l5 5z M82 55 l-1 -7 l-5 5z" fill="#d9a3a3"/><path d="M67 66 q3 -3 6 0 M76 66 q3 -3 6 0" stroke="#2b2118" stroke-width="1.5" fill="none"/><circle cx="68" cy="70" r="2.2" fill="#e8a0a0" opacity=".6"/><circle cx="81" cy="70" r="2.2" fill="#e8a0a0" opacity=".6"/><path d="M74 71 q-2 2 -4 1 M74 71 q2 2 4 1" stroke="#2b2118" stroke-width="1" fill="none"/><path d="M60 72 l-12 -2 M60 75 l-12 2 M88 72 l12 -2 M88 75 l12 2" stroke="#eee" stroke-width="1"/><path d="M30 64 q4 8 0 16 M40 62 q4 10 0 20 M52 62 q3 10 0 20" stroke="#3f3f3f" stroke-width="2" fill="none" opacity=".6"/><path d="M28 64 q18 -8 36 -2" stroke="#fff" stroke-width="1.5" fill="none" opacity=".35"/>',
+    kaidan: '<path d="M0 92 h100 v8 h-100z" fill="url(#g-ao)"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#g-wood)"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#p-grain)"/><path d="M24 70 v20 M46 50 v20 M68 30 v20 M90 10 v20" stroke="#5a3a1a" stroke-width="3"/><path d="M2 70 h22 M24 50 h22 M46 30 h22 M68 10 h22" stroke="#fff" stroke-width="2" opacity=".5"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8" fill="none" stroke="#3a2a1c" stroke-width="2.5"/><path d="M24 72 h22 v-2 M46 52 h22 v-2 M68 32 h22 v-2" stroke="#000" stroke-width="3" opacity=".2"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#g-shade)" opacity=".5"/>',
     tansu: ''
   };
   function stationArt(id) { return id === 'tansu' ? tansuSVG(8, 10, 84, 82) : STATION_BIG[id]; }
   // 夕方・夜の部屋（タンスに とどいた物、かごに 落ちた物）
   function roomScene(delivered, fallen, night) {
-    var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/>';
-    s += '<rect x="60" y="40" width="190" height="160" fill="' + (night ? '#1f2a44' : '#f7a04d') + '" stroke="#8a6238" stroke-width="8"/>';
+    var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/><rect width="600" height="330" fill="url(#p-paper)"/>';
+    s += '<rect x="54" y="34" width="202" height="172" fill="#4a2e14"/><rect x="60" y="40" width="190" height="160" fill="url(#' + (night ? 'g-night' : 'g-sunset') + ')"/>';
     if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="110" cy="70" r="2" fill="#fff"/><circle cx="150" cy="120" r="1.6" fill="#fff"/><circle cx="90" cy="150" r="1.8" fill="#fff"/>';
     else s += '<circle cx="155" cy="150" r="34" fill="#ffd27a"/><rect x="60" y="150" width="190" height="50" fill="#e97a3f" opacity=".7"/>';
-    s += '<line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="5"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="5"/>';
-    s += '<rect x="0" y="330" width="600" height="170" fill="url(#p-planks)"/><rect x="0" y="330" width="600" height="170" fill="url(#g-shade)" opacity=".6"/>';
+    s += '<rect x="60" y="40" width="190" height="160" fill="url(#g-glass)"/><line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="7"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="7"/><rect x="54" y="200" width="202" height="10" fill="#a8773f"/>';
+    s += '<rect x="0" y="330" width="600" height="170" fill="url(#p-planks)"/><rect x="0" y="330" width="600" height="170" fill="url(#p-grain)"/><rect x="0" y="330" width="600" height="170" fill="url(#g-floor)"/>';
+    s += '<rect x="0" y="316" width="600" height="14" fill="#7a5431"/><rect x="0" y="316" width="600" height="4" fill="#b88a55"/>';
+    s += (night ? '<ellipse cx="155" cy="380" rx="150" ry="36" fill="#cfe0ff" opacity=".18"/>' : '<path d="M60 200 l190 0 l80 180 l-350 0z" fill="#ffb347" opacity=".22"/>');
     s += '<g filter="url(#f-soft)">' + tansuSVG(330, 150, 230, 200) + '</g>';
     // タンスの上に とどいた物を たたんで 並べる（最大 12）
     var cols = 4, cw = 50, x0 = 340, y0 = 146;

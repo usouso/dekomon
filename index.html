@@ -45,6 +45,7 @@
   #scr-stack .room { flex: 1; min-height: 0; position: relative; display: grid; grid-template-columns: 300px minmax(0, 1fr) 320px; gap: 14px; padding: 12px 16px 14px; }
   #scr-stack .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; z-index: 0; }
   #scr-stack .floor svg { width: 100%; height: 100%; }
+  #scr-stack .room::before { content: ""; position: absolute; left: 36%; top: 0; width: 30%; height: 54%; background: radial-gradient(ellipse at 50% 20%, rgba(255,246,214,.75), rgba(255,246,214,0) 70%); pointer-events: none; z-index: 0; }
   #scr-stack .room > * { position: relative; z-index: 1; min-height: 0; }
   #scr-stack .room > .floor { position: absolute; z-index: 0; }
   /* かご */
@@ -61,8 +62,10 @@
   /* 山（畳） */
   #stacksBox { display: flex; flex-direction: column; min-height: 0; }
   #stackUI { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-  #stacks { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: stretch; padding: 4px 2px 0; }
-  .slot { display: flex; flex-direction: column; align-items: center; border-radius: 10px; padding: 6px 6px 6px; cursor: pointer; min-height: 0; position: relative; background: linear-gradient(rgba(255,255,255,.08), rgba(0,0,0,.06)), var(--tatami); box-shadow: inset 0 0 0 3px #9a9460, 0 4px 6px rgba(0,0,0,.3); background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 7px); }
+  #stacks { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: end; padding: 4px 2px 0; }
+  .slot { max-height: min(100%, 520px); height: 100%; }
+  .slot { display: flex; flex-direction: column; align-items: center; border-radius: 6px; padding: 6px 6px 6px; cursor: pointer; min-height: 0; position: relative; background-color: #cfcb94; background-image: linear-gradient(rgba(255,255,255,.18), rgba(0,0,0,.08)), repeating-linear-gradient(0deg, rgba(120,116,70,.45) 0 1px, transparent 1px 5px), repeating-linear-gradient(90deg, rgba(120,116,70,.18) 0 1px, transparent 1px 8px); border-left: 7px solid #3e4a3a; border-right: 7px solid #3e4a3a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 6px 10px rgba(0,0,0,.35); }
+  .slot::after { content: ""; position: absolute; inset: 0; border-radius: 6px; box-shadow: inset 0 -14px 20px -12px rgba(0,0,0,.35), inset 0 14px 20px -14px rgba(255,255,255,.35); pointer-events: none; }
   .slot.can { box-shadow: inset 0 0 0 3px var(--accent), 0 0 12px #3f6fb588, 0 4px 6px rgba(0,0,0,.3); }
   .slot.away { opacity: .4; }
   .slot .sname { font-size: 15px; color: #4a4320; font-weight: 700; white-space: nowrap; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
@@ -280,7 +283,20 @@
     <pattern id="p-linen" width="6" height="6" patternUnits="userSpaceOnUse"><line x1="0" y1="3" x2="6" y2="3" stroke="#000" stroke-opacity=".07" stroke-width="1"/><line x1="3" y1="0" x2="3" y2="6" stroke="#000" stroke-opacity=".07" stroke-width="1"/></pattern>
     <pattern id="p-wicker" width="18" height="12" patternUnits="userSpaceOnUse"><rect width="18" height="12" fill="#c99a5a"/><rect x="0" y="0" width="9" height="6" rx="2" fill="#b7853f"/><rect x="9" y="6" width="9" height="6" rx="2" fill="#b7853f"/><rect x="0" y="1" width="9" height="1.5" fill="#e0b57a" opacity=".8"/><rect x="9" y="7" width="9" height="1.5" fill="#e0b57a" opacity=".8"/><rect x="9" y="0" width="9" height="6" rx="2" fill="#d4a86a"/><rect x="0" y="6" width="9" height="6" rx="2" fill="#d4a86a"/></pattern>
     <pattern id="p-planks" width="220" height="48" patternUnits="userSpaceOnUse"><rect width="220" height="48" fill="#b98a57"/><rect x="0" y="0" width="220" height="23" fill="#c49461"/><rect x="0" y="24" width="220" height="23" fill="#b3834f"/><line x1="0" y1="23.5" x2="220" y2="23.5" stroke="#7a5431" stroke-width="1.6"/><line x1="0" y1="47.5" x2="220" y2="47.5" stroke="#7a5431" stroke-width="1.6"/><line x1="140" y1="0" x2="140" y2="23" stroke="#7a5431" stroke-width="1.4"/><line x1="40" y1="24" x2="40" y2="47" stroke="#7a5431" stroke-width="1.4"/><path d="M10 8 q40 3 80 0 t70 2" stroke="#a8733f" stroke-width="1" fill="none" opacity=".7"/><path d="M60 36 q50 -3 110 1" stroke="#a8733f" stroke-width="1" fill="none" opacity=".7"/></pattern>
+    <radialGradient id="g-light" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff6d6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-ao" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset=".6" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset=".35" stop-color="#000" stop-opacity=".04"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient>
+    <linearGradient id="g-metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3e3b8"/><stop offset=".5" stop-color="#b08a4a"/><stop offset="1" stop-color="#6b4e22"/></linearGradient>
+    <linearGradient id="g-fur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a8a8a"/><stop offset=".6" stop-color="#5e5e5e"/><stop offset="1" stop-color="#3f3f3f"/></linearGradient>
+    <linearGradient id="g-sunset" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6b26b"/><stop offset=".6" stop-color="#ee7a45"/><stop offset="1" stop-color="#c6523a"/></linearGradient>
+    <linearGradient id="g-night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1a33"/><stop offset="1" stop-color="#2a3a66"/></linearGradient>
+    <pattern id="p-grain" width="160" height="30" patternUnits="userSpaceOnUse"><path d="M0 6 q40 -4 80 0 t80 0" stroke="#5a3a1a" stroke-opacity=".18" stroke-width="1.2" fill="none"/><path d="M0 16 q30 5 70 0 t90 2" stroke="#5a3a1a" stroke-opacity=".14" stroke-width="1" fill="none"/><path d="M10 25 q50 -3 90 0 t60 1" stroke="#fff" stroke-opacity=".16" stroke-width="1" fill="none"/><ellipse cx="120" cy="11" rx="6" ry="3.5" fill="none" stroke="#5a3a1a" stroke-opacity=".25" stroke-width="1"/><ellipse cx="120" cy="11" rx="2.5" ry="1.5" fill="#5a3a1a" fill-opacity=".3"/></pattern>
+    <pattern id="p-tatami" width="8" height="5" patternUnits="userSpaceOnUse"><rect width="8" height="5" fill="#cfcb94"/><line x1="0" y1="1" x2="8" y2="1" stroke="#9e9a63" stroke-opacity=".55" stroke-width="1"/><line x1="0" y1="3.5" x2="8" y2="3.5" stroke="#fff" stroke-opacity=".35" stroke-width="1"/><line x1="4" y1="0" x2="4" y2="5" stroke="#9e9a63" stroke-opacity=".25" stroke-width=".6"/></pattern>
+    <pattern id="p-paper" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="none"/><circle cx="3" cy="4" r=".8" fill="#000" fill-opacity=".05"/><circle cx="10" cy="11" r=".8" fill="#000" fill-opacity=".05"/><circle cx="8" cy="2" r=".6" fill="#fff" fill-opacity=".2"/></pattern>
+    <pattern id="p-fur" width="7" height="9" patternUnits="userSpaceOnUse"><path d="M1 8 q1.5 -4 3 -7" stroke="#2f2f2f" stroke-opacity=".28" stroke-width="1" fill="none"/><path d="M4.5 9 q1.5 -4 2.5 -6" stroke="#fff" stroke-opacity=".16" stroke-width="1" fill="none"/></pattern>
     <filter id="f-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2.5" stdDeviation="1.6" flood-color="#000" flood-opacity=".35"/></filter>
+    <filter id="f-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
     <filter id="f-soft" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity=".35"/></filter>
   </defs>
 </svg>

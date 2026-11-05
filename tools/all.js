@@ -1,5 +1,5 @@
 // たたみやま 版1 — まとめて確かめる：node tools/all.js [--quick]
-// 順に：tests.js → bot.js（--quick なら 300回・短い探索）→ tools/check.js（4つの大きさ）→ tools/screens.js → tools/frames.js
+// 順に：tests.js → bot.js（--quick なら 300回・短い探索）→ tools/check.js（4つの大きさ）→ tools/check.js --v c（案C。2つの大きさ）→ tools/screens.js → tools/frames.js
 // どれかが失敗したら そこで止まり、終了コードが 0 以外になる。終わったら ブラウザは 各ツールが自分で閉じる。
 'use strict';
 var { spawnSync } = require('child_process');
@@ -10,6 +10,7 @@ var steps = [
   ['tests.js', []],
   ['bot.js', quick ? ['--runs', '300', '--quick'] : ['--runs', '1000']],
   ['tools/check.js', ['--runs', quick ? '1' : '3']],
+  ['tools/check.js', ['--runs', '1', '--v', 'c', '--sizes', '1366x768,375x812', '--port', '8790']], // 案C の画面も
   ['tools/screens.js', []],
   ['tools/frames.js', []]
 ];

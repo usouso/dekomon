@@ -10,7 +10,7 @@
 - tools/check.js … ヘッドレス Chrome で 自動プレイ（?auto=1）を4つの大きさで回し、画面と計算のずれ・文字の重なり・ページのスクロールを数える
 - tools/screens.js … スクリーンショット（screenshots/）
 - tools/frames.js … コマ送り画像（0.05秒ごとに10コマ）
-- tools/exact.js … 小さい場面（1日目・2日目1山）の全部の並べ方を数える（約2分）
+- tools/exact.js … 小さい場面（1日目・2日目1山）の全部の並べ方を数える（約2分。`--day2k2` で 2日目2山も。約7分）
 - tools/sample.js … 大きい場面の「かならず とどく」積み方の割合を 無作為抽出で数える（`--variant c` も可）
 - REPORT.md … この版の報告
 

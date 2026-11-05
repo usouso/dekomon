@@ -65,8 +65,8 @@ async function strip(browser, rec, clip, outFile, label) {
     // 2) 山が落ちる瞬間：1日目 合計9、seed 5（かいだんで ジーンズが落ちる）
     await page.goto('http://localhost:' + PORT + '/?mute=1&seed=5&reset=1&speed=0.5');
     await page.evaluate(function () { var W = window.__tatami; W.start(5); ['tshirt_square', 'tshirt_square', 'socks_line', 'socks_line', 'towel_roll', 'jeans_half'].forEach(function (f) { W.place(W.T.FOLD_BY_ID[f].kind, f, 0); }); W.carry(); });
-    var road = await page.evaluate(function () { var r = document.getElementById('road').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
-    var clip2 = { x: Math.round(road.x), y: Math.round(road.y + 90), w: Math.round(road.w), h: Math.min(Math.round(road.h - 90), 420) };
+    var road = await page.evaluate(function () { var r = document.getElementById('hall').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+    var clip2 = { x: Math.round(road.x + road.w * 0.35), y: Math.round(road.y + road.h * 0.3), w: Math.round(road.w * 0.5), h: Math.round(road.h * 0.7) };
     // 落ちる直前（fx-hot）まで待ってから 記録を始める
     var t0 = Date.now(), ok = false;
     while (Date.now() - t0 < 60000) { await page.waitForTimeout(40); var hot = await page.evaluate(function () { return !!document.querySelector('#carrierStack .fx-hot'); }); if (hot) { ok = true; break; } }

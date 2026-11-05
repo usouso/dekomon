@@ -6,137 +6,158 @@
 <title>たたみやま</title>
 <style>
   :root {
-    --bg: #f6efe3; --panel: #fffaf1; --ink: #3b3024; --sub: #7a6a58; --line: #d9c9b2;
-    --safe: #4caf6e; --luck: #e2a33a; --bad: #d9534f; --accent: #4a7fd6; --glow: #ffd54a;
-    --c-tshirt: #7fb3ff; --c-socks: #ffb27f; --c-towel: #8fd68f; --c-jeans: #4a6fb5; --c-slick: #d9c2ff; --c-sheet: #fff0b3;
+    --ink: #3a2e22; --sub: #705e4c; --paper: #fff8ec; --line: #d8c7ad;
+    --safe: #3f9d5f; --luck: #d9962e; --bad: #d44a3f; --accent: #3f6fb5; --glow: #ffd54a;
+    --wood: #b98a57; --wood-d: #8a6238; --wall: #efe4cf; --tatami: #c9c58f;
     --fs: 16px;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif; font-size: var(--fs); line-height: 1.35; }
-  button { font: inherit; color: inherit; cursor: pointer; border: 2px solid var(--line); background: var(--panel); border-radius: 12px; padding: 6px 12px; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #2b2118; color: var(--ink); font-family: "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif; font-size: var(--fs); line-height: 1.35; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 2px solid var(--line); background: var(--paper); border-radius: 12px; padding: 6px 12px; }
   button:disabled { opacity: .45; cursor: default; }
   button:focus-visible, .bitem:focus-visible, .slot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) {
-    .layer.fx-take, .layer.fx-pat, .fx-chg { animation-duration: .01s; animation-iteration-count: 1; }
-    #carrier, #carrier .cst { transition-duration: .01s; }
-  }
   svg { display: block; }
   .hidden { display: none !important; }
+  #defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
-  /* ---------- 全体の枠（PC：横3列） ---------- */
-  #app { height: 100%; display: grid; grid-template-rows: 52px 1fr; grid-template-columns: minmax(0, 1fr); width: 100%; }
-  #head { display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 2px solid var(--line); background: var(--panel); min-width: 0; overflow: hidden; }
-  #head > * { white-space: nowrap; }
-  #head .title { font-weight: 700; font-size: 20px; letter-spacing: .04em; }
-  #head .dayLbl { font-size: 20px; font-weight: 700; }
-  #head .tripLbl { font-size: 17px; color: var(--sub); }
-  #head .sp { flex: 1; }
-  .seg { display: flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 15px; font-weight: 400; margin-left: auto; }
-  .seg button { border: 0; border-radius: 0; padding: 3px 10px; }
-  .seg button.on { background: var(--accent); color: #fff; }
-  #volBox { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--sub); }
+  /* ---------- 場面（全画面。1つだけ表示） ---------- */
+  .scr { position: absolute; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+  .scr.on { display: flex; animation: fx-scrin calc(.35s / var(--spd, 1)) ease-out; }
+  @keyframes fx-scrin { from { opacity: 0; } to { opacity: 1; } }
+  .bar-top { height: 54px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: rgba(58, 46, 34, .86); color: #fbf3e4; backdrop-filter: blur(2px); }
+  .bar-top .ttl { font-weight: 700; font-size: 20px; letter-spacing: .06em; }
+  .bar-top .day { font-size: 21px; font-weight: 700; }
+  .bar-top .sub { font-size: 16px; opacity: .85; }
+  .bar-top .sp { flex: 1; }
+  .bar-top > * { white-space: nowrap; }
+  .seg { display: flex; border: 2px solid rgba(255,255,255,.35); border-radius: 12px; overflow: hidden; font-size: 15px; }
+  .seg button { border: 0; border-radius: 0; padding: 3px 10px; background: transparent; color: #fbf3e4; }
+  .seg button.on { background: #fbf3e4; color: var(--ink); }
+  #volBox { display: flex; align-items: center; gap: 6px; font-size: 15px; }
   #vol { width: 90px; }
-  #main { display: grid; grid-template-columns: 250px minmax(0, 1fr) 340px; gap: 10px; padding: 10px; min-height: 0; min-width: 0; }
-  .col { min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-  .box { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px; position: relative; }
-  .box h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--sub); display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; }
-  .box h2 > * { white-space: nowrap; }
-  .guide { display: inline-block; background: var(--accent); color: #fff; font-size: 15px; padding: 1px 10px; border-radius: 10px; }
+  .guide { display: inline-block; background: var(--accent); color: #fff; font-size: 15px; padding: 1px 10px; border-radius: 10px; animation: fx-guide 1.2s ease-in-out infinite; }
+  @keyframes fx-guide { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  .panel-title { font-size: 18px; font-weight: 700; color: #fbf3e4; text-shadow: 0 1px 2px rgba(0,0,0,.5); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .panel-title > * { white-space: nowrap; }
 
-  /* ---------- かご ---------- */
-  #basketBox { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #basket { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; align-content: start; overflow-y: auto; min-height: 0; }
-  .bitem { border: 2px solid var(--line); border-radius: 10px; background: #fff; padding: 4px 2px 2px; text-align: center; cursor: pointer; position: relative; }
-  .bitem svg { width: 100%; height: 30px; }
+  /* ---------- たたむ・つむ の場面（部屋） ---------- */
+  #scr-stack { background: linear-gradient(#f3e9d6 0, #e9dcc4 58%, transparent 58%), url(#none); }
+  #scr-stack .room { flex: 1; min-height: 0; position: relative; display: grid; grid-template-columns: 300px minmax(0, 1fr) 320px; gap: 14px; padding: 12px 16px 14px; }
+  #scr-stack .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; z-index: 0; }
+  #scr-stack .floor svg { width: 100%; height: 100%; }
+  #scr-stack .room > * { position: relative; z-index: 1; min-height: 0; }
+  #scr-stack .room > .floor { position: absolute; z-index: 0; }
+  /* かご */
+  #basketBox { display: flex; flex-direction: column; min-height: 0; }
+  #basketArt { position: relative; flex: 1; min-height: 0; }
+  #basketArt > svg.bk { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #basket { position: absolute; left: 7%; right: 7%; top: 14%; bottom: 10%; display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; align-content: start; overflow-y: auto; padding: 4px; }
+  .bitem { border: 2px solid rgba(90, 60, 30, .35); border-radius: 10px; background: rgba(255, 250, 240, .92); padding: 4px 2px 2px; text-align: center; cursor: pointer; position: relative; box-shadow: 0 2px 3px rgba(0,0,0,.25); }
+  .bitem svg { width: 100%; height: 34px; }
   .bitem .nm { font-size: 14px; line-height: 1.2; }
-  .bitem.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #4a7fd655; }
-  .bitem.folded { background: #f0f6ff; }
+  .bitem.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #3f6fb566, 0 2px 3px rgba(0,0,0,.25); }
+  .bitem.folded { background: #eef4ff; }
   .bitem .fdg { position: absolute; left: 4px; top: 2px; font-size: 14px; font-weight: 700; color: var(--sub); }
-  #foldBox { min-height: 150px; }
-  #foldBox .who { color: var(--ink); }
-  #folds { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; } /* PC は 1列（効果の文を 2行までに おさめる） */
-  .fbtn { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 6px 8px; text-align: left; min-height: 0; background: #fff; }
-  .fbtn .ft { min-height: 0; }
-  .fbtn svg { width: 100%; height: 34px; }
+  /* 山（畳） */
+  #stacksBox { display: flex; flex-direction: column; min-height: 0; }
+  #stackUI { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+  #stacks { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: stretch; padding: 4px 2px 0; }
+  .slot { display: flex; flex-direction: column; align-items: center; border-radius: 10px; padding: 6px 6px 6px; cursor: pointer; min-height: 0; position: relative; background: linear-gradient(rgba(255,255,255,.08), rgba(0,0,0,.06)), var(--tatami); box-shadow: inset 0 0 0 3px #9a9460, 0 4px 6px rgba(0,0,0,.3); background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 7px); }
+  .slot.can { box-shadow: inset 0 0 0 3px var(--accent), 0 0 12px #3f6fb588, 0 4px 6px rgba(0,0,0,.3); }
+  .slot.away { opacity: .4; }
+  .slot .sname { font-size: 15px; color: #4a4320; font-weight: 700; white-space: nowrap; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+  .stackbox { position: relative; width: 100%; flex: 1; min-height: 0; }
+  .stackbox svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .gnum { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); min-width: 1.5em; height: 1.35em; line-height: 1.2em; text-align: center; font-weight: 700; font-size: clamp(14px, 1.3vw, 20px); border-radius: 1em; background: #fff; border: 2px solid var(--line); padding: 0 .25em; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .gnum.z { color: var(--safe); border-color: var(--safe); }
+  .gnum.chg { background: var(--glow); border-color: #c9a000; }
+  .gnum.chg.up { background: #ffd0cc; border-color: var(--bad); }
+  .gnum.gdot { min-width: 0; width: 12px; height: 12px; padding: 0; border-color: var(--safe); background: var(--safe); font-size: 0; }
+  .layer.fx-give path, .layer.fx-give rect, .layer.fx-give ellipse, .layer.fx-give circle { filter: drop-shadow(0 0 4px #ffb300); }
+  .layer.fx-take { animation: fx-pulse calc(.9s / var(--spd, 1)) ease-in-out 2; }
+  .layer.fx-hot path, .layer.fx-hot rect, .layer.fx-hot ellipse, .layer.fx-hot circle { filter: drop-shadow(0 0 5px #ff3b30) drop-shadow(0 0 2px #ff3b30); }
+  @keyframes fx-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+  .layer.fx-drop { animation: fx-dropdown calc(.8s / var(--spd, 1)) ease-in forwards; }
+  @keyframes fx-dropdown { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(40px, 260px) rotate(50deg); opacity: 0; } }
+  .layer.fx-pat { animation: fx-pat calc(.35s / var(--spd, 1)) ease-out; transform-box: fill-box; transform-origin: 50% 100%; }
+  .bitem svg.fx-pat { animation: fx-pat calc(.35s / var(--spd, 1)) ease-out; transform-origin: 50% 100%; }
+  @keyframes fx-pat { 0% { transform: scaleY(1.8) translateY(0); } 60% { transform: scaleY(.85); } 100% { transform: scaleY(1); } }
+  .bar { width: 100%; margin-top: 4px; }
+  .bar .cells { position: relative; display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; height: 14px; }
+  .bar .cell { background: rgba(255,255,255,.55); border-radius: 3px; }
+  .bar .cell.g { background: var(--safe); }
+  .bar .cell.g.luck { background: var(--luck); }
+  .bar .cell.s { background: #6d5a46; }
+  .bar .cell.over { background: var(--bad); }
+  .bar .line4 { position: absolute; left: 40%; top: -4px; bottom: -4px; width: 3px; background: #2b2118; border-radius: 2px; }
+  .bar .txt { display: flex; flex-wrap: wrap; justify-content: center; font-size: 15px; margin-top: 3px; gap: 1px 6px; line-height: 1.25; color: #3a3417; }
+  .bar .txt span { white-space: nowrap; }
+  .bar .txt .tot { font-weight: 700; }
+  .bar .txt .judge { color: #246b3d; font-weight: 700; }
+  .bar .txt .judge.luck { color: #8a5a00; }
+  .bar .txt .judge.bad { color: var(--bad); }
+  /* たたみ方の台 */
+  #foldBox { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
+  #foldTray { background: linear-gradient(#d9b57f, #c39a63); border: 3px solid #8a6238; border-radius: 14px; padding: 10px; box-shadow: 0 4px 8px rgba(0,0,0,.3); }
+  #folds { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .fbtn { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 6px 8px; text-align: left; min-height: 0; background: var(--paper); box-shadow: 0 2px 3px rgba(0,0,0,.25); }
+  .fbtn svg { width: 100%; height: 48px; }
   .fbtn .fn { font-weight: 700; font-size: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 6px; }
   .fbtn .fn > span { white-space: nowrap; }
   .fbtn .fn .g { color: var(--sub); font-size: 15px; font-weight: 400; }
   .fbtn .ft { font-size: 15px; color: var(--sub); min-height: 2.6em; }
-  .fbtn.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #4a7fd655; }
-  #foldHint { font-size: 15px; color: var(--sub); margin-top: 4px; }
+  .fbtn.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #3f6fb566, 0 2px 3px rgba(0,0,0,.25); }
+  #foldHint { font-size: 15px; color: #4a3a28; margin-top: 6px; }
+  #foldBox .who { color: #fff; }
+  /* はこぶ の戸 */
+  #carryBtnRow { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  #carryBtn { width: 100%; font-size: 22px; font-weight: 700; padding: 12px 10px; background: linear-gradient(#5b86c9, #3f6fb5); color: #fff; border-color: #2b4f86; border-radius: 14px; box-shadow: 0 4px 8px rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; gap: 10px; }
+  #carryBtn:disabled { background: #9aa6b8; border-color: #8a94a3; box-shadow: none; }
+  #carryBtn svg { width: 36px; height: 36px; }
+  #carryNote { font-size: 15px; color: #4a3a28; text-align: center; }
 
-  /* ---------- 山 ---------- */
-  #stacksBox { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #stackUI { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-  #stacks { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px; align-items: stretch; }
-  .slot { display: flex; flex-direction: column; align-items: center; border: 2px dashed var(--line); border-radius: 14px; padding: 6px 6px 4px; cursor: pointer; min-height: 0; position: relative; }
-  .slot.can { border-color: var(--accent); background: #f3f8ff; }
-  .slot.away { opacity: .35; }
-  .slot .sname { font-size: 15px; color: var(--sub); white-space: nowrap; }
-  .stackbox { position: relative; width: 100%; flex: 1; min-height: 0; }
-  .stackbox svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-  .gnum { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); min-width: 1.5em; height: 1.35em; line-height: 1.2em; text-align: center; font-weight: 700; font-size: clamp(14px, 1.3vw, 20px); border-radius: 1em; background: #fff; border: 2px solid var(--line); padding: 0 .25em; white-space: nowrap; }
-  .gnum.z { color: var(--safe); border-color: var(--safe); }
-  .gnum.gdot { min-width: 0; width: 12px; height: 12px; padding: 0; border-color: var(--safe); background: var(--safe); font-size: 0; }
-  .gnum.chg { background: var(--glow); border-color: #c9a000; }
-  .gnum.chg.up { background: #ffd0cc; border-color: var(--bad); }
-  .layer.fx-give rect, .layer.fx-give ellipse, .layer.fx-give circle, .layer.fx-give path { filter: drop-shadow(0 0 4px #ffb300); }
-  .layer.fx-take { animation: fx-pulse calc(.9s / var(--spd, 1)) ease-in-out 2; }
-  .layer.fx-top:hover { opacity: .85; }
-  .layer.fx-hot rect, .layer.fx-hot ellipse, .layer.fx-hot circle, .layer.fx-hot path { filter: drop-shadow(0 0 5px #ff3b30) drop-shadow(0 0 2px #ff3b30); }
-  @keyframes fx-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
-  .layer.fx-drop { animation: fx-dropdown calc(.8s / var(--spd, 1)) ease-in forwards; }
-  @keyframes fx-dropdown { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(30px, 260px) rotate(40deg); opacity: 0; } }
-  .layer.fx-pat { animation: fx-pat calc(.35s / var(--spd, 1)) ease-out; transform-box: fill-box; transform-origin: 50% 100%; }
-  .bitem svg.fx-pat { animation: fx-pat calc(.35s / var(--spd, 1)) ease-out; transform-origin: 50% 100%; } /* たたんだ瞬間の「パタン」（かごの中） */
-  @keyframes fx-pat { 0% { transform: scaleY(1.8) translateY(0); } 60% { transform: scaleY(.85); } 100% { transform: scaleY(1); } }
-  .bar { width: 100%; margin-top: 4px; }
-  .bar .cells { position: relative; display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; height: 14px; }
-  .bar .cell { background: #e9e0d1; border-radius: 3px; }
-  .bar .cell.g { background: var(--safe); }
-  .bar .cell.g.luck { background: var(--luck); }
-  .bar .cell.s { background: #8a7a68; }
-  .bar .cell.over { background: var(--bad); }
-  .bar .line4 { position: absolute; left: calc(40% + 0px); top: -4px; bottom: -4px; width: 3px; background: var(--ink); border-radius: 2px; }
-  .bar .txt { display: flex; flex-wrap: wrap; justify-content: center; font-size: 15px; margin-top: 3px; gap: 1px 6px; line-height: 1.25; }
-  .bar .txt span { white-space: nowrap; }
-  .bar .txt .tot { font-weight: 700; }
-  .bar .txt .judge { color: var(--safe); }
-  .bar .txt .judge.luck { color: #a86b00; }
-  .bar .txt .judge.bad { color: var(--bad); }
-  #carryBtnRow { display: flex; justify-content: center; align-items: center; gap: 12px; }
-  #carryBtn { font-size: 20px; font-weight: 700; padding: 10px 36px; background: var(--accent); color: #fff; border-color: #2f5fb0; }
-  #carryBtn:disabled { background: #b7c4da; border-color: #b7c4da; }
-  #carryNote { font-size: 15px; color: var(--sub); }
-
-  /* ---------- 道（運ぶ） ---------- */
-  #roadBox { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #road { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-  .stations { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-  .st { text-align: center; font-size: 15px; color: var(--sub); border-bottom: 3px solid var(--line); padding-bottom: 3px; }
-  .st svg { width: 100%; height: 40px; }
-  .st .sn { font-weight: 700; color: var(--ink); }
-  .st.now { border-bottom-color: var(--accent); background: #f3f8ff; border-radius: 8px 8px 0 0; }
-  #walk { position: relative; height: 300px; margin-top: 6px; }
-  #carrier { position: absolute; left: 0; bottom: 0; width: 40%; transition: left calc(1.2s / var(--spd, 1)) linear; }
-  #carrier .cst { position: relative; width: 100%; height: 236px; transform-origin: 50% 100%; transition: transform calc(.5s / var(--spd, 1)) ease; }
+  /* ---------- はこぶ の場面（廊下） ---------- */
+  #scr-carry { background: #2b2118; }
+  #hall { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+  #hall .bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #stations { position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; }
+  .st { position: absolute; bottom: 14%; width: 16%; transform: translateX(-50%); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .st .art { width: 100%; height: 150px; display: flex; align-items: flex-end; justify-content: center; }
+  .st .art svg { width: 100%; height: 100%; }
+  .st .lbl { white-space: nowrap; background: rgba(58,46,34,.8); color: #fbf3e4; font-size: 16px; padding: 2px 10px; border-radius: 10px; }
+  .st.now .lbl { background: #fbf3e4; color: var(--ink); font-weight: 700; }
+  #carrier { position: absolute; left: 2%; bottom: 23%; width: 22%; transition: left calc(1.4s / var(--spd, 1)) linear; display: flex; flex-direction: column; align-items: center; }
+  #carrier .cst { position: relative; width: 100%; height: 240px; transform-origin: 50% 100%; transition: transform calc(.5s / var(--spd, 1)) ease; }
   #carrier .cst svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-  #carrier .person { width: 100%; height: 54px; }
+  #carrier .person { width: 70%; height: 96px; margin-top: -6px; }
   #carrier .gnum { font-size: clamp(14px, 1vw, 18px); }
-  #carryMsg { font-size: 17px; min-height: 2.8em; margin-top: 6px; padding: 6px 8px; border-radius: 10px; background: #f3efe6; }
-  #carryMsg b { color: var(--bad); }
-  #carryMsg .calm { color: var(--safe); font-weight: 700; }
-  #carryBar { margin-top: 4px; }
-  #delivered { font-size: 16px; color: var(--sub); margin-top: 6px; }
-  #roadHint { font-size: 15px; color: var(--sub); margin-top: 6px; line-height: 1.3; }
-  #endDays { flex: 1; min-height: 0; overflow: auto; }
+  #fallenFloor { position: absolute; left: 0; right: 0; bottom: 15%; height: 70px; pointer-events: none; }
+  .fallen { position: absolute; width: 60px; height: 34px; transform: translateX(-50%); }
+  .fallen svg { width: 100%; height: 100%; }
+  #hud { flex: none; background: rgba(58,46,34,.92); color: #fbf3e4; padding: 10px 18px 12px; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr); gap: 10px 20px; align-items: center; }
+  #hud .bar .cells { height: 20px; }
+  #hud .bar .cell { background: rgba(255,255,255,.25); }
+  #hud .bar .line4 { background: #fbf3e4; }
+  #hud .bar .txt { color: #fbf3e4; font-size: 17px; }
+  #hud .bar .txt .judge { color: #9fe3b4; } #hud .bar .txt .judge.luck { color: #ffd37a; } #hud .bar .txt .judge.bad { color: #ff8a80; }
+  #carryMsg { font-size: 19px; min-height: 2.6em; line-height: 1.3; }
+  #carryMsg b { color: #ff8a80; }
+  #carryMsg .calm { color: #9fe3b4; font-weight: 700; }
+  #delivered { font-size: 16px; opacity: .9; }
+  #carryTitle { font-size: 18px; }
 
-  /* ---------- 夕方・おわり（山の置き場の上に出る） ---------- */
-  .overlay { position: absolute; inset: 0; background: var(--panel); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
-  .overlay h3 { margin: 0; font-size: 24px; }
+  /* ---------- ゆうがた・おわり の場面 ---------- */
+  #scr-evening { background: linear-gradient(#f7b267 0, #f4845f 35%, #5a3a3a 36%, #3b2a24 100%); }
+  #scr-end { background: linear-gradient(#1f2a44 0, #3b4a7a 45%, #2b2118 46%, #1c140e 100%); }
+  .evening-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; padding: 14px 20px 18px; }
+  .scene-box { position: relative; min-height: 0; }
+  .scene-box svg { width: 100%; height: 100%; }
+  .card { background: var(--paper); border: 3px solid #a98257; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-height: 0; box-shadow: 0 6px 14px rgba(0,0,0,.35); }
+  .card h3 { margin: 0; font-size: 24px; }
   .bigline { font-size: 20px; }
   .bigline b { font-size: 26px; }
-  #falls { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+  .stars { color: #b8860b; font-weight: 700; }
+  #falls, #endDays { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
   .fallrec { display: flex; align-items: center; gap: 10px; border: 2px solid var(--line); border-radius: 10px; padding: 4px 8px; font-size: 16px; background: #fff; }
   .fallrec > svg { height: 36px; width: 46px; flex: none; }
   .fallrec .txt { flex: 1; min-width: 0; }
@@ -144,253 +165,219 @@
   .fallrec .minibox svg { width: 100%; height: 100%; }
   .fallrec .picks { display: flex; flex-wrap: wrap; gap: 2px; max-width: 40%; justify-content: flex-end; align-items: center; font-size: 15px; color: var(--sub); }
   .fallrec .picks svg { width: 28px; height: 24px; }
-  .overlay .btnrow { display: flex; gap: 10px; align-items: center; }
-  .overlay .btnrow button { font-size: 19px; font-weight: 700; padding: 8px 26px; background: var(--accent); color: #fff; border-color: #2f5fb0; white-space: nowrap; }
-  #endBig { font-size: 40px; font-weight: 700; margin: 6px 0; }
+  .btnrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btnrow button { font-size: 19px; font-weight: 700; padding: 8px 26px; background: var(--accent); color: #fff; border-color: #2b4f86; white-space: nowrap; }
+  #endBig { font-size: 40px; font-weight: 700; margin: 4px 0; }
   #endBig.ok { color: var(--safe); }
-  .stars { font-size: 22px; color: #c9a000; }
-
-  /* ---------- タイトル（最初の▶） ---------- */
-  #title { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 20; }
-  #title h1 { margin: 0; font-size: 44px; letter-spacing: .1em; }
-  #title p { margin: 0; font-size: 18px; color: var(--sub); text-align: center; padding: 0 16px; }
-  #title p.rule { font-size: 16px; }
-  #title p.ver { font-size: 14px; color: var(--sub); }
   #endSeed { font-size: 14px; color: var(--sub); }
-  #startBtn { font-size: 34px; padding: 10px 44px; background: var(--accent); color: #fff; border-color: #2f5fb0; }
-  #titleArt { width: 220px; height: 160px; }
 
-  /* ---------- 「3→0」の吹き出し ---------- */
-  .fx-chg { position: absolute; transform: translate(-50%, -50%); font-size: clamp(16px, 1.6vw, 24px); font-weight: 700; color: #6b4e00; background: var(--glow); border: 2px solid #c9a000; border-radius: 12px; padding: 2px 10px; white-space: nowrap; z-index: 5; animation: fx-pop calc(1.6s / var(--spd, 1)) ease-out forwards; pointer-events: none; }
+  /* ---------- タイトル ---------- */
+  #title { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 20; background: linear-gradient(#f3e9d6 0, #e9dcc4 60%, #b98a57 60%, #8a6238 100%); }
+  #titleArt { width: min(60vw, 420px); height: min(36vh, 260px); }
+  #title h1 { margin: 0; font-size: 46px; letter-spacing: .12em; color: #3a2e22; text-shadow: 0 2px 0 rgba(255,255,255,.6); }
+  #title p { margin: 0; font-size: 18px; color: #4a3a28; text-align: center; padding: 0 16px; }
+  #title p.rule { font-size: 16px; }
+  #title p.ver { font-size: 14px; color: #fbf3e4; }
+  #startBtn { font-size: 34px; padding: 10px 44px; background: var(--accent); color: #fff; border-color: #2b4f86; box-shadow: 0 6px 12px rgba(0,0,0,.35); }
+
+  .fx-chg { position: absolute; transform: translate(-50%, -50%); font-size: clamp(16px, 1.6vw, 24px); font-weight: 700; color: #6b4e00; background: var(--glow); border: 2px solid #c9a000; border-radius: 12px; padding: 2px 10px; white-space: nowrap; z-index: 5; animation: fx-pop calc(1.6s / var(--spd, 1)) ease-out forwards; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,.3); }
   .fx-chg.up { background: #ffd0cc; border-color: var(--bad); color: #7a1d19; }
-  .fx-chg.small { font-size: 14px; padding: 0 4px; border-width: 1.5px; border-radius: 8px; } /* 狭い箱（4つの山のスマホ）用。高さ 約20px で 数字の間（21px）に おさまる */
+  .fx-chg.small { font-size: 14px; padding: 0 4px; border-width: 1.5px; border-radius: 8px; }
   @keyframes fx-pop { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -70%) scale(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    .layer.fx-take, .layer.fx-pat, .fx-chg, .scr.on, .guide { animation-duration: .01s; animation-iteration-count: 1; }
+    #carrier, #carrier .cst { transition-duration: .01s; }
+  }
 
-  /* ---------- 広い画面（1920 など）：空きを 大きさに使う ---------- */
+  /* ---------- 広い画面 ---------- */
   @media (min-width: 1800px) and (min-height: 860px) {
     :root { --fs: 18px; }
-    #app { grid-template-rows: 58px 1fr; }
-    #head .title, #head .dayLbl { font-size: 23px; }
-    #head .tripLbl { font-size: 19px; }
-    #main { grid-template-columns: 320px minmax(0, 1fr) 430px; gap: 14px; padding: 14px; }
-    .box { padding: 12px 14px; }
-    .box h2 { font-size: 20px; }
-    .guide { font-size: 17px; }
-    #basket { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
-    .bitem svg { height: 40px; }
-    .bitem .nm, .bitem .fdg { font-size: 16px; }
-    .fbtn svg { height: 44px; }
-    .fbtn .fn { font-size: 19px; }
-    .fbtn .ft { font-size: 17px; }
+    .bar-top { height: 62px; } .bar-top .ttl, .bar-top .day { font-size: 24px; } .bar-top .sub { font-size: 18px; }
+    #scr-stack .room { grid-template-columns: 360px minmax(0, 1fr) 380px; gap: 18px; padding: 16px 22px 18px; }
+    .panel-title { font-size: 21px; }
+    #basket { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+    .bitem svg { height: 42px; } .bitem .nm, .bitem .fdg { font-size: 16px; }
+    .fbtn svg { height: 60px; } .fbtn .fn { font-size: 19px; } .fbtn .ft { font-size: 17px; }
     #foldHint { font-size: 17px; }
-    #stacks { gap: 16px; }
-    .slot .sname { font-size: 17px; }
-    .gnum { font-size: 22px; }
-    .bar .cells { height: 18px; }
-    .bar .txt { font-size: 17px; }
-    #carryBtn { font-size: 24px; padding: 12px 44px; }
-    #carryNote { font-size: 17px; }
-    .st svg { height: 52px; }
-    .st { font-size: 17px; }
-    #walk { height: 380px; }
-    #carrier .cst { height: 300px; }
-    #carrier .person { height: 64px; }
-    #carrier .gnum { font-size: 20px; }
-    #carryMsg { font-size: 20px; }
-    #delivered, #roadHint { font-size: 17px; }
-    .overlay h3 { font-size: 28px; }
-    .bigline { font-size: 23px; } .bigline b { font-size: 30px; }
-    .fallrec { font-size: 18px; }
-    #endBig { font-size: 48px; }
+    #stacks { gap: 18px; } .slot .sname { font-size: 17px; } .gnum { font-size: 22px; }
+    .bar .cells { height: 18px; } .bar .txt { font-size: 17px; }
+    #carryBtn { font-size: 25px; } #carryNote { font-size: 17px; }
+    .st .art { height: 200px; } .st .lbl { font-size: 18px; }
+    #carrier .cst { height: 320px; } #carrier .person { height: 120px; } #carrier .gnum { font-size: 20px; }
+    #hud .bar .cells { height: 24px; } #hud .bar .txt { font-size: 19px; } #carryMsg { font-size: 22px; } #delivered { font-size: 18px; }
+    .card h3 { font-size: 28px; } .bigline { font-size: 23px; } .bigline b { font-size: 30px; } .fallrec { font-size: 18px; } #endBig { font-size: 48px; }
   }
-  /* ---------- 低い画面（スマホの横向き・小さい窓） ---------- */
-  @media (max-width: 900px) and (max-height: 700px) {
-    #colL { max-height: 38vh; }
-    #colL #basketBox { min-height: 82px; } /* あとの スマホ用の min-height:0 より 強く */
-    #colL #foldBox { flex: none; }
-    #foldHint { display: none; }
-    body.sc-carry #carryBtnRow { display: none; } /* 運んでいる間は 押せないので 消して 山の場所を残す */
-    .st svg { height: 20px; }
-    #roadHint { display: none !important; }
-    .bitem svg { height: 18px; }
-    #carrier .cst { height: 80px; }
-    #walk { height: 110px; }
-  }
+
   /* ---------- スマホ（縦） ---------- */
   @media (max-width: 900px) {
     :root { --fs: 15px; }
-    #app { grid-template-rows: 44px 1fr; }
-    #head { gap: 8px; padding: 0 8px; }
-    #head .title { font-size: 17px; }
-    #head .dayLbl { font-size: 17px; }
-    #head .tripLbl { font-size: 15px; }
-    #vol { width: 60px; }
-    #volBox span, #volBox svg { display: none; }
-    body.sc-stack #walk, body.sc-stack #carryMsg, body.sc-stack #delivered { display: none; }
-    #roadHint { margin-top: 3px; font-size: 14px; }
-    body.sc-carry #colL, body.sc-evening #colL, body.sc-end #colL { display: none; }
-    body.sc-stack #roadHint { display: block; }
-    #main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 6px; padding: 6px; }
-    #colL { order: 3; max-height: 36vh; }
-    #basketBox { flex: 1; min-height: 0; }
-    #colM { order: 2; }
-    #colR { order: 1; }
-    .box { padding: 6px 8px; border-radius: 10px; }
-    .box h2 { font-size: 15px; margin-bottom: 3px; }
-    #roadBox { flex: none; }
-    .st svg { height: 24px; }
-    .st { font-size: 14px; }
-    #walk { height: 124px; }
-    #carrier { width: 30%; }
-    #carrier .cst { height: 92px; }
-    #carrier .person { height: 30px; }
-    #carryMsg { font-size: 15px; min-height: 2.6em; padding: 3px 6px; }
-    #basket { grid-template-columns: repeat(7, 1fr); gap: 4px; }
-    .bitem { padding: 2px 1px 1px; border-radius: 8px; }
-    .bitem svg { height: 22px; }
-    .bitem .nm { font-size: 14px; }
-    #foldBox { min-height: 0; }
-    #folds { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-    #folds.one { grid-template-columns: minmax(0, 1fr); }
-    .fbtn { min-height: 0; padding: 4px 6px; }
-    .fbtn svg { height: 22px; }
-    .fbtn .fn { font-size: 15px; }
-    .fbtn .ft { font-size: 14px; min-height: 0; }
+    .bar-top { height: 44px; gap: 8px; padding: 0 8px; }
+    .bar-top .ttl { font-size: 17px; } .bar-top .day { font-size: 17px; } .bar-top .sub { font-size: 15px; }
+    #vol { width: 60px; } #volBox span, #volBox svg { display: none; }
+    #scr-stack .room { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 6px; padding: 6px; }
+    #stacksBox { order: 0; } #foldBox { order: 1; } #basketBox { order: 2; max-height: 34vh; }
+    #scr-stack .floor { height: 30%; }
+    .panel-title { font-size: 15px; }
+    #basketArt { min-height: 96px; }
+    #basket { left: 4%; right: 4%; top: 10%; bottom: 6%; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 2px; }
+    .bitem { padding: 2px 1px 1px; border-radius: 8px; } .bitem svg { height: 22px; } .bitem .nm { font-size: 14px; }
+    #foldTray { padding: 6px; }
+    #folds { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } #folds.one { grid-template-columns: minmax(0, 1fr); }
+    .fbtn { padding: 4px 6px; } .fbtn svg { height: 26px; } .fbtn .fn { font-size: 15px; } .fbtn .ft { font-size: 14px; min-height: 0; }
+    #foldHint { font-size: 14px; margin-top: 3px; }
+    #carryBtnRow { margin-top: 4px; } #carryBtn { font-size: 18px; padding: 7px 10px; } #carryBtn svg { width: 28px; height: 28px; } #carryNote { font-size: 14px; }
     #stacks { gap: 5px; }
-    .bar .txt .lbl, .bar .txt .brk { display: none; }
-    .bar .txt .judge, .slot .sname { white-space: normal; text-align: center; }
-    .slot { padding: 3px 3px 2px; }
-    .slot .sname { font-size: 14px; }
+    .slot { padding: 3px 3px 2px; } .slot .sname { font-size: 14px; white-space: normal; text-align: center; }
     .gnum { font-size: 14px; min-width: 1.4em; height: 1.4em; line-height: 1.3em; }
-    .bar .cells { height: 10px; }
-    .bar .txt { font-size: 14px; }
-    #carryBtn { font-size: 17px; padding: 6px 24px; }
-    .overlay { padding: 8px; }
-    .overlay h3 { font-size: 19px; }
-    .bigline { font-size: 16px; } .bigline b { font-size: 20px; }
-    .fallrec { font-size: 14px; gap: 6px; }
-    .fallrec > svg { width: 30px; height: 26px; }
-    .fallrec .minibox { width: 30px; height: 60px; }
-    .fallrec .picks { max-width: 34%; }
-    .fallrec .picks svg { width: 22px; height: 20px; }
+    .bar .cells { height: 10px; } .bar .txt { font-size: 14px; } .bar .txt .lbl, .bar .txt .brk { display: none; } .bar .txt .judge { white-space: normal; text-align: center; }
+    .st { width: 24%; gap: 4px; } .st .art { height: 86px; } .st .lbl { font-size: 14px; padding: 1px 4px; white-space: normal; line-height: 1.2; max-width: 100%; }
+    #carryTitle { display: none; } .seg { font-size: 14px; } .seg button { padding: 2px 6px; }
+    #carrier { width: 34%; bottom: 25%; } #carrier .cst { height: 130px; } #carrier .person { height: 54px; }
+    .fallen { width: 40px; height: 24px; }
+    #hud { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 6px 10px 8px; }
+    #hud .bar .cells { height: 14px; } #hud .bar .txt { font-size: 15px; } #carryMsg { font-size: 15px; min-height: 2.6em; } #delivered { font-size: 14px; } #carryTitle { font-size: 15px; }
+    .evening-wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, .7fr) minmax(0, 1.3fr); gap: 8px; padding: 8px; }
+    .card { padding: 8px 10px; } .card h3 { font-size: 19px; } .bigline { font-size: 16px; } .bigline b { font-size: 20px; }
+    .fallrec { font-size: 14px; gap: 6px; } .fallrec > svg { width: 30px; height: 26px; } .fallrec .minibox { width: 30px; height: 60px; } .fallrec .picks { max-width: 34%; } .fallrec .picks svg { width: 22px; height: 20px; }
     #endBig { font-size: 30px; }
-    #title h1 { font-size: 34px; }
+    #title h1 { font-size: 34px; } #titleArt { width: 70vw; height: 30vh; }
   }
-
-  /* ---------- スマホの横向き（幅 900px 未満・横長・低い）：PC と同じ3列を 小さく ---------- */
+  @media (max-width: 900px) and (max-height: 700px) {
+    #basketBox { max-height: 30vh; } #basketArt { min-height: 82px; }
+    #foldHint { display: none; }
+    .st .art { height: 64px; } #carrier .cst { height: 96px; } #carrier .person { height: 40px; }
+    #carryMsg { min-height: 2.3em; }
+  }
   @media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
     :root { --fs: 14px; }
-    #app { grid-template-rows: 40px 1fr; }
-    #head { gap: 8px; padding: 0 8px; }
-    #main { grid-template-columns: 190px minmax(0, 1fr) 252px; grid-template-rows: minmax(0, 1fr); gap: 6px; padding: 6px; }
-    #colL { order: 0; max-height: none; } #colM { order: 1; } #colR { order: 2; }
-    body.sc-carry #colL, body.sc-evening #colL, body.sc-end #colL { display: flex; }
-    body.sc-stack #walk, body.sc-stack #carryMsg, body.sc-stack #delivered { display: block; }
-    #roadHint { display: none !important; }
-    .box { padding: 4px 6px; }
-    .box h2 { font-size: 14px; margin-bottom: 2px; }
-    #basketBox { flex: 1; min-height: 70px; }
-    #basket { grid-template-columns: repeat(4, 1fr); gap: 3px; }
-    .bitem { padding: 1px; } .bitem svg { height: 16px; } .bitem .nm { font-size: 14px; line-height: 1.1; }
-    #foldBox { flex: none; min-height: 0; }
-    #folds { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-    .fbtn { padding: 2px 6px; gap: 0; }
-    .fbtn svg { height: 20px; }
-    .fbtn .fn { font-size: 14px; }
-    .fbtn .ft { font-size: 14px; min-height: 0; line-height: 1.2; }
-    #foldHint { display: none; }
-    #stackUI { gap: 2px; }
-    #stacks { gap: 4px; }
-    .slot { padding: 2px; } .slot .sname { font-size: 14px; }
-    .bar .cells { height: 8px; } .bar .txt { font-size: 14px; margin-top: 1px; }
-    #carryBtnRow { gap: 6px; } #carryBtn { font-size: 15px; padding: 3px 14px; } #carryNote { font-size: 14px; }
-    .guide { font-size: 14px; padding: 0 6px; }
-    #roadBox { flex: 1; }
-    .stations { gap: 2px; } .st { font-size: 14px; padding-bottom: 1px; } .st svg { height: 16px; }
-    #walk { height: 70px; margin-top: 2px; }
-    #carrier { width: 34%; } #carrier .cst { height: 48px; } #carrier .person { height: 20px; }
-    #carryMsg { font-size: 14px; min-height: 2.3em; padding: 2px 4px; margin-top: 2px; line-height: 1.25; }
-    #delivered { display: none; }
-    .overlay { padding: 6px; gap: 3px; } .overlay h3 { font-size: 16px; }
-    .bigline { font-size: 14px; } .bigline b { font-size: 17px; }
-    .fallrec { font-size: 14px; padding: 2px 6px; gap: 4px; } .fallrec > svg { width: 26px; height: 22px; } .fallrec .minibox { width: 24px; height: 44px; } .fallrec .picks { max-width: 30%; } .fallrec .picks svg { width: 18px; height: 16px; }
-    .overlay .btnrow button { font-size: 15px; padding: 4px 16px; }
-    #endBig { font-size: 24px; margin: 2px 0; }
-    #title h1 { font-size: 28px; } #title p { font-size: 14px; } #titleArt { width: 120px; height: 90px; } #startBtn { font-size: 24px; padding: 4px 30px; }
-    #title { gap: 8px; }
+    .bar-top { height: 40px; }
+    #scr-stack .room { grid-template-columns: 190px minmax(0, 1fr) 236px; grid-template-rows: minmax(0, 1fr); gap: 6px; padding: 6px; }
+    #basketBox { order: 0; max-height: none; } #stacksBox { order: 1; } #foldBox { order: 2; }
+    #basket { grid-template-columns: repeat(4, 1fr); gap: 3px; } .bitem svg { height: 16px; }
+    #folds { grid-template-columns: minmax(0, 1fr); gap: 4px; } .fbtn svg { height: 20px; } .fbtn .fn { font-size: 14px; } .fbtn .ft { font-size: 14px; line-height: 1.2; }
+    #carryBtn { font-size: 15px; padding: 4px 10px; } #carryBtn svg { width: 22px; height: 22px; }
+    .st .art { height: 60px; } .st .lbl { font-size: 14px; }
+    #carrier .cst { height: 80px; } #carrier .person { height: 32px; }
+    #hud { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 4px 10px; } #carryMsg { font-size: 14px; min-height: 2.3em; }
+    .evening-wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 6px; padding: 6px; }
+    .card h3 { font-size: 16px; } .bigline { font-size: 14px; } .bigline b { font-size: 17px; }
+    #title h1 { font-size: 28px; } #titleArt { height: 26vh; } #startBtn { font-size: 24px; padding: 4px 30px; } #title { gap: 8px; }
   }
 </style>
 </head>
 <body>
+<svg id="defs" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g-satin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".05"/><stop offset=".45" stop-color="#fff" stop-opacity=".55"/><stop offset=".55" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity=".15"/></linearGradient>
+    <linearGradient id="g-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6eedd"/><stop offset="1" stop-color="#e6d8bf"/></linearGradient>
+    <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3ff"/><stop offset="1" stop-color="#f3f7fb"/></linearGradient>
+    <linearGradient id="g-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c79a63"/><stop offset="1" stop-color="#a97a4a"/></linearGradient>
+    <pattern id="p-jersey" width="6" height="4" patternUnits="userSpaceOnUse"><rect width="6" height="4" fill="none"/><line x1="0" y1="1" x2="6" y2="1" stroke="#fff" stroke-opacity=".28" stroke-width="1"/><line x1="0" y1="3" x2="6" y2="3" stroke="#000" stroke-opacity=".08" stroke-width="1"/></pattern>
+    <pattern id="p-rib" width="4" height="6" patternUnits="userSpaceOnUse"><line x1="1" y1="0" x2="1" y2="6" stroke="#fff" stroke-opacity=".3" stroke-width="1"/><line x1="3" y1="0" x2="3" y2="6" stroke="#000" stroke-opacity=".1" stroke-width="1"/></pattern>
+    <pattern id="p-terry" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1" fill="#fff" fill-opacity=".35"/><circle cx="4" cy="4" r="1" fill="#000" fill-opacity=".1"/></pattern>
+    <pattern id="p-denim" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="1" x2="6" y2="1" stroke="#fff" stroke-opacity=".22" stroke-width="1.2"/><line x1="0" y1="4" x2="6" y2="4" stroke="#000" stroke-opacity=".18" stroke-width="1"/></pattern>
+    <pattern id="p-linen" width="6" height="6" patternUnits="userSpaceOnUse"><line x1="0" y1="3" x2="6" y2="3" stroke="#000" stroke-opacity=".07" stroke-width="1"/><line x1="3" y1="0" x2="3" y2="6" stroke="#000" stroke-opacity=".07" stroke-width="1"/></pattern>
+    <pattern id="p-wicker" width="18" height="12" patternUnits="userSpaceOnUse"><rect width="18" height="12" fill="#c99a5a"/><rect x="0" y="0" width="9" height="6" rx="2" fill="#b7853f"/><rect x="9" y="6" width="9" height="6" rx="2" fill="#b7853f"/><rect x="0" y="1" width="9" height="1.5" fill="#e0b57a" opacity=".8"/><rect x="9" y="7" width="9" height="1.5" fill="#e0b57a" opacity=".8"/><rect x="9" y="0" width="9" height="6" rx="2" fill="#d4a86a"/><rect x="0" y="6" width="9" height="6" rx="2" fill="#d4a86a"/></pattern>
+    <pattern id="p-planks" width="220" height="48" patternUnits="userSpaceOnUse"><rect width="220" height="48" fill="#b98a57"/><rect x="0" y="0" width="220" height="23" fill="#c49461"/><rect x="0" y="24" width="220" height="23" fill="#b3834f"/><line x1="0" y1="23.5" x2="220" y2="23.5" stroke="#7a5431" stroke-width="1.6"/><line x1="0" y1="47.5" x2="220" y2="47.5" stroke="#7a5431" stroke-width="1.6"/><line x1="140" y1="0" x2="140" y2="23" stroke="#7a5431" stroke-width="1.4"/><line x1="40" y1="24" x2="40" y2="47" stroke="#7a5431" stroke-width="1.4"/><path d="M10 8 q40 3 80 0 t70 2" stroke="#a8733f" stroke-width="1" fill="none" opacity=".7"/><path d="M60 36 q50 -3 110 1" stroke="#a8733f" stroke-width="1" fill="none" opacity=".7"/></pattern>
+    <filter id="f-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2.5" stdDeviation="1.6" flood-color="#000" flood-opacity=".35"/></filter>
+    <filter id="f-soft" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity=".35"/></filter>
+  </defs>
+</svg>
+
 <div id="title">
-  <svg id="titleArt" viewBox="0 0 220 160" aria-hidden="true"></svg>
+  <svg id="titleArt" viewBox="0 0 420 260" aria-hidden="true"></svg>
   <h1>たたみやま</h1>
   <p>たたんで、つんで、はこぶ。</p>
   <p class="rule">ぐら＝ぐらつき。やまの ぐら ＋ みちの ゆれ が 10を こえると おちる。</p>
   <button id="startBtn" aria-label="はじめる">▶</button>
-  <p class="ver">版1（2026-11-05）</p>
+  <p class="ver">版2（見た目）2026-11-05</p>
 </div>
 
-<div id="app">
-  <div id="head">
-    <span class="title">たたみやま</span>
-    <span class="dayLbl" id="dayLbl">1日目／3</span>
-    <span class="tripLbl" id="tripLbl">おうふく 2かい</span>
-    <span class="tripLbl hidden" id="variantLbl"></span>
+<!-- たたむ・つむ -->
+<section class="scr" id="scr-stack">
+  <div class="bar-top">
+    <span class="ttl">たたみやま</span>
+    <span class="day" id="dayLbl">1日目／3</span>
+    <span class="sub" id="tripLbl">おうふく 2かい</span>
+    <span class="sub hidden" id="variantLbl"></span>
     <span class="sp"></span>
-    <span id="volBox"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9z" fill="#7a6a58"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" stroke="#7a6a58" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>おんりょう</span><input id="vol" type="range" min="0" max="100" value="30" aria-label="おんりょう"></span>
+    <span id="volBox"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9z" fill="#fbf3e4"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" stroke="#fbf3e4" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>おんりょう</span><input id="vol" type="range" min="0" max="100" value="30" aria-label="おんりょう"></span>
   </div>
-  <div id="main">
-    <div class="col" id="colL">
-      <div class="box" id="basketBox">
-        <h2>かご <span id="basketCnt"></span> <span class="guide hidden" id="gSelect">えらぶ</span></h2>
-        <div id="basket"></div>
-      </div>
-      <div class="box" id="foldBox">
-        <h2>たたみかた <span id="foldWho" class="who"></span> <span class="guide hidden" id="gFold">たたむ</span></h2>
-        <div id="folds"></div>
-        <div id="foldHint">かごの 1まいを えらぶ</div>
-      </div>
+  <div class="room">
+    <div class="floor"><svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><rect width="1000" height="300" fill="url(#p-planks)"/><rect width="1000" height="300" fill="url(#g-shade)" opacity=".5"/></svg></div>
+    <div id="basketBox">
+      <div class="panel-title">かご <span id="basketCnt"></span> <span class="guide hidden" id="gSelect">えらぶ</span></div>
+      <div id="basketArt"><svg class="bk" viewBox="0 0 300 420" preserveAspectRatio="none" aria-hidden="true"></svg><div id="basket"></div></div>
     </div>
-    <div class="col" id="colM">
-      <div class="box" id="stacksBox">
-        <div id="stackUI">
-        <h2>やま <span id="stacksNote"></span> <span class="guide hidden" id="gStack">つむ</span></h2>
+    <div id="stacksBox">
+      <div id="stackUI">
+        <div class="panel-title">やま <span id="stacksNote"></span> <span class="guide hidden" id="gStack">つむ</span></div>
         <div id="stacks"></div>
-        <div id="carryBtnRow"><button id="carryBtn" disabled>はこぶ</button><span id="carryNote"></span><span class="guide hidden" id="gCarry">はこぶ</span></div>
-        </div>
-        <div class="overlay hidden" id="evening">
-          <h3 id="evTitle">1日目の ゆうがた</h3>
-          <div class="bigline" id="evLine"></div>
-          <div class="bigline stars" id="evStars"></div>
-          <div id="falls"></div>
-          <div class="btnrow"><button id="nextBtn">つぎの 日へ</button><span id="evNote"></span></div>
-        </div>
-        <div class="overlay hidden" id="end">
-          <h3>3日目の ゆうがた</h3>
-          <div id="endBig"></div>
-          <div class="bigline" id="endLine"></div>
-          <div class="bigline stars" id="endStars"></div>
-          <div id="endDays" class="bigline"></div>
-          <div class="btnrow"><button id="againBtn" aria-label="もう一回">↻</button><span id="endSeed"></span></div>
-        </div>
       </div>
     </div>
-    <div class="col" id="colR">
-      <div class="box" id="roadBox">
-        <h2>みち <span class="seg" id="speedSeg"><button data-speed="1" class="on">ふつう</button><button data-speed="2.5">はやい</button></span></h2>
-        <div id="road">
-          <div class="stations" id="stations"></div>
-          <div id="walk"><div id="carrier" class="hidden"><div class="cst" id="carrierStack"></div><svg class="person" viewBox="0 0 120 54" aria-hidden="true"></svg></div></div>
-          <div id="carryBar" class="bar hidden"></div>
-          <div id="carryMsg">つんだら「はこぶ」。はこぶのは みまもるだけ。</div>
-          <div id="delivered"></div>
-          <div id="roadHint">ゆれは たまる（ぜんぶで さいだい 6）。やまの ぐらが 4いかなら、かならず とどく。</div>
-        </div>
+    <div id="foldBox">
+      <div class="panel-title">たたみかた <span id="foldWho" class="who"></span> <span class="guide hidden" id="gFold">たたむ</span></div>
+      <div id="foldTray"><div id="folds"></div><div id="foldHint">かごの 1まいを えらぶ</div></div>
+      <div id="carryBtnRow">
+        <button id="carryBtn" disabled><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="6" y="4" width="28" height="34" rx="2" fill="#8a6238"/><rect x="9" y="7" width="22" height="28" rx="1" fill="#c49461"/><circle cx="27" cy="22" r="2" fill="#3a2e22"/><path d="M14 20 h8 m-3 -3 l3 3 l-3 3" stroke="#fbf3e4" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg><span>はこぶ</span><span class="guide hidden" id="gCarry">はこぶ</span></button>
+        <div id="carryNote"></div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- はこぶ -->
+<section class="scr" id="scr-carry">
+  <div class="bar-top">
+    <span class="ttl">はこぶ</span>
+    <span class="day" id="carryDay">1日目／3</span>
+    <span class="sub" id="carryTitle"></span>
+    <span class="sp"></span>
+    <span class="seg" id="speedSeg"><button data-speed="1" class="on">ふつう</button><button data-speed="2.5">はやい</button></span>
+  </div>
+  <div id="hall">
+    <svg class="bg" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div id="stations"></div>
+    <div id="fallenFloor"></div>
+    <div id="carrier" class="hidden"><div class="cst" id="carrierStack"></div><svg class="person" viewBox="0 0 120 96" aria-hidden="true"></svg></div>
+  </div>
+  <div id="hud">
+    <div id="carryBar" class="bar"></div>
+    <div><div id="carryMsg"></div><div id="delivered"></div></div>
+  </div>
+</section>
+
+<!-- ゆうがた -->
+<section class="scr" id="scr-evening">
+  <div class="bar-top"><span class="ttl">ゆうがた</span><span class="day" id="evDay">1日目／3</span></div>
+  <div class="evening-wrap">
+    <div class="scene-box"><svg id="evScene" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg></div>
+    <div class="card" id="evening">
+      <h3 id="evTitle">1日目の ゆうがた</h3>
+      <div class="bigline" id="evLine"></div>
+      <div class="bigline stars" id="evStars"></div>
+      <div id="falls"></div>
+      <div class="btnrow"><button id="nextBtn">つぎの 日へ</button><span id="evNote"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- おわり -->
+<section class="scr" id="scr-end">
+  <div class="bar-top"><span class="ttl">3日目の よる</span></div>
+  <div class="evening-wrap">
+    <div class="scene-box"><svg id="endScene" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg></div>
+    <div class="card" id="end">
+      <div id="endBig"></div>
+      <div class="bigline" id="endLine"></div>
+      <div class="bigline stars" id="endStars"></div>
+      <div id="endDays" class="bigline"></div>
+      <div class="btnrow"><button id="againBtn" aria-label="もう一回">↻</button><span id="endSeed"></span></div>
+    </div>
+  </div>
+</section>
+
 <script src="rules.js"></script>
 <script src="ui.js"></script>
 </body>

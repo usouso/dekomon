@@ -12,11 +12,12 @@
 
   var KIND_COLOR = { tshirt: '#7fb3ff', socks: '#ffb27f', towel: '#8fd68f', jeans: '#4a6fb5', slick: '#d9c2ff', sheet: '#fff0b3' };
   var KIND_DARK = { tshirt: '#3d6fb8', socks: '#c2742f', towel: '#3f8f3f', jeans: '#243d6b', slick: '#8b6bc4', sheet: '#b89a2a' };
+  var KIND_PATTERN = { tshirt: 'p-jersey', socks: 'p-rib', towel: 'p-terry', jeans: 'p-denim', slick: null, sheet: 'p-linen' }; // 布の質感（index.html の defs）
   // 形ごとの 高さ（山の中。単位は viewBox の 240分の）と 幅（88分の）
-  var SHAPE = { flat: { h: 18, w: 66 }, tube: { h: 25, w: 60 }, pair: { h: 18, w: 60 }, ball: { h: 30, w: 34 }, thick: { h: 26, w: 56 }, long: { h: 19, w: 82 }, short: { h: 30, w: 44 }, shiny: { h: 18, w: 66 }, wide: { h: 15, w: 88 } };
+  var SHAPE = { flat: { h: 18, w: 74 }, tube: { h: 25, w: 68 }, pair: { h: 18, w: 68 }, ball: { h: 30, w: 40 }, thick: { h: 26, w: 62 }, long: { h: 19, w: 90 }, short: { h: 30, w: 50 }, shiny: { h: 18, w: 74 }, wide: { h: 15, w: 98 } };
   var VBH = 300; // 山の絵の viewBox の高さ
   var SHORT = { tshirt: 'Tシャツ', socks: 'くつした', towel: 'タオル', jeans: 'ジーンズ', slick: 'つるつる', sheet: 'シーツ' };
-  var STATION_ART = {
+  var STATION_ART_OLD = {
     shikii: '<rect x="4" y="26" width="52" height="8" rx="2" fill="#b08a5a"/><rect x="4" y="24" width="52" height="3" fill="#d9b98a"/>',
     neko: '<ellipse cx="30" cy="30" rx="18" ry="9" fill="#555"/><circle cx="44" cy="22" r="8" fill="#555"/><path d="M38 16 l2 -7 l5 5z M47 15 l3 -6 l2 7z" fill="#555"/><path d="M12 30 q-8 -4 -4 -12" stroke="#555" stroke-width="3" fill="none"/><circle cx="42" cy="21" r="1.4" fill="#fff"/><circle cx="47" cy="21" r="1.4" fill="#fff"/>',
     kaidan: '<path d="M4 38 h14 v-9 h14 v-9 h14 v-9 h10 v27z" fill="#a9906f"/><path d="M4 38 h14 v-9 h14 v-9 h14 v-9 h10" stroke="#6e5a40" stroke-width="2" fill="none"/>',
@@ -83,64 +84,71 @@
   // ---------- 絵（SVG） ----------
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
   // 1枚の絵。cx: 中心x、by: 下のy、w,h: 大きさ。fold: たたみ方（kind だけなら かごの中の まだ たたんでいない姿）
+  // 本体の形は 3回重ねて描く：色 → 布の模様 → 光と影。そのあとに 縫い目などの飾り。
   function pieceSVG(kind, fold, cx, by, w, h, opts) {
     opts = opts || {};
     var c = KIND_COLOR[kind], d = KIND_DARK[kind];
-    var x = cx - w / 2, y = by - h, s = '';
+    var x = cx - w / 2, y = by - h;
     var shape = fold ? T.FOLD_BY_ID[fold].shape : 'raw';
     var sw = opts.stroke || 1.5;
+    var parts = [], deco = '';
+    var pat = KIND_PATTERN[kind], shade = kind === 'slick' ? 'g-satin' : 'g-shade';
     switch (shape) {
       case 'raw': // たたむ前：くしゃっとした布
-        s += '<path d="M' + x + ' ' + (y + h * 0.6) + ' q' + (w * 0.15) + ' -' + (h * 0.7) + ' ' + (w * 0.35) + ' -' + (h * 0.2) + ' q' + (w * 0.15) + ' ' + (h * 0.5) + ' ' + (w * 0.3) + ' -' + (h * 0.3) + ' q' + (w * 0.15) + ' -' + (h * 0.2) + ' ' + (w * 0.35) + ' ' + (h * 0.5) + ' l-' + (w * 0.05) + ' ' + (h * 0.4) + ' h-' + (w * 0.9) + 'z" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '" stroke-linejoin="round"/>';
+        parts.push('<path d="M' + x + ' ' + (y + h * 0.6) + ' q' + (w * 0.15) + ' -' + (h * 0.7) + ' ' + (w * 0.35) + ' -' + (h * 0.2) + ' q' + (w * 0.15) + ' ' + (h * 0.5) + ' ' + (w * 0.3) + ' -' + (h * 0.3) + ' q' + (w * 0.15) + ' -' + (h * 0.2) + ' ' + (w * 0.35) + ' ' + (h * 0.5) + ' l-' + (w * 0.05) + ' ' + (h * 0.4) + ' h-' + (w * 0.9) + 'z" stroke-linejoin="round" FILL/>');
+        deco += '<path d="M' + (x + w * 0.3) + ' ' + (y + h * 0.5) + ' q' + (w * 0.1) + ' ' + (h * 0.3) + ' ' + (w * 0.25) + ' ' + (h * 0.35) + '" fill="none" stroke="' + d + '" stroke-width="' + (sw * 0.8) + '" opacity=".6"/>';
         break;
-      case 'flat': // 平たい四角（えり）
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2.5" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<path d="M' + (cx - w * 0.12) + ' ' + (y + 1) + ' q' + (w * 0.12) + ' ' + (h * 0.5) + ' ' + (w * 0.24) + ' 0" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        break;
-      case 'shiny': // ツヤの線
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2.5" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        for (var k = 0; k < 3; k++) { var gx = x + w * (0.2 + k * 0.25); s += '<line x1="' + gx + '" y1="' + (y + h - 2) + '" x2="' + (gx + w * 0.1) + '" y2="' + (y + 2) + '" stroke="#fff" stroke-width="' + (sw * 1.4) + '" stroke-linecap="round" opacity=".9"/>'; }
+      case 'flat': case 'shiny': // 平たい四角（えり）／ツヤの線
+        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2.5" FILL/>');
+        deco += '<path d="M' + (cx - w * 0.12) + ' ' + (y + 1) + ' q' + (w * 0.12) + ' ' + (h * 0.5) + ' ' + (w * 0.24) + ' 0" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
+        deco += '<line x1="' + (x + w * 0.5) + '" y1="' + (y + h * 0.55) + '" x2="' + (x + w - 3) + '" y2="' + (y + h * 0.55) + '" stroke="' + d + '" stroke-width="' + (sw * 0.7) + '" opacity=".5"/>';
+        if (shape === 'shiny') for (var k = 0; k < 3; k++) { var gx = x + w * (0.2 + k * 0.25); deco += '<line x1="' + gx + '" y1="' + (y + h - 2) + '" x2="' + (gx + w * 0.1) + '" y2="' + (y + 2) + '" stroke="#fff" stroke-width="' + (sw * 1.4) + '" stroke-linecap="round" opacity=".85"/>'; }
         break;
       case 'tube': // 筒（うずまき）
         var r = h / 2;
-        s += '<rect x="' + x + '" y="' + y + '" width="' + (w - r) + '" height="' + h + '" rx="' + (r * 0.9) + '" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<ellipse cx="' + (x + w - r) + '" cy="' + (y + r) + '" rx="' + (r * 0.75) + '" ry="' + r + '" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<path d="M' + (x + w - r) + ' ' + (y + r) + ' m-' + (r * 0.4) + ' 0 a' + (r * 0.4) + ' ' + (r * 0.55) + ' 0 1 1 ' + (r * 0.4) + ' ' + (r * 0.5) + '" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<line x1="' + (x + 3) + '" y1="' + (y + h * 0.35) + '" x2="' + (x + w - r * 1.6) + '" y2="' + (y + h * 0.35) + '" stroke="#fff" stroke-width="' + sw + '" opacity=".6"/>';
+        parts.push('<rect x="' + x + '" y="' + y + '" width="' + (w - r) + '" height="' + h + '" rx="' + (r * 0.9) + '" FILL/>');
+        parts.push('<ellipse cx="' + (x + w - r) + '" cy="' + (y + r) + '" rx="' + (r * 0.75) + '" ry="' + r + '" FILL/>');
+        deco += '<path d="M' + (x + w - r) + ' ' + (y + r) + ' m-' + (r * 0.4) + ' 0 a' + (r * 0.4) + ' ' + (r * 0.55) + ' 0 1 1 ' + (r * 0.4) + ' ' + (r * 0.5) + '" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
+        deco += '<line x1="' + (x + 3) + '" y1="' + (y + h * 0.3) + '" x2="' + (x + w - r * 1.6) + '" y2="' + (y + h * 0.3) + '" stroke="#fff" stroke-width="' + sw + '" opacity=".55"/>';
         break;
       case 'pair': // 2足 ならべる
-        for (var p = 0; p < 2; p++) { var px = x + p * (w / 2) + 2, pw = w / 2 - 4; s += '<path d="M' + px + ' ' + y + ' h' + (pw * 0.5) + ' v' + (h * 0.5) + ' h' + (pw * 0.5) + ' q' + (pw * 0.1) + ' 0 ' + (pw * 0.1) + ' ' + (h * 0.25) + ' v' + (h * 0.25) + ' h-' + (pw * 1.1) + 'z" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '" stroke-linejoin="round"/>'; s += '<rect x="' + px + '" y="' + y + '" width="' + (pw * 0.5) + '" height="' + (h * 0.2) + '" fill="#fff" opacity=".7"/>'; }
+        for (var pp = 0; pp < 2; pp++) { var px = x + pp * (w / 2) + 2, pw = w / 2 - 4; parts.push('<path d="M' + px + ' ' + y + ' h' + (pw * 0.5) + ' v' + (h * 0.5) + ' h' + (pw * 0.5) + ' q' + (pw * 0.1) + ' 0 ' + (pw * 0.1) + ' ' + (h * 0.25) + ' v' + (h * 0.25) + ' h-' + (pw * 1.1) + 'z" stroke-linejoin="round" FILL/>'); deco += '<rect x="' + px + '" y="' + y + '" width="' + (pw * 0.5) + '" height="' + (h * 0.22) + '" fill="#fff" opacity=".75"/><line x1="' + (px + pw * 0.55) + '" y1="' + (y + h * 0.78) + '" x2="' + (px + pw) + '" y2="' + (y + h * 0.78) + '" stroke="' + d + '" stroke-width="' + (sw * 0.7) + '" opacity=".6"/>'; }
         break;
       case 'ball': // 玉
         var br = Math.min(w, h) / 2;
-        s += '<circle cx="' + cx + '" cy="' + (by - br) + '" r="' + br + '" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<path d="M' + (cx - br * 0.9) + ' ' + (by - br * 1.2) + ' q' + br + ' ' + (br * 0.9) + ' ' + (br * 1.8) + ' -' + (br * 0.2) + '" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<rect x="' + (cx - br * 0.5) + '" y="' + (by - br * 2 + 1) + '" width="' + (br * 0.8) + '" height="' + (br * 0.3) + '" rx="1" fill="#fff" opacity=".7"/>';
+        parts.push('<circle cx="' + cx + '" cy="' + (by - br) + '" r="' + br + '" FILL/>');
+        deco += '<path d="M' + (cx - br * 0.9) + ' ' + (by - br * 1.2) + ' q' + br + ' ' + (br * 0.9) + ' ' + (br * 1.8) + ' -' + (br * 0.2) + '" fill="none" stroke="' + d + '" stroke-width="' + sw + '"/>';
+        deco += '<rect x="' + (cx - br * 0.5) + '" y="' + (by - br * 2 + 1) + '" width="' + (br * 0.8) + '" height="' + (br * 0.3) + '" rx="1" fill="#fff" opacity=".75"/>';
         break;
-      case 'thick': // 厚い四角（層の線）
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        for (var q = 1; q <= 2; q++) s += '<line x1="' + (x + 2) + '" y1="' + (y + h * q / 3) + '" x2="' + (x + w - 2) + '" y2="' + (y + h * q / 3) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".8"/>';
+      case 'thick': case 'short': // 厚い四角（層の線）／短くて厚い
+        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" FILL/>');
+        for (var q = 1; q <= 2; q++) deco += '<line x1="' + (x + 2) + '" y1="' + (y + h * q / 3) + '" x2="' + (x + w - 2) + '" y2="' + (y + h * q / 3) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".75"/>';
+        if (shape === 'short') deco += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
         break;
       case 'long': // 長い
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<line x1="' + cx + '" y1="' + (y + 2) + '" x2="' + cx + '" y2="' + (y + h - 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".8"/>';
-        s += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
-        break;
-      case 'short': // 短くて厚い
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        for (var q2 = 1; q2 <= 2; q2++) s += '<line x1="' + (x + 2) + '" y1="' + (y + h * q2 / 3) + '" x2="' + (x + w - 2) + '" y2="' + (y + h * q2 / 3) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".8"/>';
-        s += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
+        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" FILL/>');
+        deco += '<line x1="' + cx + '" y1="' + (y + 2) + '" x2="' + cx + '" y2="' + (y + h - 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".8"/>';
+        deco += '<line x1="' + (x + 3) + '" y1="' + (y + h - 3) + '" x2="' + (x + w - 3) + '" y2="' + (y + h - 3) + '" stroke="#e8c070" stroke-width="' + sw + '" stroke-dasharray="3 2"/>';
+        deco += '<rect x="' + (x + w * 0.42) + '" y="' + (y + 2) + '" width="' + (w * 0.16) + '" height="' + (h * 0.28) + '" rx="1" fill="#e8c070" opacity=".8"/>';
         break;
       case 'wide': // 幅が広い
-        s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"/>';
-        s += '<line x1="' + (x + 2) + '" y1="' + (y + h / 2) + '" x2="' + (x + w - 2) + '" y2="' + (y + h / 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".7"/>';
+        parts.push('<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" FILL/>');
+        deco += '<line x1="' + (x + 2) + '" y1="' + (y + h / 2) + '" x2="' + (x + w - 2) + '" y2="' + (y + h / 2) + '" stroke="' + d + '" stroke-width="' + sw + '" opacity=".7"/>';
         break;
     }
+    var out = '';
+    parts.forEach(function (pt) {
+      out += pt.replace('FILL', 'fill="' + c + '" stroke="' + d + '" stroke-width="' + sw + '"');
+      if (pat && !opts.flat) out += pt.replace('FILL', 'fill="url(#' + pat + ')"');
+      if (!opts.flat) out += pt.replace('FILL', 'fill="url(#' + shade + ')"');
+    });
+    out += deco;
+    if (opts.shadow) out = '<g filter="url(#f-shadow)">' + out + '</g>';
     if (fold && T.FOLD_BY_ID[fold].dir && !opts.noDir) {
       var fs = opts.dirSize || 10;
-      s += '<text x="' + (x + w - 1) + '" y="' + (y - 1) + '" text-anchor="end" font-size="' + fs + '" font-weight="700" fill="' + d + '" stroke="#fff" stroke-width="2" paint-order="stroke">' + T.FOLD_BY_ID[fold].dir + '</text>';
+      out += '<text x="' + (x + w - 1) + '" y="' + (y - 1) + '" text-anchor="end" font-size="' + fs + '" font-weight="700" fill="' + d + '" stroke="#fff" stroke-width="2" paint-order="stroke">' + T.FOLD_BY_ID[fold].dir + '</text>';
     }
-    return s;
+    return out;
   }
   // かご・ボタン用の 小さな1枚（横長の箱に おさめる）
   function iconSVG(kind, fold, cls) {
@@ -159,7 +167,7 @@
       var F = T.FOLD_BY_ID[it.fold], sh = SHAPE[F.shape];
       var h = sh.h * scale, w = sh.w;
       var cls = 'layer' + (i === items.length - 1 ? ' fx-top' : '');
-      s += '<g class="' + cls + '" data-i="' + i + '">' + pieceSVG(it.kind, it.fold, 46, y, w, h, { dirSize: 11 }) + '</g>';
+      s += '<g class="' + cls + '" data-i="' + i + '">' + pieceSVG(it.kind, it.fold, 50, y, w, h, { dirSize: 11, shadow: !opts.noShadow }) + '</g>';
       ys.push(y - h / 2);
       y -= h;
     });
@@ -194,13 +202,13 @@
     var numH = els[0].offsetHeight || 20, numW = els[0].offsetWidth || 24;
     if (H < numH + 4) { els.forEach(function (e) { e.classList.add('hidden'); }); box.setAttribute('data-nummode', 'none'); box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH }; return; }
     var minLayerU = Math.min.apply(null, out.hs), minLayer = minLayerU * sc;
-    var mode = minLayer >= numH + 1 ? 'one' : (minLayer * 2 >= numH + 1 && 28 * sc >= numW + 2 && offX + 132 * sc + numW / 2 <= W + 1 ? 'zig' : 'pitch');
+    var mode = minLayer >= numH + 1 ? 'one' : (minLayer * 2 >= numH + 1 && 28 * sc >= numW + 2 && offX + 136 * sc + numW / 2 <= W + 1 ? 'zig' : 'pitch');
     if (opts.onlyHot) mode = 'one';
     // 1列で足りる（数字の2列目の場所が要らない）なら、絵の幅 120 ぶんだけを使って 絵を大きくする（広い画面向け）
     var svg = box.querySelector('svg');
     if (svg) {
       var sc2 = Math.min(W / 120, H / VBH);
-      if (!opts.onlyHot && sc2 > sc + 1e-6 && minLayerU * sc2 >= numH + 1 && (W - 120 * sc2) / 2 + 104 * sc2 + numW / 2 <= W + 1) { svg.setAttribute('viewBox', '0 0 120 ' + VBH); sc = sc2; offY = H - VBH * sc; offX = (W - 120 * sc) / 2; mode = 'one'; minLayer = minLayerU * sc; }
+      if (!opts.onlyHot && sc2 > sc + 1e-6 && minLayerU * sc2 >= numH + 1 && (W - 120 * sc2) / 2 + 108 * sc2 + numW / 2 <= W + 1) { svg.setAttribute('viewBox', '0 0 120 ' + VBH); sc = sc2; offY = H - VBH * sc; offX = (W - 120 * sc) / 2; mode = 'one'; minLayer = minLayerU * sc; }
       else svg.setAttribute('viewBox', '0 0 150 ' + VBH);
     }
     var show = {}; for (var q = 0; q < n; q++) show[q] = true;
@@ -214,8 +222,8 @@
       var pos = {}; idx.forEach(function (q5, r) { pos[q5] = H - 2 - numH / 2 - r * (numH + 1); });
     }
     for (var j = 0; j < n; j++) {
-      var y = offY + out.ys[j] * sc, x = offX + 104 * sc;
-      if (mode === 'zig' && (j % 2)) x = offX + 132 * sc;
+      var y = offY + out.ys[j] * sc, x = offX + 108 * sc;
+      if (mode === 'zig' && (j % 2)) x = offX + 136 * sc;
       if (mode === 'pitch') {
         if (show[j]) y = pos[j];
         else if (calc.items[j].gura === 0) { els[j].classList.add('gdot'); els[j].textContent = ''; els[j].setAttribute('aria-label', '0'); }
@@ -227,21 +235,86 @@
     box.setAttribute('data-nummode', mode);
     box.__geom = { offX: offX, offY: offY, sc: sc, numH: numH };
   }
-  function personSVG() { return '<circle cx="60" cy="12" r="9" fill="#f3c9a4" stroke="#8a5a3a" stroke-width="1.5"/><path d="M44 54 v-18 q0 -10 16 -10 q16 0 16 10 v18z" fill="#6aa9d9" stroke="#2f5f8a" stroke-width="1.5"/><path d="M44 36 l-10 -4 M76 36 l10 -4" stroke="#f3c9a4" stroke-width="5" stroke-linecap="round"/>'; }
+  function personSVG() {
+    return '<ellipse cx="60" cy="92" rx="30" ry="4" fill="#000" opacity=".25"/>' +
+      '<path d="M46 60 l-3 28 h10 l3 -26z" fill="#3a4a6b"/><path d="M74 60 l3 28 h-10 l-3 -26z" fill="#3a4a6b"/>' +
+      '<path d="M41 88 h14 v4 h-16z M79 88 h-14 v4 h16z" fill="#2b2118"/>' +
+      '<path d="M40 60 v-22 q0 -10 20 -10 q20 0 20 10 v22z" fill="#5f9fd6" stroke="#2f5f8a" stroke-width="1.5"/><path d="M40 60 v-22 q0 -10 20 -10 q20 0 20 10 v22z" fill="url(#g-shade)"/>' +
+      '<path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#5f9fd6" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M44 34 q-10 -14 -8 -30 M76 34 q10 -14 8 -30" stroke="#f3c9a4" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+      '<circle cx="60" cy="18" r="11" fill="#f3c9a4" stroke="#8a5a3a" stroke-width="1.2"/><path d="M49 16 q3 -12 11 -12 q9 0 11 12 q-5 -5 -11 -5 q-6 0 -11 5z" fill="#4a3220"/>' +
+      '<circle cx="56" cy="19" r="1.2" fill="#2b2118"/><circle cx="64" cy="19" r="1.2" fill="#2b2118"/><path d="M57 24 q3 2 6 0" stroke="#8a5a3a" stroke-width="1" fill="none"/>';
+  }
   function titleArt() {
-    var items = [{ kind: 'jeans', fold: 'jeans_half' }, { kind: 'towel', fold: 'towel_quad' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'socks', fold: 'socks_ball' }];
-    var s = '', y = 154; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.5, w = sh.w * 1.8; s += pieceSVG(it.kind, it.fold, 110, y, w, h, { noDir: true, stroke: 2 }); y -= h; });
+    var items = [{ kind: 'jeans', fold: 'jeans_half' }, { kind: 'towel', fold: 'towel_quad' }, { kind: 'tshirt', fold: 'tshirt_square' }, { kind: 'sheet', fold: 'sheet_fold' }, { kind: 'socks', fold: 'socks_ball' }];
+    var s = '<rect x="0" y="0" width="420" height="170" fill="url(#g-wall)"/><rect x="0" y="170" width="420" height="90" fill="url(#p-planks)"/><rect x="0" y="170" width="420" height="90" fill="url(#g-shade)" opacity=".5"/>';
+    s += '<rect x="300" y="40" width="80" height="80" fill="url(#g-sky)" stroke="#8a6238" stroke-width="5"/><line x1="340" y1="40" x2="340" y2="120" stroke="#8a6238" stroke-width="3"/><line x1="300" y1="80" x2="380" y2="80" stroke="#8a6238" stroke-width="3"/>';
+    s += '<g filter="url(#f-soft)">' + tansuSVG(30, 95, 110, 90) + '</g>';
+    s += '<rect x="110" y="196" width="200" height="34" rx="4" fill="#c9c58f" stroke="#9a9460" stroke-width="3"/>';
+    var y = 198; items.forEach(function (it) { var sh = SHAPE[T.FOLD_BY_ID[it.fold].shape]; var h = sh.h * 1.5, w = sh.w * 1.8; s += pieceSVG(it.kind, it.fold, 210, y, w, h, { noDir: true, stroke: 2, shadow: true }); y -= h; });
+    s += '<g filter="url(#f-soft)" transform="translate(300,150) scale(.32)">' + basketBody() + '</g>';
     return s;
   }
-
+  // かご（viewBox 300×420 に合わせた本体）
+  function basketBody() {
+    return '<path d="M22 86 q0 -18 128 -18 q128 0 128 18 l-20 300 q-8 22 -108 22 q-100 0 -108 -22z" fill="url(#p-wicker)" stroke="#7a5431" stroke-width="4"/>' +
+      '<path d="M22 86 q0 -18 128 -18 q128 0 128 18 l-20 300 q-8 22 -108 22 q-100 0 -108 -22z" fill="url(#g-shade)" opacity=".7"/>' +
+      '<ellipse cx="150" cy="86" rx="128" ry="22" fill="#6b4a2a"/><ellipse cx="150" cy="86" rx="118" ry="16" fill="#3a2a1c"/>' +
+      '<path d="M22 86 q0 -22 128 -22 q128 0 128 22" fill="none" stroke="#e0b57a" stroke-width="6" stroke-linecap="round"/><path d="M22 86 q0 -22 128 -22 q128 0 128 22" fill="none" stroke="#7a5431" stroke-width="2"/>' +
+      '<path d="M60 70 q90 -70 180 0" fill="none" stroke="#8a6238" stroke-width="9" stroke-linecap="round"/><path d="M60 70 q90 -70 180 0" fill="none" stroke="#d4a86a" stroke-width="4" stroke-linecap="round"/>';
+  }
+  function basketSVG() { return '<g filter="url(#f-soft)">' + basketBody() + '</g>'; }
+  function tansuSVG(x, y, w, h) {
+    var s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="url(#g-wood)" stroke="#5a3a1a" stroke-width="2.5"/>';
+    var n = 3, dh = (h - 14) / n;
+    for (var i = 0; i < n; i++) { var dy = y + 6 + i * dh; s += '<rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="#d9ad74" stroke="#7a5431" stroke-width="1.5"/><rect x="' + (x + 7) + '" y="' + dy + '" width="' + (w - 14) + '" height="' + (dh - 5) + '" rx="2" fill="url(#g-shade)" opacity=".6"/><circle cx="' + (x + w / 2) + '" cy="' + (dy + (dh - 5) / 2) + '" r="' + Math.max(2, dh * 0.08) + '" fill="#3a2a1c"/>'; }
+    s += '<rect x="' + (x + 4) + '" y="' + (y + h) + '" width="10" height="6" fill="#5a3a1a"/><rect x="' + (x + w - 14) + '" y="' + (y + h) + '" width="10" height="6" fill="#5a3a1a"/>';
+    return s;
+  }
+  function hallSVG() {
+    return '<rect width="1000" height="310" fill="url(#g-wall)"/>' +
+      '<rect x="0" y="0" width="1000" height="310" fill="url(#p-linen)" opacity=".5"/>' +
+      '<rect x="430" y="50" width="150" height="130" fill="url(#g-sky)" stroke="#8a6238" stroke-width="8"/><line x1="505" y1="50" x2="505" y2="180" stroke="#8a6238" stroke-width="5"/><line x1="430" y1="115" x2="580" y2="115" stroke="#8a6238" stroke-width="5"/>' +
+      '<rect x="0" y="296" width="1000" height="16" fill="#7a5431"/><rect x="0" y="296" width="1000" height="4" fill="#a8773f"/>' +
+      '<rect x="0" y="312" width="1000" height="188" fill="url(#p-planks)"/>' +
+      '<rect x="0" y="312" width="1000" height="188" fill="url(#g-shade)" opacity=".6"/>' +
+      '<rect x="0" y="312" width="1000" height="40" fill="#000" opacity=".12"/>';
+  }
+  var STATION_BIG = {
+    shikii: '<rect x="4" y="76" width="92" height="14" rx="2" fill="#8a6238"/><rect x="4" y="70" width="92" height="8" rx="2" fill="#c49461"/><rect x="4" y="70" width="92" height="8" fill="url(#p-linen)" opacity=".6"/><line x1="4" y1="78" x2="96" y2="78" stroke="#5a3a1a" stroke-width="1.5"/><ellipse cx="50" cy="92" rx="48" ry="4" fill="#000" opacity=".2"/>',
+    neko: '<ellipse cx="50" cy="90" rx="44" ry="5" fill="#000" opacity=".25"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="#6b6b6b"/><ellipse cx="46" cy="74" rx="34" ry="16" fill="url(#g-shade)"/><path d="M20 70 q-14 -4 -10 -20 q2 -6 8 -4" stroke="#6b6b6b" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="74" cy="66" r="14" fill="#6b6b6b"/><circle cx="74" cy="66" r="14" fill="url(#g-shade)"/><path d="M63 56 l2 -12 l9 8z M85 56 l-2 -12 l-9 8z" fill="#6b6b6b" stroke="#555" stroke-width="1"/><path d="M66 55 l1 -7 l5 5z M82 55 l-1 -7 l-5 5z" fill="#d9a3a3"/><path d="M67 66 q3 -3 6 0 M76 66 q3 -3 6 0" stroke="#2b2118" stroke-width="1.5" fill="none"/><path d="M74 71 q-2 2 -4 1 M74 71 q2 2 4 1" stroke="#2b2118" stroke-width="1" fill="none"/><path d="M60 72 l-12 -2 M60 75 l-12 2 M88 72 l12 -2 M88 75 l12 2" stroke="#ddd" stroke-width="1"/><path d="M30 64 q4 8 0 16 M40 62 q4 10 0 20" stroke="#555" stroke-width="2" fill="none" opacity=".7"/>',
+    kaidan: '<path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#p-planks)"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8" fill="none" stroke="#5a3a1a" stroke-width="2.5"/><path d="M24 70 v20 M46 50 v20 M68 30 v20 M90 10 v20" stroke="#7a5431" stroke-width="2"/><path d="M2 90 h22 v-20 h22 v-20 h22 v-20 h22 v-20 h8 v100 h-96z" fill="url(#g-shade)" opacity=".5"/>',
+    tansu: ''
+  };
+  function stationArt(id) { return id === 'tansu' ? tansuSVG(8, 10, 84, 82) : STATION_BIG[id]; }
+  // 夕方・夜の部屋（タンスに とどいた物、かごに 落ちた物）
+  function roomScene(delivered, fallen, night) {
+    var s = '<rect width="600" height="330" fill="' + (night ? '#4a3f55' : '#f3dcb6') + '"/>';
+    s += '<rect x="60" y="40" width="190" height="160" fill="' + (night ? '#1f2a44' : '#f7a04d') + '" stroke="#8a6238" stroke-width="8"/>';
+    if (night) s += '<circle cx="200" cy="90" r="22" fill="#fff6c9"/><circle cx="110" cy="70" r="2" fill="#fff"/><circle cx="150" cy="120" r="1.6" fill="#fff"/><circle cx="90" cy="150" r="1.8" fill="#fff"/>';
+    else s += '<circle cx="155" cy="150" r="34" fill="#ffd27a"/><rect x="60" y="150" width="190" height="50" fill="#e97a3f" opacity=".7"/>';
+    s += '<line x1="155" y1="40" x2="155" y2="200" stroke="#8a6238" stroke-width="5"/><line x1="60" y1="120" x2="250" y2="120" stroke="#8a6238" stroke-width="5"/>';
+    s += '<rect x="0" y="330" width="600" height="170" fill="url(#p-planks)"/><rect x="0" y="330" width="600" height="170" fill="url(#g-shade)" opacity=".6"/>';
+    s += '<g filter="url(#f-soft)">' + tansuSVG(330, 150, 230, 200) + '</g>';
+    // タンスの上に とどいた物を たたんで 並べる（最大 12）
+    var cols = 4, cw = 50, x0 = 340, y0 = 146;
+    delivered.slice(0, 12).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind, sh = SHAPE[T.FOLD_BY_ID[f].shape]; var r = Math.floor(i / cols), c = i % cols; var w = Math.min(44, sh.w * 0.5), h = Math.min(22, sh.h * 0.8); s += pieceSVG(kind, f, x0 + c * cw + 22, y0 - r * 24, w, h, { noDir: true, shadow: true }); });
+    // かご（落ちた物）
+    s += '<g transform="translate(40,300) scale(.5)">' + basketBody() + '</g>';
+    fallen.slice(0, 8).forEach(function (f, i) { var kind = T.FOLD_BY_ID[f].kind; s += pieceSVG(kind, null, 70 + (i % 4) * 28 + 20, 345 + Math.floor(i / 4) * 10, 30, 14, {}); });
+    return s;
+  }
   // ---------- かご・たたみ方・山の描画 ----------
   function stackFolds(st) { return st.map(function (it) { return it.fold; }); }
   function tripsToday() { return T.DAYS[G.day].trips; }
-  function setScreen(sc) { G.screen = sc; document.body.className = 'sc-' + sc; }
+  var SCR = { stack: 'scr-stack', carry: 'scr-carry', evening: 'scr-evening', end: 'scr-end' };
+  function setScreen(sc) {
+    G.screen = sc; document.body.className = 'sc-' + sc;
+    Object.keys(SCR).forEach(function (k) { $(SCR[k]).classList.toggle('on', k === sc); });
+  }
   function guide(id, on) { var e = $(id); e.classList.toggle('hidden', !(on && !G.guideDone)); }
   function renderHead() {
     var v = T.variant(); $('variantLbl').textContent = v ? v.name : ''; $('variantLbl').classList.toggle('hidden', !v); $('variantLbl').title = v ? v.note : '';
-    $('dayLbl').textContent = (G.day + 1) + '日目／3';
+    $('dayLbl').textContent = (G.day + 1) + '日目／3'; $('carryDay').textContent = (G.day + 1) + '日目／3'; $('evDay').textContent = (G.day + 1) + '日目／3';
     $('tripLbl').textContent = 'おうふく ' + tripsToday() + 'かい';
   }
   function renderBasket() {
@@ -328,7 +401,7 @@
     guide('gStack', canPlace);
     var canCarry = G.screen === 'stack' && G.basket.length === 0 && used > 0;
     $('carryBtn').disabled = !canCarry;
-    $('carryNote').textContent = G.screen === 'stack' ? (G.basket.length ? 'かごを からに すると おせる' : (used < tripsToday() ? '☆' + (tripsToday() - used) + '（つかわない おうふく）' : '')) : '';
+    if (G.screen === 'stack') $('carryNote').textContent = G.basket.length ? 'かごを からに すると おせる' : (used < tripsToday() ? '☆' + (tripsToday() - used) + '（つかわない おうふく）' : 'ぜんぶ つんだ');
     guide('gCarry', canCarry);
     if (fx) showChanges(fx);
   }
@@ -348,7 +421,7 @@
       var numW = n.offsetWidth || 24;
       if (H < ph + 4) { pop.remove(); if (layers[ch.i]) layers[ch.i].classList.add('fx-take'); ch.givers.forEach(function (gi) { if (layers[gi]) layers[gi].classList.add('fx-give'); }); if (ch.to < ch.from) anyDown = true; else anyUp = true; setTimeout(function () { n.classList.remove('chg', 'up'); }, D(1600)); return; } // 箱が低すぎて 吹き出しが入らない時は 数字の色だけ変える
       var dense = sb.getAttribute('data-nummode') !== 'one' || n.classList.contains('gdot') || n.classList.contains('hidden');
-      if (dense && W >= pw + numW + 12) { var gm2 = sb.__geom || { offX: 0, sc: 1 }; x = (gm2.offX + 104 * gm2.sc) - numW / 2 - pw / 2 - 6; } // 数字が詰まっている（2列・等間隔）時は 数字の列ぜんぶの 左（絵の上）に出して 隣の数字と重ねない。箱が狭くて左に出せない時は 数字の場所に（小さい吹き出し）
+      if (dense && W >= pw + numW + 12) { var gm2 = sb.__geom || { offX: 0, sc: 1 }; x = (gm2.offX + 108 * gm2.sc) - numW / 2 - pw / 2 - 6; } // 数字が詰まっている（2列・等間隔）時は 数字の列ぜんぶの 左（絵の上）に出して 隣の数字と重ねない。箱が狭くて左に出せない時は 数字の場所に（小さい吹き出し）
       x = Math.max(pw / 2 + 2, Math.min(W - pw / 2 - 2, x));
       // 縦：箱の中に おさめ、前に出した吹き出しと 重ならない所まで ずらす
       // ほかの吹き出しとは ph+2 以上、見えている数字（自分以外）とは 高さの半分ずつ −4px 以上 離す
@@ -426,13 +499,19 @@
   }
 
   // ---------- 運ぶ（ログを 時間どおりに 再生するだけ） ----------
+  var ST_X = [18, 42, 66, 90]; // 出来事の中心（廊下の幅の %）
   function renderStations(now) {
     var s = '';
-    T.CFG.events.forEach(function (ev, i) { s += '<div class="st' + (now === i ? ' now' : '') + '"><svg viewBox="0 0 60 40">' + STATION_ART[ev.id] + '</svg><div class="sn">' + ev.name + '</div><div>ゆれ ' + ev.shake + '</div></div>'; });
-    s += '<div class="st' + (now === 3 ? ' now' : '') + '"><svg viewBox="0 0 60 40">' + STATION_ART.tansu + '</svg><div class="sn">タンス</div><div>とどく</div></div>';
+    T.CFG.events.forEach(function (ev, i) { s += '<div class="st' + (now === i ? ' now' : '') + '" style="left:' + ST_X[i] + '%"><div class="art"><svg viewBox="0 0 100 100">' + stationArt(ev.id) + '</svg></div><div class="lbl">' + ev.name + '　ゆれ ' + ev.shake + '</div></div>'; });
+    s += '<div class="st' + (now === 3 ? ' now' : '') + '" style="left:' + ST_X[3] + '%"><div class="art"><svg viewBox="0 0 100 100">' + stationArt('tansu') + '</svg></div><div class="lbl">タンス　とどく</div></div>';
     $('stations').innerHTML = s;
   }
-  var LEFT = ['0%', '20%', '40%', '60%']; // 運ぶ人の幅は 40%。はみ出さないように
+  var LEFT = ['7%', '31%', '55%', '79%']; // 運ぶ人（幅 22%）の左端。中心が 出来事の中心に来る
+  // 落ちた物を 床に残す
+  function dropToFloor(items, stationIdx) {
+    var fl = $('fallenFloor'), base = ST_X[stationIdx];
+    items.forEach(function (f, i) { var d = document.createElement('div'); d.className = 'fallen'; var off = (i - (items.length - 1) / 2) * 3.2 + (i % 2 ? 1.2 : -1.2); d.style.left = (base + off) + '%'; d.style.bottom = (i % 3) * 14 + 'px'; d.style.transform = 'translateX(-50%) rotate(' + ((i * 37) % 50 - 25) + 'deg)'; d.innerHTML = iconSVG(T.FOLD_BY_ID[f].kind, f); fl.appendChild(d); });
+  }
   function renderCarrierStack(items, calc, hot) {
     var out = {}; var cs = $('carrierStack');
     cs.innerHTML = stackSVG(items, calc, out);
@@ -453,7 +532,7 @@
     G.carrying = { res: res, done: [], delivered: 0 };
     var recs = [];
     $('carryBtn').disabled = true; $('carryNote').textContent = 'はこんでいる…';
-    $('carryBar').classList.remove('hidden'); $('carrier').classList.remove('hidden');
+    $('carrier').classList.remove('hidden'); $('fallenFloor').innerHTML = '';
     $('delivered').textContent = '';
     renderStacks();
     var stackIdx = []; G.stacks.forEach(function (s, i) { if (s.length) stackIdx.push(i); });
@@ -461,9 +540,10 @@
       var si = stackIdx[k], items = used[k].slice(), r = res.results[k];
       var calc = T.stackCalc(stackFolds(items));
       renderStations(-1);
-      var car = $('carrier'); car.style.transition = 'none'; car.style.left = '-2%'; void car.offsetWidth; car.style.transition = '';
+      var car = $('carrier'); car.style.transition = 'none'; car.style.left = '-6%'; void car.offsetWidth; car.style.transition = '';
       renderCarrierStack(items, calc, -1); tilt(calc.total, 0);
       $('carryBar').innerHTML = barHTML(calc.total, 0);
+      $('carryTitle').textContent = 'やま' + (si + 1) + '／' + used.length + 'つめ';
       carryMsg('やま' + (si + 1) + 'を はこぶ（ぐら ' + calc.total + '）');
       await wait(700);
       for (var e = 0; e < r.log.length; e++) {
@@ -491,6 +571,7 @@
           recs.push({ day: G.day, event: evDef, fromFold: dr.fromFold, fromIndex: dr.fromIndex, items: dr.items, stack: si, total: dr.total, acc: dr.acc, before: dr.stack.slice(), calc: dr.calc });
           G.auto.falls += dr.items.length;
           await wait(900);
+          dropToFloor(dr.items, e);
           var remain = dr.stack.slice(0, dr.fromIndex);
           var c2 = T.stackCalc(remain);
           renderCarrierStack(remain.map(function (f) { return { kind: T.FOLD_BY_ID[f].kind, fold: f }; }), c2, -1);
@@ -515,7 +596,7 @@
       renderStacks();
       await wait(800);
     }
-    $('carrier').classList.add('hidden'); $('carryBar').classList.add('hidden');
+    $('carrier').classList.add('hidden');
     renderStations(-1);
     endDay(res, recs);
   }
@@ -531,7 +612,7 @@
       mini = stackSVG(items, rec.calc, null, {}).replace('<svg ', '<svg class="mini" ');
       mini = mini.replace(/<g class="layer([^"]*)" data-i="(\d+)">/g, function (m0, cls, i) { return '<g class="layer' + cls + (parseInt(i, 10) >= rec.fromIndex ? ' fx-hot' : '') + '" data-i="' + i + '">'; });
     }
-    return '<div class="fallrec"><svg viewBox="0 0 60 40">' + STATION_ART[rec.event.id] + '</svg><div class="minibox">' + mini + '</div><div class="txt">' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
+    return '<div class="fallrec"><svg viewBox="0 0 100 100">' + stationArt(rec.event.id) + '</svg><div class="minibox">' + mini + '</div><div class="txt">' + rec.event.name + 'で、やま' + (rec.stack + 1) + 'の <b>' + esc(itemName(rec.fromFold)) + '</b>から 上 ' + rec.items.length + 'まい（ぐら ' + rec.total + '＋ゆれ ' + rec.acc + '）</div><div class="picks">' + pics + '</div></div>';
   }
   function endDay(res, recs) {
     setScreen('evening');
@@ -549,7 +630,7 @@
       $('evStars').textContent = stars ? '☆' + stars + '（つかわなかった おうふく ' + stars + 'かい）' : '☆0（おうふくを ぜんぶ つかった）';
       $('falls').innerHTML = recs.length ? recs.map(fallRecHTML).join('') : '<div class="fallrec">おちなかった！</div>';
       $('evNote').textContent = 'あしたは ' + T.basketOf(G.day + 1, G.carried).length + 'まい・おうふく ' + T.DAYS[G.day + 1].trips + 'かい';
-      $('evening').classList.remove('hidden'); $('stackUI').classList.add('hidden');
+      $('evScene').innerHTML = roomScene(res.delivered, res.fallen, false);
     } else {
       var left = G.carried.length;
       $('endBig').textContent = left === 0 ? 'せいこう！' : 'あと ' + left + 'まい';
@@ -558,7 +639,7 @@
       $('endStars').textContent = '☆の ごうけい ' + G.total.stars + '（' + G.dayLog.map(function (d) { return '☆' + d.stars; }).join('・') + '）';
       $('endDays').innerHTML = G.dayLog.map(function (d) { return d.day + '日目：とどいた ' + d.delivered + '・おちた ' + d.fallen; }).join('<br>') + (recs.length ? '<div id="falls" style="margin-top:6px">' + recs.map(fallRecHTML).join('') + '</div>' : '');
       $('endSeed').textContent = 'たね ' + G.seed;
-      $('end').classList.remove('hidden'); $('stackUI').classList.add('hidden');
+      $('endScene').innerHTML = roomScene(res.delivered, res.fallen, true);
       setScreen('end');
       if (left === 0) SFX.success();
     }
@@ -568,10 +649,10 @@
     G.day = d; G.basket = []; G.stacks = []; G.sel = null; G.selFold = null; G.carrying = null;
     T.basketOf(d, G.carried).forEach(function (kind) { G.basket.push({ id: G.nextId++, kind: kind, fold: null }); });
     setScreen('stack');
-    $('evening').classList.add('hidden'); $('end').classList.add('hidden'); $('stackUI').classList.remove('hidden');
     renderHead(); renderBasket(); renderFolds(); renderStacks(); renderStations(-1);
-    carryMsg(d === 0 ? 'つんだら「はこぶ」。はこぶのは みまもるだけ。' : 'きのう おちたのは かごに もどっている。');
-    $('delivered').textContent = '';
+    carryMsg('');
+    $('delivered').textContent = ''; $('carryTitle').textContent = '';
+    $('carryNote').textContent = d === 0 ? 'つんだら「はこぶ」。はこぶのは みまもるだけ。' : 'きのう おちたのは かごに もどっている。';
   }
   function newRun(seed) {
     G.seed = seed; G.rng = T.makeRng(seed); G.carried = []; G.dayLog = []; G.total = { delivered: 0, fallen: 0, stars: 0 }; G.fallRecs = [];
@@ -587,6 +668,8 @@
   $('startBtn').addEventListener('click', function () { audioInit(); SFX.click(); $('title').classList.add('hidden'); newRun(OPT.seed !== null ? OPT.seed : ((Date.now() ^ (Math.random() * 1e9)) >>> 0)); });
   $('titleArt').innerHTML = titleArt();
   $('carrier').querySelector('.person').innerHTML = personSVG();
+  $('basketArt').querySelector('svg.bk').innerHTML = basketSVG();
+  $('hall').querySelector('svg.bg').innerHTML = hallSVG();
   var sp0 = 1; try { sp0 = parseFloat(localStorage.getItem('tatami1.speed') || '1') || 1; } catch (e) { }
   setSpeed(sp0 === 2.5 ? 2.5 : 1);
   renderStations(-1);
@@ -605,7 +688,8 @@
   }
   function textElements() {
     var out = [], vw = window.innerWidth, vh = window.innerHeight;
-    var root = $('title').classList.contains('hidden') ? $('app') : $('title');
+    var root = $('title').classList.contains('hidden') ? document.querySelector('.scr.on') : $('title');
+    if (!root) return out;
     var all = root.querySelectorAll('*');
     for (var i = 0; i < all.length; i++) {
       var e = all[i];
@@ -625,7 +709,7 @@
       out.push({ el: e, rects: rects, er: er, text: e.textContent.trim().slice(0, 30), button: e.tagName === 'BUTTON' });
     }
     // 固定のボタン（はこぶ・つぎの日・↻・はやい）も相手に入れる：文字が その上に 入っていたら 重なり
-    if (root === $('app')) [$('carryBtn'), $('nextBtn'), $('againBtn')].forEach(function (b) { if (!b || b.offsetParent === null) return; var r = b.getBoundingClientRect(); if (r.width <= 0) return; out.push({ el: b, rects: [r], er: r, text: 'ボタン ' + b.textContent.trim(), button: true, fixed: true }); });
+    if (root !== $('title')) [$('carryBtn'), $('nextBtn'), $('againBtn')].forEach(function (b) { if (!b || b.offsetParent === null) return; var r = b.getBoundingClientRect(); if (r.width <= 0) return; out.push({ el: b, rects: [r], er: r, text: 'ボタン ' + b.textContent.trim(), button: true, fixed: true }); });
     return out;
   }
   function checkOverlap() {
@@ -669,8 +753,8 @@
     var de = document.documentElement;
     var sh = Math.max(de.scrollHeight, document.body.scrollHeight), sw = Math.max(de.scrollWidth, document.body.scrollWidth);
     if (sh > window.innerHeight + 1 || sw > window.innerWidth + 1) { var k = G.screen + ' ' + sw + 'x' + sh; G.auto.pageScroll[k] = (G.auto.pageScroll[k] || 0) + 1; }
-    // 画面の下まで 使っているか（main の箱が 窓からはみ出していないか）
-    var m = $('main').getBoundingClientRect(); if (m.bottom > window.innerHeight + 1) { var k2 = G.screen + ' main ' + Math.round(m.bottom) + '>' + window.innerHeight; G.auto.pageScroll[k2] = (G.auto.pageScroll[k2] || 0) + 1; }
+    // いまの場面が 窓に おさまっているか
+    var on = document.querySelector('.scr.on'); if (on) { var m = on.getBoundingClientRect(); if (m.bottom > window.innerHeight + 1 || m.right > window.innerWidth + 1) { var k2 = G.screen + ' scr ' + Math.round(m.right) + 'x' + Math.round(m.bottom); G.auto.pageScroll[k2] = (G.auto.pageScroll[k2] || 0) + 1; } }
   }
 
   // ---------- 自動プレイ（?auto=1）：画面を通して 3日遊び、最後に rules.js の計算と比べる ----------
